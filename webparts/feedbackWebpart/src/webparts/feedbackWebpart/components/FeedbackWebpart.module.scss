@@ -1,0 +1,111 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+* {
+  font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+}
+
+.feedbackContainer {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 3em 2em;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.textFieldContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: rgb(47, 129, 131);
+  margin-bottom: 1.5em;
+  text-align: center;
+}
+
+.info {
+  font-size: 1rem;
+  color: #444;
+  text-align: center;
+  margin-bottom: 2em;
+  line-height: 1.5;
+}
+
+.textBox {
+  width: 75%;
+  margin-bottom: 2.5em;
+}
+
+.buttonContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.submitButton {
+  background-color: rgb(47, 129, 131);
+  color: rgb(234, 245, 245);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 24px;
+  min-width: 120px;
+  min-height: 36px;
+  border-radius: 2px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  margin-bottom: 2em;
+
+  &:hover {
+    background-color: rgb(39, 109, 110);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background-color: #a5b8b9;
+    cursor: not-allowed;
+  }
+}
+
+.statusContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2em;
+}
+
+.messageBar {
+  width: 40%;
+  border-radius: 8px;
+  margin-top: 1em;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: all 0.25s ease;
+}
+
+.success {
+  background-color: #e7f5f5;
+  border-left: 5px solid #2f8183;
+  color: #1a5556;
+}
+
+.error {
+  background-color: #fdecea;
+  border-left: 5px solid #d83b01;
+  color: #8a1f11;
+}
+

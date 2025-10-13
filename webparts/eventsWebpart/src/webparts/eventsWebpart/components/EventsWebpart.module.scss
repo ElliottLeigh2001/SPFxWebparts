@@ -1,0 +1,269 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+.eventContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.title {
+  display: flex;
+  justify-content: center;
+  margin: 1em;
+  font-weight: bold;
+}
+
+.addButton {
+  display: flex;
+  justify-content: flex-end;
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 3px 10px;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.eventItem {
+  width: 45%;
+  min-height: 400px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: 0.2s;
+}
+
+.eventItem:hover {
+  border: 2px solid gray;
+}
+
+.eventImg {
+  width: 100%;
+  height: 175px;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
+}
+
+.imgContainer {
+  background-color: grey;
+}
+
+.carouselControls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px;
+}
+
+.carouselControls button {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.detailsContainer {
+  max-height: 1000px;
+  text-align: center;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.detailsImage {
+  width: 100%;
+  max-width: 400px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.backButton {
+  display: flex;
+  background: none;
+  border: none;
+  color: white;
+  background-color: rgb(47, 129, 131);
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  padding: 8px 20px;
+}
+
+.backButton:hover {
+  background-color: rgb(39, 109, 110);
+}
+
+.description {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 15px;
+  color: #333;
+  line-height: 1.5;
+  font-size: large;
+  font-weight: 600;
+}
+
+.signUpButton {
+  background: none;
+  border: none;
+  color: white;
+  background-color: rgb(47, 129, 131);
+  border: 3px solid rgb(47, 129, 131);
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 20px;
+  padding: 10px 24px;
+}
+
+.signUpButton:hover {
+  background-color: rgb(39, 109, 110);
+  border: 3px solid rgb(39, 109, 110);
+}
+
+.signOutButton {
+  background-color: transparent;
+  color: #333;
+  border: 3px solid rgb(47, 129, 131);
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  margin: 20px;
+  cursor: pointer;
+}
+
+.signOutButton:hover {
+  border: 3px solid rgb(39, 109, 110);
+  background-color: #ccc;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 60px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  text-align: left;
+  border: 4px solid rgb(47, 129, 131);
+}
+
+.modalContent h3 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 2em;
+  font-size: 1.4em;
+}
+
+.modalContent textarea {
+  width: 100%;
+  min-height: 80px;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 2em;
+}
+
+.submitButton {
+  background-color: rgb(47, 129, 131);
+  color: white;
+  border: 3px solid rgb(47, 129, 131);
+  border-radius: 12px;
+  font-size: 16px;
+  padding: 5px 12px;
+  margin: 20px;
+  cursor: pointer;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: #333;
+  border: 3px solid rgb(47, 129, 131);
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  margin: 20px;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  border: 3px solid rgb(39, 109, 110);
+  background-color: #ccc;
+}
+
+.submitButton:hover {
+  background-color: rgb(39, 109, 110);
+  border: 3px solid rgb(39, 109, 110);
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  color: #333;
+  padding: 12px 18px;
+  border-radius: 6px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  z-index: 9999;
+  animation: fadeInOut 4s ease forwards;
+}
+
+.success {
+  background-color: #1ec968;
+  color: white;
+}
+
+.error {
+  background-color: #d9534f;
+  color: white;
+}
+
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10%, 90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
