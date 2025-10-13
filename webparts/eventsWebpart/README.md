@@ -4,9 +4,11 @@
 
 A React based SPFx webpart designed to streamline the process of signing in and out for company events. 
 
-## Used SharePoint Framework Version
+## Versions used
 
-![version](https://img.shields.io/badge/version-1.21.1-green.svg)
+![version](https://img.shields.io/badge/SPFx-1.21.1-green.svg)
+![version](https://img.shields.io/badge/node-1.21.1-green.svg)
+![version](https://img.shields.io/badge/react-17.0.1-green.svg)
 
 ## Applies to
 
@@ -19,12 +21,12 @@ A React based SPFx webpart designed to streamline the process of signing in and 
 - Clone this repository
 - Ensure that you are at the solution folder
 - In the command-line run:
-  - **npm install**
-  - **gulp serve**
+  - ```npm install```
+  - ```gulp serve```
 
 To import into SharePoint site collection:
-  - **gulp bundle**
-  - **gulp package-solution**
+  - ```gulp bundle```
+  - ```gulp package-solution```
   - Navigate to apps inside the SharePoint admin centre and import the sppkg file that is found in the sharepoint/solution folder
   - When added to your apps, you can use the webpart in any modern page on your site collection
 
