@@ -5,7 +5,7 @@ import styles from './FeedbackWebpart.module.scss';
 
 const FeedbackWebpart: React.FC = () => {
   const [feedback, setFeedback] = useState('');
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('success');
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [loading, setLoading] = useState(false);
 
   const FLOW_URL = 'https://default1a44e8c4fbc44d25b648099e23c46f.e2.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/85b0f95cd38a4f42b54bfd96f9d36611/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=IktP2aVg1UdkWga4KofiU3A9-qvV6NZbmYcQyZkPuMo';
@@ -49,7 +49,8 @@ const FeedbackWebpart: React.FC = () => {
   return (
     <div className={styles.feedbackContainer}>
       <h1 className={styles.title}>Feedback</h1>
-      <p className={styles.info}>Heb je een vraag, opmerking of suggestie? Laat het ons weten. Dit formulier zal anoniem behandeld worden.</p>
+      <p className={styles.info}>Do you have a question, comment, or suggestion? We’d love to hear from you. 
+Your response will be treated confidentially and remains anonymous.</p>
       <div className={styles.textFieldContainer}>
         <TextField
           styles={{
@@ -60,7 +61,7 @@ const FeedbackWebpart: React.FC = () => {
               },
 
             }}
-            placeholder='Vul hier je feedback in'
+            placeholder='Write your feedback here'
             className={styles.textBox}
             multiline
             rows={3}
@@ -75,7 +76,7 @@ const FeedbackWebpart: React.FC = () => {
             messageBarType={MessageBarType.success}
             className={`${styles.messageBar} ${styles.success}`}
           >
-            Bedankt voor je feedback!
+            Thanks for your feedback!
           </MessageBar>
         )}
 
@@ -84,7 +85,7 @@ const FeedbackWebpart: React.FC = () => {
             messageBarType={MessageBarType.error}
             className={`${styles.messageBar} ${styles.error}`}
           >
-            Er liep iets fout. Probeer later opnieuw.
+            Something went wrong. Try again later.
           </MessageBar>
         )}
       </div>
