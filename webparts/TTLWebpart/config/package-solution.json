@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "ttl-webpart-client-side-solution",
+    "id": "0d43f362-6a6c-4aed-b88b-6992aed8fb06",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "ttl-webpart description"
+      },
+      "longDescription": {
+        "default": "ttl-webpart description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "ttl-webpart Feature",
+        "description": "The feature that activates elements of the ttl-webpart solution.",
+        "id": "b9f46923-8b9a-4b01-b18f-be5f0d439a47",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/ttl-webpart.sppkg"
+  }
+}

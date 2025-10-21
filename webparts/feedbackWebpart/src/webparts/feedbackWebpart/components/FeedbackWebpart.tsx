@@ -91,7 +91,7 @@ Your response will be treated confidentially and remains anonymous.</p>
       </div>
       <div className={styles.buttonContainer}>
         <PrimaryButton 
-          text="Verstuur" 
+          text="Send" 
           onClick={handleSubmit} 
           disabled={loading || !feedback.trim()} 
           className={styles.submitButton}

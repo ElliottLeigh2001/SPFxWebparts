@@ -13,4 +13,13 @@ export interface EventItem {
   FoodEvent: boolean;
   Beschrijving: string;
   Location: string;
+  SignupDeadline: string;
+  PlusOne: boolean;
+  EventType: string;
+  Signinlink?: {
+    Description?: string;
+    Url?: string;
+  } | string | null;
+  Carpooling: boolean;
+  DepartureFrom: string;
 }

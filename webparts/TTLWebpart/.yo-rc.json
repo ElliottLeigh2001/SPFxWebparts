@@ -1,0 +1,18 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.19.0",
+    "sdksVersions": {},
+    "version": "1.21.1",
+    "libraryName": "ttl-webpart",
+    "libraryId": "0d43f362-6a6c-4aed-b88b-6992aed8fb06",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "ttl-webpart",
+    "solutionShortDescription": "ttl-webpart description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}

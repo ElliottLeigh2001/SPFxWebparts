@@ -1,0 +1,392 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
+
+.header h1 {
+  margin-bottom: 30px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.tableContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.requestsTable {
+  width: 100%;
+  border-collapse: collapse;
+  
+  thead {
+    background-color: #f8f9fa;
+    
+    th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #e1e5e9;
+      font-size: 14px;
+    }
+  }
+  
+  tbody {
+    tr {
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        background-color: #f8f9fa;
+      }
+    }
+  }
+}
+
+.requestRow {
+  cursor: pointer;
+  
+  td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #e1e5e9;
+    font-size: 14px;
+  }
+  
+  &:last-child td {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background-color: #f3f2f1 !important;
+  }
+}
+
+.status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  
+  &.approved,
+  &.completed {
+    background-color: #dff6dd;
+    color: #107c10;
+  }
+  
+  &.pending,
+  &.inprogress {
+    background-color: #fff4ce;
+    color: #8a6d00;
+  }
+  
+  &.rejected,
+  &.cancelled {
+    background-color: #fde7e9;
+    color: #a4262c;
+  }
+  
+  &.draft {
+    background-color: #f3f2f1;
+    color: #605e5c;
+  }
+}
+
+.noData {
+  text-align: center;
+  color: #605e5c;
+  padding: 40px !important;
+  font-style: italic;
+}
+
+.newRequestButtonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.stdButton {
+  background: none;
+  border: none;
+  color: white;
+  background-color: rgb(47, 129, 131);
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  padding: 8px 20px;
+  
+  &:hover {
+    background-color: rgb(39, 109, 110);
+  }
+}
+
+.ttlForm {
+  background: #ffffff;
+  padding: 24px 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  max-width: 720px;
+  margin: 20px auto;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.ttlForm h2 {
+  font-size: 22px;
+  color: #323130;
+  border-bottom: 2px solid #f3f2f1;
+  padding-bottom: 6px;
+  margin-bottom: 20px;
+}
+
+.ttlForm h3 {
+  font-size: 18px;
+  color: #201f1e;
+  margin-bottom: 16px;
+}
+
+.formItem {
+  display: flex;
+  flex-direction: column;
+  width: 48%;
+}
+
+.formItemShort {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+}
+
+.formRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.formRowLabel {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #3b3a39;
+}
+
+.formRow input[type="text"],
+.formRow input[type="date"],
+.formRow input[type="number"],
+.formRow select {
+  padding: 10px 12px;
+  border: 1px solid #d2d0ce;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+select:hover,
+select:focus,
+input:hover,
+input:focus {
+  border-color: rgb(47, 129, 131);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(47, 129, 131, 0.2);
+}
+
+.invalid {
+  border-color: #a4262c !important;
+  background: #f9f0f0;
+}
+
+.validationError {
+  color: #a4262c;
+  font-size: 12px;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.cancelButton {
+  background-color: transparent;
+  border: 3px solid rgb(47, 129, 131);
+  padding: 5px 12px 7px 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  border: 3px solid rgb(39, 109, 110);
+  background-color: #ccc;
+}
+
+.saveButton {
+  background-color: rgb(47, 129, 131);
+  border: 3px solid rgb(47, 129, 131);
+  color: white;
+  padding: 5px 12px 7px 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.saveButton:hover {
+  background-color: rgb(39, 109, 110);
+  border: 3px solid rgb(39, 109, 110);
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.formActions button:disabled {
+  border: 3px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+}
+
+// Item list
+.ttlForm ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+  border-top: 1px solid #edebe9;
+  padding-top: 12px;
+}
+
+.ttlForm li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f2f1;
+  font-size: 14px;
+}
+
+.ttlForm li button {
+  background: transparent;
+  color: #a4262c;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.ttlForm li button:hover {
+  text-decoration: underline;
+}
+
+
+// Details Page Styles
+.detailsHeader {
+  margin-bottom: 30px;
+  
+  .backButton {
+    background: none;
+    border: none;
+    color: #0078d4;
+    cursor: pointer;
+    padding: 8px 0;
+    font-size: 14px;
+    margin-bottom: 20px;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  
+  h1 {
+    margin: 0 0 16px 0;
+    font-size: 24px;
+  }
+}
+
+.requestSummary {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  
+  span {
+    font-size: 14px;
+    color: #605e5c;
+  }
+}
+
+.detailsTableContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  
+  h2 {
+    padding: 20px 24px;
+    margin: 0;
+    background-color: #f8f9fa;
+    font-size: 20px;
+    border-bottom: 1px solid #e1e5e9;
+  }
+}
+
+.detailsTable {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-x: scroll;
+  
+  thead {
+    background-color: #f8f9fa;
+    
+    th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+
+      border-bottom: 2px solid #e1e5e9;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+  }
+  
+  tbody {
+    td {
+      padding: 16px 12px;
+      border-bottom: 1px solid #e1e5e9;
+
+      font-size: 13px;
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #605e5c;
+  font-size: 16px;
+}
+
+.error {
+  color: red;
+}
+
+@media (max-width: 1150px) {
+  .ttlDashboard {
+    padding: 10px;
+  }
+  
+  .detailsTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .requestSummary {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
