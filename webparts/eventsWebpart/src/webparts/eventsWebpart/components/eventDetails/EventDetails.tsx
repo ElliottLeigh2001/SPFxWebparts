@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import styles from './EventsWebpart.module.scss';
 import { spfi, SPFI } from "@pnp/sp";
 import { SPFx } from "@pnp/sp/presets/all";
-import { EventItem } from '../EventsInterfaces';
-import { SignupModal } from './SignupModal';
-import { formatDate, formatSingleDate } from '../utils/dateUtils';
-import { useEventSignup } from '../hooks/useEventSignup';
+import { EventItem } from '../../EventsInterfaces';
+import { SignupModal } from '../signupModal/SignupModal';
+import { formatDate, formatSingleDate } from '../../utils/DateUtils';
+import { useEventSignup } from '../../hooks/UseEventSignup';
+import detailsStyles from './EventDetails.module.scss'
 
 let sp: SPFI;
 export const getSP = (context: WebPartContext): SPFI => {
@@ -35,11 +35,11 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     ? `${context.pageContext.web.absoluteUrl}/Lists/HR_Events/Attachments/${event.Id}/${imageData.fileName}`
     : undefined;
 
-  // Sign up deadline logic (you can still sign up on the day of the deadline)
+  // Sign up deadline logic
   const today = new Date();
   const signupDeadlineDate = new Date(event.SignupDeadline);
+  // +1 so you can still sign up on the day of the deadline
   signupDeadlineDate.setDate(signupDeadlineDate.getDate() + 1);
-
   const canSignUp = signupDeadlineDate >= today || event.SignupDeadline === null;
   const showSignupButtons = event.EventType !== 'No signup';
 
@@ -50,10 +50,11 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
         const sp = getSP(context);
         const items = await sp.web.lists
           .getByTitle("Subscriptions")
+          // Filter on eventId
           .items.filter(`EventId eq ${event.Id}`)
+          // Get name and carpooling status
           .select("Id", "Carpooling", "DepartureFrom", "Attendee/Title")
           .expand("Attendee")();
-        console.log("Fetched attendees:", items);
         setAttendees(items);
       } catch (error) {
         console.error("Error fetching attendees:", error);
@@ -63,18 +64,18 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     fetchAttendees();
   }, [context, event]);
 
-  // Sign up / out button logic
+  // Sign up, sign out and deadline logic
   const renderSignupButton = () => {
     if (!showSignupButtons) return null;
 
     if (!canSignUp) {
-      return <p style={{color: 'red', fontSize: 'large'}}>Signup deadline has passed</p>;
+      return <p className={detailsStyles.cantSignUp}>Signup deadline has passed</p>;
     }
 
     if (isSignedUp) {
       return (
         <button 
-          className={styles.signOutButton} 
+          className={detailsStyles.signOutButton} 
           onClick={handleSignOut}
           disabled={loading}
         >
@@ -84,7 +85,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     } else {
       return (
         <button 
-          className={styles.signUpButton} 
+          className={detailsStyles.signUpButton} 
           onClick={() => setShowModal(true)}
           disabled={loading}
         >
@@ -101,13 +102,13 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     const signInUrl =
       typeof event.Signinlink === "string"
         ? event.Signinlink
-        : event.Signinlink?.Url;
+        : event.Signinlink
 
     if (!signInUrl) return null;
 
     return (
       <button
-        className={styles.signUpButton}
+        className={detailsStyles.signUpButton}
         onClick={() => (window.location.href = signInUrl)}
         disabled={loading}
       >
@@ -118,14 +119,14 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
 
 
   return (
-    <div className={styles.detailsContainer}>
-      <button onClick={onBack} className={styles.backButton}>← Back</button>
+    <div className={detailsStyles.detailsContainer}>
+      <button onClick={onBack} className={detailsStyles.backButton}>← Back</button>
       
-      {imageUrl && <img src={imageUrl} alt={event.Title} className={styles.detailsImage} />}
+      {imageUrl && <img src={imageUrl} alt={event.Title} className={detailsStyles.detailsImage} />}
       
       {attendees.length > 0 ? (
-        <div className={styles.topRightBox}>
-          <h4 style={{fontSize: 'large', textDecoration: 'underline'}}>Attendees ({attendees.length})</h4>
+        <div className={detailsStyles.topRightBox}>
+          <h4>Attendees ({attendees.length})</h4>
           <ul>
             {attendees.map((att) => (
               <li key={att.Id}>
@@ -140,7 +141,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
           </ul>
         </div>
       ) : (
-        <div className={styles.topRightBox}>
+        <div className={detailsStyles.topRightBox}>
           <h2>Attendees ({attendees.length})</h2>
           <p>There are no attendess for this event</p>
         </div>
@@ -154,22 +155,22 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
         </svg>{formatDate(event.StartTime, event.EndTime)}
       </p>
       
-      {event.FoodEvent && <p style={{ color: 'green' }}>Food Included</p>}
+      {event.FoodEvent && <p className={detailsStyles.foodEvent}>Food Included</p>}
       
-      <div className={styles.descriptionContainer}>
+      <div className={detailsStyles.descriptionContainer}>
         {event.Beschrijving && (
           <div
-          className={styles.description}
+          className={detailsStyles.description}
           dangerouslySetInnerHTML={{ __html: event.Beschrijving }}
           />
         )}
       </div>
-      <div style={{color: 'red', fontWeight: 'bold', marginTop: '20px'}}>
+      <div className={detailsStyles.signupDeadline}>
         {event.SignupDeadline && `Sign up deadline: ${formatSingleDate(event.SignupDeadline)} at 23:59`}
       </div>
 
       {checkingStatus ? (
-        <div className={styles.loading}>Checking signup status...</div>
+        <div className={detailsStyles.loading}>Checking signup status...</div>
       ) : (
         event.EventType === 'Custom' || event.EventType === 'Online signup' ? (
           renderCustomSignup()
@@ -180,7 +181,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       )}
 
       {notification && (
-        <div className={`${styles.notification} ${notification.type === 'success' ? styles.success : styles.error}`}>
+        <div className={`${detailsStyles.notification} ${notification.type === 'success' ? detailsStyles.success : detailsStyles.error}`}>
           {notification.message}
         </div>
       )}

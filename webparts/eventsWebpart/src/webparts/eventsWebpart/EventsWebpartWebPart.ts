@@ -8,7 +8,6 @@ export interface IEventsWebpartWebPartProps {
   description: string;
 }
 
-
 export default class EventsWebpartWebPart extends BaseClientSideWebPart<{}> {
   public render(): void {
     const element: React.ReactElement<IEventsWebpartProps> = React.createElement(

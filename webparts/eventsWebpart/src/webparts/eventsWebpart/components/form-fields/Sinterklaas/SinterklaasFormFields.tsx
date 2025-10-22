@@ -1,21 +1,7 @@
 import * as React from 'react';
-import styles from '../EventsWebpart.module.scss';
-
-export interface KidData {
-  nameChild: string;
-  presentChoice: 'present' | 'donation';
-  presentOption1: string;
-  presentOption2: string;
-  presentOption3: string;
-}
-
-interface SinterklaasFormFieldsProps {
-  amountOfKids: number;
-  setAmountOfKids: (value: number) => void;
-  kidsData: KidData[];
-  setKidsData: (kidsData: KidData[]) => void;
-  disabled: boolean;
-}
+import styles from '../../EventsWebpart.module.scss';
+import { KidData, SinterklaasFormFieldsProps } from './SinterklaasFormInterface';
+import sinterklaasStyles from './Sinterklaas.module.scss'
 
 export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
   amountOfKids,
@@ -45,6 +31,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
     }
   }, [amountOfKids, kidsData.length]);
 
+  // Logic to add the kids' data to the correct kid and fields
   const updateKidData = (index: number, field: keyof KidData, value: string) => {
     const newKidsData = [...kidsData];
     newKidsData[index] = {
@@ -72,7 +59,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
       </label>
 
       {kidsData.map((kid, index) => (
-        <div key={index} style={{ marginTop: '10px', marginBottom: '10px', padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
+        <div key={index} className={sinterklaasStyles.kidContainer}>
           <h4>Child {index + 1}</h4>
           
           <label>

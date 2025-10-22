@@ -1,14 +1,5 @@
 import React from 'react';
-
-interface FoodFormFieldsProps {
-  food: string;
-  setFood: (value: string) => void;
-  dietaryPrefs: string;
-  setDietaryPrefs: (value: string) => void;
-  disabled: boolean;
-  label?: string;
-  prefix?: string;
-}
+import { FoodFormFieldsProps } from './FoodFormInterface';
 
 export const FoodFormFields: React.FC<FoodFormFieldsProps> = ({
   food,

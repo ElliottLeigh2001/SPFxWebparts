@@ -1,12 +1,6 @@
 import React from 'react';
-
-interface CarpoolingFormFieldsProps {
-  carpooling: string;
-  setCarpooling: (value: string) => void;
-  departureFrom: string;
-  setDepartureFrom: (value: string) => void;
-  disabled: boolean;
-}
+import { CarpoolingFormFieldsProps } from './CarpoolingFormInterface';
+import carpoolStyles from './CarpoolingForm.module.scss';
 
 export const CarpoolingFormFields: React.FC<CarpoolingFormFieldsProps> = ({
   carpooling,
@@ -40,7 +34,7 @@ export const CarpoolingFormFields: React.FC<CarpoolingFormFieldsProps> = ({
             value={departureFrom}
             onChange={(e) => setDepartureFrom(e.target.value)}
             disabled={disabled}
-            style={{width: '100%', margin: '5px 0 10px 0'}}
+            className={carpoolStyles.departureFrom}
             required
           />
         </label>

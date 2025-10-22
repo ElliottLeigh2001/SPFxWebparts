@@ -2,7 +2,7 @@
 
 ## Summary
 
-A React based SPFx webpart designed to streamline the process of signing in and out for company events. For each event type, unique form fields will be visible and are to be filled in (optionally or mandatory.)
+A React based SPFx webpart designed to streamline the process of signing in and out for company events. For each event type, unique form fields will be visible and are to be filled in, either optionally or mandatory. 
 
 ## Versions used
 
@@ -10,13 +10,21 @@ A React based SPFx webpart designed to streamline the process of signing in and 
 ![version](https://img.shields.io/badge/node-1.21.1-green.svg)
 ![version](https://img.shields.io/badge/react-17.0.1-green.svg)
 
-## Applies to
+## Extra packages
 
-- [SharePoint Framework](https://aka.ms/spfx)
-- [Microsoft 365 tenant](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/set-up-your-developer-tenant)
+- pnp/sp version 4.16.0 is used to easily retrieve data from and add to SharePoint lists
 
+## Files explanation
 
-## Minimal Path to Awesome
+- EventWebpart.tsx: main component containing the overview of events, filters and the add event button.
+- EventDetails.tsx: when an event is pressed, this component is used to render extra information about the event and gives the option to sign up / out for events.
+- Form-fields folder containing 5 components (carpooling, family, plusone, sinterklaas and sport): based on which event you want to sign up for, one of these forms will render and contains fields that are relevant for that specific event type.
+- UseEventSignup.ts: contains logic to sign up / out for events and shows notifications.
+- DateUtils.ts: helper functions for formatting dates.
+
+***Each component also has an interface and scss file for modularity and readability***
+
+## Setup
 
 - Clone this repository
 - Ensure that you are at the solution folder
@@ -33,12 +41,12 @@ To import into SharePoint site collection:
 ## Features
 
 - Shows all events from the HR_Event list
+- Able to filter on start date, end date and event type
 - When an event is clicked, you see extra details and a button to sign in / out
 - When signing in, a form appears with fields specific for that type of event
 - When submitted, the person is added to the list of subscriptions for the event
 - When signing out, the user is asked to confirm their decision, after which they are removed from the list
 - hr-be owners and hr-be members have the extra option of adding an event, which takes them to the list in SharePoint
-
 
 ## References
 

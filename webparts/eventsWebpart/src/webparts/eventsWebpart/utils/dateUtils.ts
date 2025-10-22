@@ -1,3 +1,4 @@
+// Date formatting for displaying start and end dates
 export const formatDate = (startTime: string, endTime: string): string => {
   const startDate = new Date(startTime);
   const endDate = new Date(endTime);
@@ -12,6 +13,7 @@ export const formatDate = (startTime: string, endTime: string): string => {
   }
 };
 
+// Date formatting for displaying sign up deadline
 export const formatSingleDate = (date: string): string => {
   const startDate = new Date(date);
   const pad = (num: number): string => (num < 10 ? '0' + num : num.toString());

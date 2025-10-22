@@ -1,17 +1,7 @@
 import React from 'react';
-import { FoodFormFields } from './FoodFormFields';
-import styles from '../EventsWebpart.module.scss';
-
-interface PlusOneFormFieldsProps {
-  plusOne: boolean;
-  setPlusOne: (value: boolean) => void;
-  dietaryPrefsPlusOne: string;
-  setDietaryPrefsPlusOne: (value: string) => void;
-  foodPlusOne: string;
-  setFoodPlusOne: (value: string) => void;
-  disabled: boolean;
-  showFoodFields: boolean;
-}
+import { FoodFormFields } from '../Food/FoodFormFields';
+import styles from '../../EventsWebpart.module.scss';
+import { PlusOneFormFieldsProps } from './PlusOneFormInterface';
 
 export const PlusOneFormFields: React.FC<PlusOneFormFieldsProps> = ({
   plusOne,

@@ -1,17 +1,7 @@
 import * as React from 'react';
-import styles from '../EventsWebpart.module.scss';
-
-interface FamilyFormFieldsProps {
-  amountOfKids: number;
-  setAmountOfKids: (value: number) => void;
-  ageChild1: number;
-  setAgeChild1: (value: number) => void;
-  ageChild2: number;
-  setAgeChild2: (value: number) => void;
-  ageChild3: number;
-  setAgeChild3: (value: number) => void;
-  disabled: boolean;
-}
+import styles from '../../EventsWebpart.module.scss';
+import { FamilyFormFieldsProps } from './FamilyFormInterface';
+import familyStyles from './FamilyForm.module.scss'
 
 export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
   amountOfKids,
@@ -42,7 +32,7 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
       </label>
 
       {amountOfKids >= 1 && (
-        <div style={{ marginTop: '10px', marginBottom: '10px', padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
+        <div className={familyStyles.kidAges}>
           <div>
             <label>
               Age child 1 *

@@ -1,10 +1,5 @@
 import React from 'react';
-
-interface SportFormFieldsProps {
-  shirtSize: string;
-  setShirtSize: (value: string) => void;
-  disabled: boolean;
-}
+import { SportFormFieldsProps } from './SportFormInterface';
 
 export const SportFormFields: React.FC<SportFormFieldsProps> = ({
   shirtSize,

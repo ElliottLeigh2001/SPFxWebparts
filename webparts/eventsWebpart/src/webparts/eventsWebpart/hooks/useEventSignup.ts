@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { EventItem } from '../EventsInterfaces';
-import { getSP } from '../components/EventDetails';
-import { KidData } from '../components/form-fields/SinterklaasFormFields';
+import { getSP } from '../components/eventDetails/EventDetails';
+import { KidData } from '../components/form-fields/Sinterklaas/SinterklaasFormInterface';
 
 interface SignupFormData {
   extraInfo: string;
@@ -27,7 +27,7 @@ export const useEventSignup = (context: WebPartContext, event: EventItem) => {
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [checkingStatus, setCheckingStatus] = useState<boolean>(true);
 
-
+  // Check if user is signed up
   useEffect(() => {
     const checkSignup = async (): Promise<void> => {
       try {
@@ -50,6 +50,7 @@ export const useEventSignup = (context: WebPartContext, event: EventItem) => {
     checkSignup();
   }, [context, event]);
 
+  // After sign up, show a notification 
   const showNotification = (type: 'success' | 'error', message: string): void => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 4000);

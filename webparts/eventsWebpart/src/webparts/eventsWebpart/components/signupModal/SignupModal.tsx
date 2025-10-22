@@ -1,21 +1,13 @@
 import React, { useState } from 'react';
-import { EventItem } from '../EventsInterfaces';
-import { SportFormFields } from './form-fields/SportFormField';
-import { FoodFormFields } from './form-fields/FoodFormFields';
-import { PlusOneFormFields } from './form-fields/PlusOneFormFields';
-import { CarpoolingFormFields } from './form-fields/CarpoolingFormFields';
-import styles from './EventsWebpart.module.scss';
-import { SinterklaasFormFields } from './form-fields/SinterklaasFormFields';
-import { FamilyFormFields } from './form-fields/FamilyFormFields';
+import { SportFormFields } from '../form-fields/Sport/SportFormField';
+import { FoodFormFields } from '../form-fields/Food/FoodFormFields';
+import { CarpoolingFormFields } from '../form-fields/Carpooling/CarpoolingFormFields';
+import  { FamilyFormFields } from '../form-fields/Family/FamilyFormFields';
+import { SinterklaasFormFields } from '../form-fields/Sinterklaas/SinterklaasFormFields';
+import { PlusOneFormFields } from '../form-fields/PlusOne/PlusOneFormFields';
+import modalStyles from './SignupModal.module.scss';
+import { SignupModalProps } from './SignupModalInterface';
 
-interface SignupModalProps {
-  event: EventItem;
-  onSubmit: (formData: any) => Promise<void>;
-  onClose: () => void;
-  loading: boolean;
-}
-
-// All possible data that can be filled in in the forms
 interface FormData {
   extraInfo: string;
   dietaryPrefs: string;
@@ -89,8 +81,8 @@ export const SignupModal: React.FC<SignupModalProps> = ({
   };
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
+    <div className={modalStyles.modalOverlay}>
+      <div className={modalStyles.modalContent}>
         <h3>Sign up for {event.Title}</h3>
         <form onSubmit={handleSubmit}>
           {event.EventType === 'Sport' && (
@@ -167,11 +159,11 @@ export const SignupModal: React.FC<SignupModalProps> = ({
             />
           </label>
 
-          <div className={styles.modalActions}>
-            <button type="submit" className={styles.submitButton} disabled={loading}>
+          <div className={modalStyles.modalActions}>
+            <button type="submit" className={modalStyles.submitButton} disabled={loading}>
               Submit
             </button>
-            <button type="button" onClick={handleClose} className={styles.cancelButton} disabled={loading}>
+            <button type="button" onClick={handleClose} className={modalStyles.cancelButton} disabled={loading}>
               Cancel
             </button>
           </div>
