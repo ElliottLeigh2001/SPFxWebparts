@@ -77,7 +77,7 @@
 
 .topRightBox {
   position: absolute;
-  top: 30px;
+  top: 50px;
   right: 30px;
   background: #f9f9f9;
   padding: 18px 24px;
@@ -125,6 +125,8 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  max-height: 600px;
+  overflow-y: scroll;
 }
 
 .description {

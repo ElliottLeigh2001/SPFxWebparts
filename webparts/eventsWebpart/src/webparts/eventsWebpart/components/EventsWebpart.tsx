@@ -21,16 +21,17 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const ITEMS_PER_PAGE = 4;
 
   // All event types. They could be obtained dynamically through an API call
-  // But if any new event types were made, they would be useless untill a new
+  // But if any new event types were made, they would be useless until a new
   // Form was created anyway
-  const eventTypes = [
-    "Standard",
-    "Sinterklaas",
-    "Family",
-    "Staff party",
-    "Sport",
-    "No signup",
-  ];
+  const eventTypes: Record<string, string> = {
+    "Standard": "Basic Events",
+    "Sinterklaas": "Sinterklaas",
+    "Family": "Family",
+    "Staff Party": "Staff party",
+    "Sport": "Sport",
+    "No signup": "No signup",
+    "Custom": "Others"
+  };
 
   // Gets the groups of the logged in user
   const getUserGroups = async (): Promise<void> => {
@@ -57,7 +58,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   // Fetch events from SharePoint list HR_Events
   const getListData = async (): Promise<EventItem[]> => {
     const response: SPHttpClientResponse = await context.spHttpClient.get(
-      `${context.pageContext.web.absoluteUrl}/_api/web/lists/GetByTitle('HR_Events')/items?$select=Id,Title,Image0,StartTime,EndTime,FoodEvent,Beschrijving,Location,Signinlink,EventType,SignupDeadline,PlusOne,Carpooling&$orderby=StartTime asc`,
+      `${context.pageContext.web.absoluteUrl}/_api/web/lists/GetByTitle('HR_Events')/items?$select=Id,Title,Image0,StartTime,EndTime,FoodEvent,Beschrijving,Location,Signinlink,EventTypes,SignupDeadline,PlusOne,Carpooling&$orderby=StartTime asc`,
       SPHttpClient.configurations.v1
     );
     const data = await response.json();
@@ -81,7 +82,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
 
     // Event type filters (if any)
     if (filters.length > 0) {
-      filtered = filtered.filter(item => filters.includes((item.EventType || "").toString()));
+      filtered = filtered.filter(item => filters.includes((item.EventTypes || "").toString()));
     }
 
     // Date range filtering
@@ -159,7 +160,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   // Redirects to the add form (only visible for hr members and owners)
   const goToAddPage = (): void => {
     window.location.href =
-      "https://amexio.sharepoint.com/sites/HR-BE/_layouts/15/listform.aspx?PageType=8&ListId=%7B4E968CFC-746E-4F87-9B81-7E645FC98D2A%7D&RootFolder=%2Fsites%2FHR-BE%2FLists%2FHR_Events&Source=https%3A%2F%2Famexio.sharepoint.com%2Fsites%2FHR-BE%2FLists%2FHR_Events%2FAllItems.aspx%3FnpsAction%3DcreateList&ContentTypeId=0x0100B6E0E24C7650CA40B8A977B7502ABCD000DAA2C47CE81AD74592F8898346A2C7A9";
+      "https://amexio.sharepoint.com/sites/HR-BE/Lists/HR_Events/NewForm.aspx?Source=https%3A%2F%2Famexio.sharepoint.com%2Fsites%2FHR-BE%2FLists%2FHR_Events%2FAllItems.aspx&ContentTypeId=0x010052716024EBBFA746A6539D172B442321001AAB3285335EE04FAECB2DA239AE7D6C&ovuser=1a44e8c4-fbc4-4d25-b648-099e23c46fe2%2CElliott.Leigh%40amexiogroup.com&OR=Teams-HL&CT=1761144177184&clickparams=eyJBcHBOYW1lIjoiVGVhbXMtRGVza3RvcCIsIkFwcFZlcnNpb24iOiI0OS8yNTA5MTExNjAxOCIsIkhhc0ZlZGVyYXRlZFVzZXIiOmZhbHNlfQ%3D%3D&CID=c5e8d1a1-d0eb-9000-61b1-13a55e82e2f2&cidOR=SPO&id=%2Fsites%2FHR-BE%2FLists%2FHR_Events";
   };
 
   // Carousel arrows logic
@@ -205,15 +206,15 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
             <h2 style={{margin: '0px 0px 20px 0px'}}>Filters</h2>
             <div className={styles.filterGroup}>
               <h3>Event Types</h3>
-              {eventTypes.map((type) => (
-                <div className={styles.filterCheckbox}>
-                  <label key={type} className={styles.checkboxLabel}>
+              {Object.entries(eventTypes).map(([key, label]) => (
+                <div className={styles.filterCheckbox} key={key}>
+                  <label className={styles.checkboxLabel}>
                     <input
                       type="checkbox"
-                      checked={filters.includes(type)}
-                      onChange={() => addFilter(type)}
+                      checked={filters.includes(key)}
+                      onChange={() => addFilter(key)}
                     />
-                    {type}
+                    {label}
                   </label>
                 </div>
               ))}

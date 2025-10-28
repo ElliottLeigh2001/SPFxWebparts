@@ -7,10 +7,24 @@
   }
 }
 
-.header h1 {
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 30px;
-  font-size: 28px;
-  font-weight: 600;
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+  }
+}
+
+.headerButtons {
+    position: absolute;
+    display: flex;
+    right: 0;
+    transform: translateY(5px);
+    gap: 10px;
 }
 
 .tableContainer {
@@ -72,28 +86,36 @@
   font-weight: 600;
   text-transform: capitalize;
   
-  &.approved,
-  &.completed {
-    background-color: #dff6dd;
+  &.saved {
+    background-color: #ffc80054;
+    color: #8a6d00;
+  }
+
+  &.sentForApproval {
+    background-color: #f88f0534;
+    color: #b37019;
+  }
+
+  &.processedByHR {
+    background-color: #15ff002f;
     color: #107c10;
   }
   
-  &.pending,
-  &.inprogress {
-    background-color: #fff4ce;
-    color: #8a6d00;
+  &.inProcessByHR {
+    background-color: #0000ff3d;
+    color: #10547c;
+  }
+
+  &.needsReapproval {
+    background-color: #edceff;
+    color: #6a008a;
   }
   
-  &.rejected,
-  &.cancelled {
-    background-color: #fde7e9;
+  &.declined {
+    background-color: #ff001548;
     color: #a4262c;
   }
-  
-  &.draft {
-    background-color: #f3f2f1;
-    color: #605e5c;
-  }
+
 }
 
 .noData {
@@ -136,9 +158,9 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.ttlForm h2 {
-  font-size: 22px;
-  color: #323130;
+.formHeader {
+  display: flex;
+  justify-content: space-between;
   border-bottom: 2px solid #f3f2f1;
   padding-bottom: 6px;
   margin-bottom: 20px;
@@ -176,10 +198,15 @@
 }
 
 .formRow input[type="text"],
-.formRow input[type="date"],
 .formRow input[type="number"],
 .formRow select {
   padding: 10px 12px;
+  border: 1px solid #d2d0ce;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.formRow input[type="date"] {
   border: 1px solid #d2d0ce;
   border-radius: 8px;
   font-size: 14px;
@@ -237,6 +264,7 @@ input:focus {
 
 .formActions {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 20px;
@@ -279,90 +307,6 @@ input:focus {
   text-decoration: underline;
 }
 
-
-// Details Page Styles
-.detailsHeader {
-  margin-bottom: 30px;
-  
-  .backButton {
-    background: none;
-    border: none;
-    color: #0078d4;
-    cursor: pointer;
-    padding: 8px 0;
-    font-size: 14px;
-    margin-bottom: 20px;
-    
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-  
-  h1 {
-    margin: 0 0 16px 0;
-    font-size: 24px;
-  }
-}
-
-.requestSummary {
-  display: flex;
-  gap: 30px;
-  flex-wrap: wrap;
-  
-  span {
-    font-size: 14px;
-    color: #605e5c;
-  }
-}
-
-.detailsTableContainer {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  
-  h2 {
-    padding: 20px 24px;
-    margin: 0;
-    background-color: #f8f9fa;
-    font-size: 20px;
-    border-bottom: 1px solid #e1e5e9;
-  }
-}
-
-.detailsTable {
-  width: 100%;
-  border-collapse: collapse;
-  overflow-x: scroll;
-  
-  thead {
-    background-color: #f8f9fa;
-    
-    th {
-      padding: 16px 12px;
-      text-align: left;
-      font-weight: 600;
-
-      border-bottom: 2px solid #e1e5e9;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-  }
-  
-  tbody {
-    td {
-      padding: 16px 12px;
-      border-bottom: 1px solid #e1e5e9;
-
-      font-size: 13px;
-    }
-    
-    tr:last-child td {
-      border-bottom: none;
-    }
-  }
-}
-
 .loading {
   text-align: center;
   padding: 40px;
@@ -378,15 +322,22 @@ input:focus {
   .ttlDashboard {
     padding: 10px;
   }
-  
-  .detailsTable {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  
-  .requestSummary {
+}
+
+@media (max-width: 768px) {
+  .header {
+    align-items: center;
+    display: flex;
+    justify-content: center;
     flex-direction: column;
+    margin-bottom: 30px;
+  }
+
+  .headerButtons {
+    display: flex;
     gap: 10px;
+    right: 0;
+    transform: translateY(5px);
   }
 }
+

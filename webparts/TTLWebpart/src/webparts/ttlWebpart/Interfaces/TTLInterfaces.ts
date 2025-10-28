@@ -2,33 +2,64 @@ export interface UserRequest {
     ID: number;
     Title: string;
     TotalCost: string;
+    OData__Comments: string;
     RequestItemID: {
         Id: number;
     }[];
     Goal: string;
     Project: string;
-    Status: string;
-    TeamID: {
-        Id: number;
+    RequestStatus: string;
+    TeamID?: {
+        Id?: number;
+        Title?: string;
     }
-    Author: {
-        Id: number;
+    ApproverID?: {
+        Id?: number;
+        Title?: string;
+        EMail?: string;
+    }
+    Author?: {
+        Id?: number;
+        Title?: string;
+        EMail?: string;
     };
 }
 
 export interface UserRequestItem {
-    ID: number;
+    ID?: number;
+    Title?: string;
+    Provider?: string;
+    Location?: string;
+    Link?: string;
+    StartDate?: string;
+    OData__EndDate?: string;
+    RequestType?: string;
+    Cost?: string;
+    Licensing?: string;
+    LicenseType?: string;
+    UsersLicense?: any[];
+    Attachments?: any
+    Processed?: boolean;
+    ChangedByHR?: boolean;
+}
+
+export interface Approver {
+    Id: number;
+    TeamMember: {
+        Id: number;
+        Title: string;
+    }
+    BackUp: {
+        Id: number;
+        Title: string;
+    }
+}
+
+export interface Team {
+    Id: number
     Title: string;
-    Provider: string;
-    Location: string;
-    Link: string;
-    StartDate: string;
-    EndDate: string;
-    RequestType: string;
-    Cost: string;
-    Licensing: string;
-    LicenseType: string;
-    UsersLicense: string;
-    Processed: string;
-    ChangedByHR: boolean;
+    Coach: {
+        Id: number;
+        Title: string;
+    }
 }

@@ -101,7 +101,7 @@ const handleSubmit = async (formData: SignupFormData): Promise<void> => {
     const currentUser = await sp.web.currentUser();
 
     // For Sinterklaas events, create one row per kid
-    if (event.EventType === 'Sinterklaas') {
+    if (event.EventTypes === 'Sinterklaas') {
       const kids = formData.kidsData || [];
 
       for (const kid of kids) {
@@ -152,7 +152,7 @@ const handleSubmit = async (formData: SignupFormData): Promise<void> => {
         DietaryPreferencePlusOne: event.PlusOne ? formData.dietaryPrefsPlusOne : "",
         Food: formData.food,
         FoodPlusOne: event.PlusOne ? formData.foodPlusOne : "",
-        ShirtSize: event.EventType === 'Sport' ? formData.shirtSize : "",
+        ShirtSize: event.EventTypes === 'Sport' ? formData.shirtSize : "",
         Carpooling: event.Carpooling ? formData.carpooling : "",
         DepartureFrom: event.Carpooling? formData.departureFrom : "",
         nameChild: "",
@@ -162,7 +162,7 @@ const handleSubmit = async (formData: SignupFormData): Promise<void> => {
         presentOption3: "",
       };
 
-      if (event.EventType === 'Family') {
+      if (event.EventTypes === 'Family') {
         submitData.amountOfChildren = formData.amountOfKids;
         submitData.ageChild1 = formData.ageChild1;
         submitData.ageChild2 = formData.ageChild2;

@@ -85,7 +85,7 @@ export const SignupModal: React.FC<SignupModalProps> = ({
       <div className={modalStyles.modalContent}>
         <h3>Sign up for {event.Title}</h3>
         <form onSubmit={handleSubmit}>
-          {event.EventType === 'Sport' && (
+          {event.EventTypes === 'Sport' && (
             <SportFormFields
               shirtSize={formData.shirtSize}
               setShirtSize={(value) => updateFormData('shirtSize', value)}
@@ -93,7 +93,7 @@ export const SignupModal: React.FC<SignupModalProps> = ({
             />
           )}
 
-          {event.EventType === 'Sinterklaas' && (
+          {event.EventTypes === 'Sinterklaas' && (
             <SinterklaasFormFields
               amountOfKids={formData.amountOfKids || 0}
               setAmountOfKids={(value) => updateFormData('amountOfKids', value)}
@@ -103,7 +103,7 @@ export const SignupModal: React.FC<SignupModalProps> = ({
             />
           )}
 
-          {event.EventType === 'Family' && (
+          {event.EventTypes === 'Family' && (
             <FamilyFormFields
               amountOfKids={formData.amountOfKids || 0}
               setAmountOfKids={(value) => updateFormData('amountOfKids', value)}

@@ -1,25 +1,34 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from '../TtlWebpart.module.scss';
+import { FormProps } from './FormProps';
+import { validateCost, validateLink } from '../../service/FormService';
 
-interface TravelFormProps {
-  onSave: (item: any) => void;
-  onCancel: () => void;
-}
-
-const TravelForm: React.FC<TravelFormProps> = ({ onSave, onCancel }) => {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [cost, setCost] = useState('');
-  const [attachments, setAttachments] = useState('');
-  const [provider, setProvider] = useState('');
-  const [link, setLink] = useState('');
+const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData }) => {
+  const [title, setTitle] = useState(initialData?.Title || '');
+  const [date, setDate] = useState(initialData?.StartDate || '');
+  const [cost, setCost] = useState(initialData?.Cost || '');
+  const [attachments, setAttachments] = useState(initialData?.Attachments || '');
+  const [provider, setProvider] = useState(initialData?.Provider || '');
+  const [link, setLink] = useState(initialData?.Link || '');
   const [titleError, setTitleError] = useState('');
   const [providerError, setProviderError] = useState('');
   const [costError, setCostError] = useState('');
   const [dateError, setDateError] = useState('');
+  const [linkError, setLinkError] = useState('');
 
-  const validate = () => {
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.Title || '');
+      setProvider(initialData.Provider || '');
+      setCost(initialData.Cost || '');
+      setDate(initialData.StartDate || '');
+      setAttachments(initialData.Attachments || '');
+      setLink(initialData.Link || '');
+    }
+    }, [initialData]);
+
+  const validate = (): boolean => {
   let valid = true;
 
   if (!title) {
@@ -36,13 +45,21 @@ const TravelForm: React.FC<TravelFormProps> = ({ onSave, onCancel }) => {
     setProviderError('');
   }
 
-  const costValue = parseFloat(cost.replace(/[^0-9.-]+/g, ''));
-  if (isNaN(costValue)) {
-    setCostError('Cost must be a number');
-    valid = false;
-  } else {
-    setCostError('');
-  }
+    if (!link) {
+      setLinkError('Link is required');
+      valid = false;
+    } else if (!validateLink(link)) {
+      setLinkError('Link must be a url (ex. https://www.google.com)');
+      valid = false;
+    } else {
+      setLinkError('');
+    }
+
+  const costValidation = validateCost(cost);
+    if (!costValidation.isValid) {
+      setCostError(costValidation.error);
+      valid = false;
+    }
 
   const today = new Date();
   const s = date ? new Date(date) : null;
@@ -57,15 +74,13 @@ const TravelForm: React.FC<TravelFormProps> = ({ onSave, onCancel }) => {
   return valid;
   };
 
-  const handleSave = () => {
+  const handleSave = (): void => {
     if (!validate()) return;
-    onSave({ Title: title, Provider: provider, date: date, Cost: cost, Link: link, Attachments: attachments, RequestType: 'Travel' });
+    onSave({ Title: title, Provider: provider, StartDate: date, Cost: cost, Link: link, Attachments: attachments, RequestType: 'Travel' });
   };
 
   return (
-    <div className={styles.ttlForm}>
-      <h3>Travel</h3>
-      
+    <div>
       <div className={styles.formRow}>
         <div className={styles.formItem}>
           <label className={styles.formRowLabel}>Title *</label>
@@ -94,8 +109,9 @@ const TravelForm: React.FC<TravelFormProps> = ({ onSave, onCancel }) => {
 
       <div className={styles.formRow}>
         <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Link</label>
+          <label className={styles.formRowLabel}>Link *</label>
           <input value={link} onChange={e => setLink(e.target.value)} />
+          {linkError && <div className={styles.validationError}>{linkError}</div>}
         </div>
         <div className={styles.formItem}>
           <label className={styles.formRowLabel}>Attachments</label>
@@ -104,7 +120,7 @@ const TravelForm: React.FC<TravelFormProps> = ({ onSave, onCancel }) => {
       </div>
 
       <div className={styles.formActions}>
-        <button className={styles.saveButton} onClick={handleSave}>Add Item</button>
+        <button className={styles.saveButton} onClick={handleSave}>{initialData ? 'Edit Item' : 'Add Item'}</button>
         <button className={styles.cancelButton} onClick={onCancel}>Cancel</button>
       </div>
     </div>

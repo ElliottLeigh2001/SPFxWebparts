@@ -41,7 +41,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
   // +1 so you can still sign up on the day of the deadline
   signupDeadlineDate.setDate(signupDeadlineDate.getDate() + 1);
   const canSignUp = signupDeadlineDate >= today || event.SignupDeadline === null;
-  const showSignupButtons = event.EventType !== 'No signup';
+  const showSignupButtons = event.EventTypes !== 'No signup';
 
   // Fetch everyone who is attending a specific event
   useEffect(() => {
@@ -124,27 +124,29 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       
       {imageUrl && <img src={imageUrl} alt={event.Title} className={detailsStyles.detailsImage} />}
       
-      {attendees.length > 0 ? (
-        <div className={detailsStyles.topRightBox}>
-          <h4>Attendees ({attendees.length})</h4>
-          <ul>
-            {attendees.map((att) => (
-              <li key={att.Id}>
-                <strong>{att.Attendee?.Title}</strong>
-                {event.Carpooling && att.Carpooling && (
-                  <div>
-                    {att.Carpooling} {att.DepartureFrom && ` (${att.DepartureFrom})`}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <div className={detailsStyles.topRightBox}>
-          <h2>Attendees ({attendees.length})</h2>
-          <p>There are no attendess for this event</p>
-        </div>
+      {(event.EventTypes !== 'No signup' && event.EventTypes !== 'Custom') && (
+        attendees.length > 0 ? (
+          <div className={detailsStyles.topRightBox}>
+            <h4>Attendees ({attendees.length})</h4>
+            <ul>
+              {attendees.map((att) => (
+                <li key={att.Id}>
+                  <strong>{att.Attendee?.Title}</strong>
+                  {event.Carpooling && att.Carpooling && (
+                    <div>
+                      {att.Carpooling} {att.DepartureFrom && ` (${att.DepartureFrom})`}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className={detailsStyles.topRightBox}>
+            <h2>Attendees ({attendees.length})</h2>
+            <p>There are no attendess for this event</p>
+          </div>
+      )
       )}
 
       <h2>{event.Title}</h2>
@@ -172,7 +174,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       {checkingStatus ? (
         <div className={detailsStyles.loading}>Checking signup status...</div>
       ) : (
-        event.EventType === 'Custom' || event.EventType === 'Online signup' ? (
+        event.EventTypes === 'Custom' || event.EventTypes === 'Online signup' ? (
           renderCustomSignup()
         ) : (
 

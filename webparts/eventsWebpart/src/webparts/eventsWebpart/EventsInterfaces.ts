@@ -15,7 +15,7 @@ export interface EventItem {
   Location: string;
   SignupDeadline: string;
   PlusOne: boolean;
-  EventType: string;
+  EventTypes: string;
   Signinlink?: string;
   Carpooling: boolean;
   DepartureFrom: string;

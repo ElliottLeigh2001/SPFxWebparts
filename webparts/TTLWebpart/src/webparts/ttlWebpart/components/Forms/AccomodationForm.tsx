@@ -1,57 +1,75 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from '../TtlWebpart.module.scss';
+import { FormProps } from './FormProps';
+import { validateCost, validateLink } from '../../service/FormService';
 
-interface AccomodationFormProps {
-  onSave: (item: any) => void;
-  onCancel: () => void;
-}
-
-const AccomodationForm: React.FC<AccomodationFormProps> = ({ onSave, onCancel }) => {
-  const [title, setTitle] = useState('');
-  const [location, setLocation] = useState('');
-  const [cost, setCost] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [provider, setProvider] = useState('');
-  const [link, setLink] = useState('');
+const AccomodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData }) => {
+  const [title, setTitle] = useState(initialData?.Title || '');
+  const [location, setLocation] = useState(initialData?.Location || '');
+  const [cost, setCost] = useState(initialData?.Cost || '');
+  const [startDate, setStartDate] = useState(initialData?.StartDate || '');
+  const [endDate, setOData__EndDate] = useState(initialData?.OData__EndDate || '');
+  const [provider, setProvider] = useState(initialData?.Provider || '');
+  const [link, setLink] = useState(initialData?.Link || '');
   const [titleError, setTitleError] = useState('');
   const [providerError, setProviderError] = useState('');
   const [costError, setCostError] = useState('');
   const [dateError, setDateError] = useState('');
   const [locationError, setLocationError] = useState('');
+  const [linkError, setLinkError] = useState('');
 
-const validate = () => {
-  let valid = true;
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.Title || '');
+      setProvider(initialData.Provider || '');
+      setCost(initialData.Cost || '');
+      setLocation(initialData.Location || '');
+      setStartDate(initialData.StartDate || '');
+      setOData__EndDate(initialData.OData__EndDate || '');
+      setLink(initialData.Link || '');
+    }
+    }, [initialData]);
 
-  if (!title) {
-    setTitleError('Title is required');
-    valid = false;
-  } else {
-    setTitleError('');
-  }
+  const validate = (): boolean => {
+    let valid = true;
 
-  if (!provider) {
-    setProviderError('Provider is required');
-    valid = false;
-  } else {
-    setProviderError('');
-  }
+    if (!title) {
+      setTitleError('Title is required');
+      valid = false;
+    } else {
+      setTitleError('');
+    }
 
-  if (!location) {
-    setLocationError('Address is required');
-    valid = false;
-  } else {
-    setLocationError('');
-  }
+    if (!provider) {
+      setProviderError('Provider is required');
+      valid = false;
+    } else {
+      setProviderError('');
+    }
 
-  const costValue = parseFloat(cost.replace(/[^0-9.-]+/g, ''));
-  if (isNaN(costValue)) {
-    setCostError('Cost must be a number');
-    valid = false;
-  } else {
-    setCostError('');
-  }
+    if (!location) {
+      setLocationError('Address is required');
+      valid = false;
+    } else {
+      setLocationError('');
+    }
+
+    if (!link) {
+      setLinkError('Link is required');
+      valid = false;
+    } else if (!validateLink(link)) {
+      setLinkError('Link must be a url (ex. https://www.google.com)');
+      valid = false;
+    } else {
+      setLinkError('');
+    }
+
+    const costValidation = validateCost(cost);
+      if (!costValidation.isValid) {
+        setCostError(costValidation.error);
+        valid = false;
+      }
 
   const today = new Date();
   const s = startDate ? new Date(startDate) : null;
@@ -69,15 +87,13 @@ const validate = () => {
   return valid;
 };
 
-  const handleSave = () => {
+  const handleSave = (): void => {
     if (!validate()) return;
-    onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, EndDate: endDate, Cost: cost, Link: link, RequestType: 'Training' });
+    onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Accomodation' });
   };
 
   return (
-    <div className={styles.ttlForm}>
-      <h3>Accomodation</h3>
-
+    <div>
       <div className={styles.formRow}>
         <div className={styles.formItem}>
           <label className={styles.formRowLabel}>Title *</label>
@@ -108,21 +124,22 @@ const validate = () => {
         <div className={styles.formItem}>
           <label className={styles.formRowLabel}>Start Date *</label>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          {dateError && <div className={styles.validationError}>{dateError}</div>}
         </div>
         <div className={styles.formItem}>
           <label className={styles.formRowLabel}>End Date</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          {dateError && <div className={styles.validationError}>{dateError}</div>}
+          <input type="date" value={endDate} onChange={e => setOData__EndDate(e.target.value)} />
         </div>
       </div>
 
         <div>
-          <label className={styles.formRowLabel}>Link</label>
+          <label className={styles.formRowLabel}>Link *</label>
           <input value={link} onChange={e => setLink(e.target.value)} style={{width: '100%', marginBottom: '18px', marginTop: '6px'}}/>
+          {linkError && <div className={styles.validationError}>{linkError}</div>}
         </div>
 
       <div className={styles.formActions}>
-        <button className={styles.saveButton} onClick={handleSave}>Add Item</button>
+        <button className={styles.saveButton} onClick={handleSave}>{initialData ? 'Edit Item' : 'Add Item'}</button>
         <button className={styles.cancelButton} onClick={onCancel}>Cancel</button>
       </div>
     </div>

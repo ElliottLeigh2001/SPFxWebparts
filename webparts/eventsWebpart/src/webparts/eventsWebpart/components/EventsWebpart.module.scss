@@ -162,7 +162,7 @@
 
 .eventItem {
   width: 35%;
-  height: 300px;
+  min-height: 300px;
   background-color: white;
   filter: brightness(98%);
   border-radius: 8px;
@@ -275,6 +275,10 @@ input:focus {
     flex-direction: column;
   }
 
+  .eventItem {
+    width: 45%;
+  }
+  
   .sidebarContainer {
     width: 100%;
     display: flex;
