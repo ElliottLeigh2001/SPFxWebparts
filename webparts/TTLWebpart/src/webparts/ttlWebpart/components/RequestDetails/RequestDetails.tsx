@@ -416,7 +416,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                   }
                   else if (confirmAction === 'send') {
                     await updateRequestApprover('Sent for approval')
-                    sendEmail({ emailType: "new request", approver: request.ApproverID?.EMail });
+                    sendEmail({ emailType: "new request" });
                   }
                   else if (confirmAction === 'reapprove') {
                     await updateRequestApprover('Needs reapproval', comment)

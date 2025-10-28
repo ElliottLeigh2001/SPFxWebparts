@@ -27,7 +27,7 @@ export const getLoggedInUser = async (context: WebPartContext) => {
 export const getRequestsData = async (context: WebPartContext): Promise<UserRequest[]> => {
     try {
         const response = await context.spHttpClient.get(
-            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,RequestStatus,OData__Comments,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,ApproverID/EMail,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`,
+            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,RequestStatus,OData__Comments,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`,
             SPHttpClient.configurations.v1
         );
         
