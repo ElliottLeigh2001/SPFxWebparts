@@ -49,7 +49,7 @@ const ConfirmActionDialog: React.FC<Props> = ({ isOpen, action, isProcessing, on
       </div>
       <div className={newRequestStyles.confirmationBody}>
         <p>{messages[action]}</p>
-        {(action === 'deny' || action === 'discard'|| action === 'reapprove') && (
+        {(action === 'deny' || action === 'reapprove') && (
           <>
             <label>Add a comment (optional)</label>
             <textarea name="comment" id="comment" value={comment} onChange={e => setComment(e.target.value)}></textarea>

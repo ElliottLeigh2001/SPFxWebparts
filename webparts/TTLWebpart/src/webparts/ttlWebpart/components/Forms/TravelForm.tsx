@@ -4,7 +4,7 @@ import styles from '../TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
 import { validateCost, validateLink } from '../../service/FormService';
 
-const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData }) => {
+const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
   const [title, setTitle] = useState(initialData?.Title || '');
   const [date, setDate] = useState(initialData?.StartDate || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
@@ -29,21 +29,21 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData }) => {
     }, [initialData]);
 
   const validate = (): boolean => {
-  let valid = true;
+    let valid = true;
 
-  if (!title) {
-    setTitleError('Title is required');
-    valid = false;
-  } else {
-    setTitleError('');
-  }
+    if (!title) {
+      setTitleError('Title is required');
+      valid = false;
+    } else {
+      setTitleError('');
+    }
 
-  if (!provider) {
-    setProviderError('Provider is required');
-    valid = false;
-  } else {
-    setProviderError('');
-  }
+    if (!provider) {
+      setProviderError('Provider is required');
+      valid = false;
+    } else {
+      setProviderError('');
+    }
 
     if (!link) {
       setLinkError('Link is required');
@@ -55,69 +55,90 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData }) => {
       setLinkError('');
     }
 
-  const costValidation = validateCost(cost);
-    if (!costValidation.isValid) {
-      setCostError(costValidation.error);
+    const costValidation = validateCost(cost);
+      if (!costValidation.isValid) {
+        setCostError(costValidation.error);
+        valid = false;
+      }
+
+    const today = new Date();
+    const s = date ? new Date(date) : null;
+
+    if (s && s < new Date(today.toDateString())) {
+      setDateError('Start date cannot be before today');
       valid = false;
+    } else {
+      setDateError('');
     }
 
-  const today = new Date();
-  const s = date ? new Date(date) : null;
-
-  if (s && s < new Date(today.toDateString())) {
-    setDateError('Start date cannot be before today');
-    valid = false;
-  } else {
-    setDateError('');
-  }
-
-  return valid;
+    return valid;
   };
 
+  const validateHR = (): boolean => {
+    let valid = true;
+
+    const costValidation = validateCost(cost);
+      if (!costValidation.isValid) {
+        setCostError(costValidation.error);
+        valid = false;
+      }
+      return valid;
+  }
+
   const handleSave = (): void => {
+    if (view === 'HR') {
+      if (!validateHR()) return;
+      onSave({ Title: title, Provider: provider, StartDate: date, Cost: cost, Link: link, Attachments: attachments, RequestType: 'Travel' });
+    }
     if (!validate()) return;
     onSave({ Title: title, Provider: provider, StartDate: date, Cost: cost, Link: link, Attachments: attachments, RequestType: 'Travel' });
   };
 
   return (
     <div>
-      <div className={styles.formRow}>
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Title *</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} className={!title ? 'invalid' : ''} />
-          {titleError && <div className={styles.validationError}>{titleError}</div>}
-        </div>
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Provider *</label>
-          <input value={provider} onChange={e => setProvider(e.target.value)} className={!provider ? 'invalid' : ''} />
-          {providerError && <div className={styles.validationError}>{providerError}</div>}
-        </div>
-      </div>
-
-      <div className={styles.formRow}>
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Cost *</label>
-          <input value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? 'invalid' : ''} />
+      {view === 'HR' ? (
+        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
+          <label className={styles.formRowLabel}>Cost</label>
+          <input style={{width: '50%'}} value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? 'invalid' : ''} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
-      <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Date *</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-          {dateError && <div className={styles.validationError}>{dateError}</div>}
-      </div>
-      </div>
-
-      <div className={styles.formRow}>
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Link *</label>
-          <input value={link} onChange={e => setLink(e.target.value)} />
-          {linkError && <div className={styles.validationError}>{linkError}</div>}
-        </div>
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Attachments</label>
-          <input value={attachments} onChange={e => setAttachments(e.target.value)} />
-        </div>
-      </div>
+      ) : (
+      <>
+        <div className={styles.formRow}>
+          <div className={styles.formItem}>
+            <label className={styles.formRowLabel}>Title *</label>
+            <input value={title} onChange={e => setTitle(e.target.value)} className={!title ? 'invalid' : ''} />
+            {titleError && <div className={styles.validationError}>{titleError}</div>}
+          </div>
+          <div className={styles.formItem}>
+            <label className={styles.formRowLabel}>Provider *</label>
+            <input value={provider} onChange={e => setProvider(e.target.value)} className={!provider ? 'invalid' : ''} />
+            {providerError && <div className={styles.validationError}>{providerError}</div>}
+          </div>
+        </div><div className={styles.formRow}>
+            <div className={styles.formItem}>
+              <label className={styles.formRowLabel}>Cost *</label>
+              <input value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? 'invalid' : ''} />
+              {costError && <div className={styles.validationError}>{costError}</div>}
+            </div>
+            <div className={styles.formItem}>
+              <label className={styles.formRowLabel}>Date *</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} />
+              {dateError && <div className={styles.validationError}>{dateError}</div>}
+            </div>
+          </div><div className={styles.formRow}>
+            <div className={styles.formItem}>
+              <label className={styles.formRowLabel}>Link *</label>
+              <input value={link} onChange={e => setLink(e.target.value)} />
+              {linkError && <div className={styles.validationError}>{linkError}</div>}
+            </div>
+            <div className={styles.formItem}>
+              <label className={styles.formRowLabel}>Attachments</label>
+              <input value={attachments} onChange={e => setAttachments(e.target.value)} />
+            </div>
+          </div>
+        </>
+      )}
 
       <div className={styles.formActions}>
         <button className={styles.saveButton} onClick={handleSave}>{initialData ? 'Edit Item' : 'Add Item'}</button>

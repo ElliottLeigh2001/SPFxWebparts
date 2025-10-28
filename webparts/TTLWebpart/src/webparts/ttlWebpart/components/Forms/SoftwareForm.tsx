@@ -12,6 +12,7 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
   const [licensing, setLicensing] = useState(initialData?.Licensing || 'Monthly');
   const [licenseType, setLicenseType] = useState(initialData?.LicenseType || 'Group');
   const [usersLicense, setUsersLicense] = useState<any[]>(initialData?.UsersLicense || []);
+  const [initialUsers, setInitialUsers] = useState<string[]>([]);
   const [link, setLink] = useState(initialData?.Link || '');
   const [titleError, setTitleError] = useState('');
   const [providerError, setProviderError] = useState('');
@@ -24,6 +25,16 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
     msGraphClientFactory: context.msGraphClientFactory,
     spHttpClient: context.spHttpClient
   };
+
+  useEffect(() => {
+    if (initialData?.UsersLicense && initialData.UsersLicense.length > 0) {
+      const defaultUsers = initialData.UsersLicense.map(
+        (u: any) => u.loginName || u.text || u.id
+      );
+      setInitialUsers(defaultUsers);
+    }
+  }, [initialData]);
+
   
   useEffect(() => {
     if (initialData) {
@@ -156,13 +167,14 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
                 <label className={styles.formRowLabel}>Who will be using this license? *</label>
                 <PeoplePicker
                   context={peoplePickerContext}
-                  personSelectionLimit={5}
+                  personSelectionLimit={10}
                   showtooltip={true}
                   required={true}
                   principalTypes={[PrincipalType.User, PrincipalType.SharePointGroup, PrincipalType.SecurityGroup]}
                   resolveDelay={500}
-                  defaultSelectedUsers={usersLicense && usersLicense.length > 0 ? usersLicense.map(u => u.loginName || u.text || u.id) : []}
-                  onChange={handleUsersChange} />
+                  defaultSelectedUsers={initialUsers}
+                  onChange={handleUsersChange}
+                />
                 {usersLicenseError && <div className={styles.validationError}>{usersLicenseError}</div>}
               </div>
               <div className={styles.formItem}>

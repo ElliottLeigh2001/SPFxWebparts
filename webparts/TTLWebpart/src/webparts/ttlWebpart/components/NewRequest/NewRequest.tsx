@@ -125,11 +125,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
 
             if (type === 'Sent for approval') {
                 const approverData = await getApproverById(context, Number(approver));
-
-                // Make sure to extract the EMail property correctly
                 const approverEmail = approverData?.TeamMember?.EMail;
-
-                // Pass only the email string
                 sendEmail({ emailType: "new request", approver: approverEmail });
             }
             

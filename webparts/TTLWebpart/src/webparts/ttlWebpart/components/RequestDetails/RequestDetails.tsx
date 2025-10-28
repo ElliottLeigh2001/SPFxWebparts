@@ -1,7 +1,7 @@
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { useState, useEffect } from 'react';
 import EditRequestForm from './EditRequestForm';
-import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus } from '../../service/TTLService';
+import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById } from '../../service/TTLService';
 import RequestItemsList from './RequestItemsList';
 import ConfirmDeleteDialog from './ConfirmDeleteDialog';
 import EditItemModal from './EditItemModal';
@@ -416,7 +416,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                   }
                   else if (confirmAction === 'send') {
                     await updateRequestApprover('Sent for approval')
-                    sendEmail({ emailType: "new request" });
+                    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
+                    const approverEmail = approverData?.TeamMember?.EMail;
+                    sendEmail({ emailType: "new request", approver: approverEmail });
                   }
                   else if (confirmAction === 'reapprove') {
                     await updateRequestApprover('Needs reapproval', comment)

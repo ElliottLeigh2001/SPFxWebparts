@@ -79,7 +79,22 @@ const TrainingForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view
     return valid;
   };
 
+  const validateHR = (): boolean => {
+    let valid = true;
+
+    const costValidation = validateCost(cost);
+      if (!costValidation.isValid) {
+        setCostError(costValidation.error);
+        valid = false;
+      }
+      return valid;
+  }
+
   const handleSave = (): void => {
+    if (view === 'HR') {
+      if (!validateHR()) return;
+      onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Training' });
+    }
     if (!validate()) return;
     onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Training' });
   };
