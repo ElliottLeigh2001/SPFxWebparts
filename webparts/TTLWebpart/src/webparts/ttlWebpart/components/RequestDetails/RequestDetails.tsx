@@ -60,6 +60,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
 
   useEffect(() => {
     setDisplayedRequest(request);
+    const changed = sessionStorage.getItem(`changedByHR${request.ID}`) === "true";
+    setChangedByHR(changed);
   }, [request]);
 
   const handleEditItem = (item: UserRequestItem): void => {
@@ -67,7 +69,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     setActiveForm(item.RequestType?.toLowerCase() as any);
   };
 
-    const handleAddItem = async (newItem: UserRequestItem): Promise<void> => {
+  const handleAddItem = async (newItem: UserRequestItem): Promise<void> => {
     setIsAdding(true);
     setActionError(null);
 
@@ -138,6 +140,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
 
       if (view === 'HR' && updatedItem.Cost !== editingItem.Cost?.toString()) {
         setChangedByHR(true);
+        sessionStorage.setItem(`changedByHR${request.ID}`, "true")
       }
 
       // Optimistically update local list so UI reflects change immediately
@@ -148,6 +151,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         if (rid) {
           const newTotal = await recalcAndUpdateRequestTotal(context, Number(rid));
           setDisplayedRequest(prev => ({ ...prev, TotalCost: String(newTotal) }));
+          onUpdate();
         }
       } catch (err) {
         console.error('Error recalculating total after update:', err);
@@ -427,6 +431,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                   setConfirmProcessing(false);
                   setShowConfirmActionDialog(false);
                   setConfirmAction(null);
+                  sessionStorage.removeItem(`changedByHR${request.ID}`)
               }
           }}
       />

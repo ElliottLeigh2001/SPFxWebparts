@@ -11,23 +11,15 @@ interface Props {
   requestRequestStatus: string | undefined;
 }
 
-// const getItemRequestStatusStyling = (processed: boolean): string => {
-//   if (processed === true) {
-//     return styles.processedByHR
-//   }
-//   return styles.inProcessByHR;
-// };
-
 const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {
-if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
-    return '/';
-}
+  if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
+      return '/';
+  }
 
-return usersLicense.length > 0 ? usersLicense.join(', ') : '/';
+  return usersLicense.length > 0 ? usersLicense.join(', ') : '/';
 };
 
 const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, showActions, requestRequestStatus }) => {
-
 
   return (
     <div className={requestDetailsStyles.detailsTableContainer}>

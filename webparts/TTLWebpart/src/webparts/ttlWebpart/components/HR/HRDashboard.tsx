@@ -18,7 +18,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRequests = async (): Promise<void> => {
+  const fetchRequests = async (requestId?: number): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -27,6 +27,17 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
       const filteredRequests = requestData
         .filter(req => req.RequestStatus === 'In process by HR');
       setRequests(filteredRequests as UserRequest[]);
+
+      const selectedId = requestId ?? (selectedRequest as any)?.Id;
+      if (selectedId) {
+        const refreshedItems = await getRequestItemsByRequestId(context, Number(selectedId));
+        setRequestItems(refreshedItems);
+
+        const refreshedRequest = filteredRequests.find(r => (r as any).ID === Number(selectedId));
+        if (refreshedRequest) {
+          setSelectedRequest(refreshedRequest as UserRequest);
+        }
+      }
 
     } catch (error) {
       console.error('Error loading data:', error);

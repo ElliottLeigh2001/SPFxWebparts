@@ -28,9 +28,10 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       'Sent for approval': styles.sentForApproval,
       'In Process By HR': styles.inProcessByHR,
       'Needs reapproval': styles.needsReapproval,
-      'Processed by HR': styles.processedByHR,
+      'Processed by HR': styles.approved,
       'Declined': styles.declined,
-      'Cancelled': styles.declined
+      'Cancelled': styles.declined,
+      'Approved': styles.approved,
     };
 
     return statusMap[status] || styles.inProcessByHR;
