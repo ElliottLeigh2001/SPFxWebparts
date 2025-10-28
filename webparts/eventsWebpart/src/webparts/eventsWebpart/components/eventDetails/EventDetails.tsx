@@ -50,12 +50,22 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
         const sp = getSP(context);
         const items = await sp.web.lists
           .getByTitle("Subscriptions")
-          // Filter on eventId
           .items.filter(`EventId eq ${event.Id}`)
-          // Get name and carpooling status
-          .select("Id", "Carpooling", "DepartureFrom", "Attendee/Title")
+          .select("Id", "Carpooling", "DepartureFrom", "Attendee/Id", "Attendee/Title")
           .expand("Attendee")();
-        setAttendees(items);
+
+        // Deduplicate by Attendee Id or Title
+        const uniqueAttendees = Object.values(
+          items.reduce((acc: any, item: any) => {
+            const key = item.Attendee?.Id || item.Attendee?.Title;
+            if (!acc[key]) {
+              acc[key] = item;
+            }
+            return acc;
+          }, {})
+        );
+
+        setAttendees(uniqueAttendees);
       } catch (error) {
         console.error("Error fetching attendees:", error);
       }
@@ -63,6 +73,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
 
     fetchAttendees();
   }, [context, event]);
+
 
   // Sign up, sign out and deadline logic
   const renderSignupButton = () => {
