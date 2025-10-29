@@ -408,6 +408,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                   if (confirmAction === 'approve') {
                     if (view === 'approver') {
                       await updateRequestApprover('In process by HR');
+                      await sendEmail({emailType: 'HR', title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
                     }
                     else if (view === 'HR') {
                       await updateRequestApprover('Approved')
@@ -422,7 +423,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                     await updateRequestApprover('Sent for approval')
                     const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
                     const approverEmail = approverData?.TeamMember?.EMail;
-                    sendEmail({ emailType: "new request", approver: approverEmail });
+                    await sendEmail({ emailType: "new request", title: request.Title, author: request.Author?.EMail, approver: approverEmail });
                   }
                   else if (confirmAction === 'reapprove') {
                     await updateRequestApprover('Needs reapproval', comment)

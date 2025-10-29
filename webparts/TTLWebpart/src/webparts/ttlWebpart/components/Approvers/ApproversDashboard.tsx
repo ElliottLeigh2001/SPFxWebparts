@@ -36,36 +36,6 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack }) => {
     }
   };
 
-//   const refreshSelectedRequest = async (requestId?: number): Promise<void> => {
-//     try {
-//       setIsLoading(true);
-//       setError(null);
-//       // reload requests
-//       const requestData = await getRequestsData(context);
-
-//       const filteredRequests = requestData
-//         .filter(req => req.RequestStatus === 'Sent for approval');
-//       setRequests(filteredRequests as UserRequest[]);
-
-//       // if a request is selected, refresh its data and items
-//       const selectedId = requestId ?? (selectedRequest as any)?.Id;
-//       if (selectedId) {
-//         const refreshedItems = await getRequestItemsByRequestId(context, Number(selectedId));
-//         setRequestItems(refreshedItems);
-
-//         const refreshedRequest = filteredRequests.find(r => (r as any).ID === Number(selectedId));
-//         if (refreshedRequest) {
-//           setSelectedRequest(refreshedRequest as UserRequest);
-//         }
-//       }
-//     } catch (err) {
-//       console.error('Error refreshing data:', err);
-//       setError('Failed to refresh request data');
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
   useEffect(() => {
     fetchRequests();
   }, [context]);
