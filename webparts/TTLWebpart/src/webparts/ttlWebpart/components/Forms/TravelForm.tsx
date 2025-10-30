@@ -45,6 +45,13 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }
       setProviderError('');
     }
 
+    if (!date) {
+      setDateError('Date is required');
+      valid = false;
+    } else {
+      setDateError('');
+    }
+
     if (!link) {
       setLinkError('Link is required');
       valid = false;
@@ -61,14 +68,16 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }
         valid = false;
       }
 
-    const today = new Date();
-    const s = date ? new Date(date) : null;
-
-    if (s && s < new Date(today.toDateString())) {
-      setDateError('Start date cannot be before today');
-      valid = false;
-    } else {
-      setDateError('');
+    if (date) {
+      const today = new Date();
+      const s = date ? new Date(date) : null;
+  
+      if (s && s < new Date(today.toDateString())) {
+        setDateError('Start date cannot be before today');
+        valid = false;
+      } else {
+        setDateError('');
+      }
     }
 
     return valid;

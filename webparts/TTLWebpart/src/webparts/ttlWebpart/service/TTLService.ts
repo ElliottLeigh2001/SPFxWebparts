@@ -24,6 +24,24 @@ export const getLoggedInUser = async (context: WebPartContext) => {
     }
 }
 
+// Gets the groups of the logged in user
+export const checkHR = async (context: WebPartContext): Promise<boolean> => {
+  const response = await context.spHttpClient.get(
+    `${context.pageContext.web.absoluteUrl}/_api/web/currentuser?$expand=groups`,
+    SPHttpClient.configurations.v1
+  );
+  const data = await response.json();
+  // If the user is a member or owner of the site, they can see the HR dashboard button
+  const userGroups =
+    data.Groups?.map((grp: any) => grp.Title.toLowerCase()) || [];
+  const isHR = userGroups.some((group: string) =>
+    ["hr-be members", "hr-be owners"].some((role) =>
+      group.includes(role)
+    )
+  );
+  return isHR
+};
+
 export const getRequestsData = async (context: WebPartContext): Promise<UserRequest[]> => {
     try {
         const response = await context.spHttpClient.get(
@@ -411,7 +429,7 @@ export const deleteRequestWithItems = async (context: WebPartContext, requestId:
 export const getApprovers = async (context: WebPartContext): Promise<Approver[]> => {
     try {
         const response: SPHttpClientResponse = await context.spHttpClient.get(
-            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamMember/Title,TeamMember/Id,BackUp/Title,BackUp/Id&$expand=TeamMember,BackUp`,
+            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamMember/Title,TeamMember/Id,TeamMember/EMail,BackUp/Title,BackUp/Id,BackUp/EMail&$expand=TeamMember,BackUp`,
             SPHttpClient.configurations.v1
         );
         
@@ -435,7 +453,7 @@ export const getApproverById = async (
   const approversList = sp.web.lists.getByTitle('TTL_Approver');
 
   try {
-    const res = await approversList.items.getById(approverId).select('TeamMember/EMail').expand('TeamMember')();
+    const res = await approversList.items.getById(approverId).select('TeamMember/EMail, TeamMember/Title').expand('TeamMember')();
 
     return res;
 
@@ -488,7 +506,6 @@ const getUserIds = async (sp: SPFI, users: any[]): Promise<number[]> => {
   
   return ids;
 };
-
 
 // FOR APPROVERS AND HR
 export const updateRequestStatus = async (

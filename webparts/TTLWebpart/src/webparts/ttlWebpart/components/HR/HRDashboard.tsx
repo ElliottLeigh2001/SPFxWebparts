@@ -47,11 +47,55 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
     }
   };
 
+  // Handle URL changes for request selection
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const requestId = params.get("requestId");
+      const view = params.get("view");
+
+      // Only handle if we're in HR view and have a requestId
+      if (view === "HR" && requestId && requests.length > 0) {
+        const request = requests.find(req => req.ID === parseInt(requestId));
+        if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
+          handleRequestClick(request, false); // Don't push state to avoid infinite loop
+        }
+      } else if (view === "HR" && !requestId && selectedRequest) {
+        // URL changed to have no requestId, but we have a selected request - go back to HR list
+        handleBackClick(false); // Don't push state
+      }
+    };
+
+    // Check URL on initial load
+    handleUrlChange();
+
+    // Listen for URL changes (back/forward buttons)
+    window.addEventListener("popstate", handleUrlChange);
+    
+    return () => window.removeEventListener("popstate", handleUrlChange);
+  }, [requests, selectedRequest]);
+
+  // Also check URL when requests change
+  useEffect(() => {
+    if (requests.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const requestId = params.get("requestId");
+      const view = params.get("view");
+      
+      if (view === "HR" && requestId) {
+        const request = requests.find(req => req.ID === parseInt(requestId));
+        if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
+          handleRequestClick(request, false);
+        }
+      }
+    }
+  }, [requests]);
+
   useEffect(() => {
     fetchRequests();
   }, [context]);
 
-  const handleRequestClick = async (request: UserRequest) => {
+  const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -59,6 +103,11 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
       const items = await getRequestItemsByRequestId(context, request.ID);
       setRequestItems(items);
       setSelectedRequest(request);
+
+      // Update URL for HR request details
+      if (pushState) {
+        window.history.pushState({}, "", `?view=HR&requestId=${request.ID}`);
+      }
 
     } catch (error) {
       console.error('Error loading request details:', error);
@@ -73,10 +122,15 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
     }
   };
 
-  const handleBackClick = () => {
+  const handleBackClick = (pushState: boolean = true) => {
     setSelectedRequest(null);
     setRequestItems([]);
     setError(null);
+    
+    // Update URL back to HR dashboard (without requestId)
+    if (pushState) {
+      window.history.pushState({}, "", `?view=HR`);
+    }
   };
 
   // Handle status update and refresh the list
@@ -109,7 +163,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
         request={selectedRequest}
         items={requestItems}
         view='HR'
-        onBack={handleBackClick}
+        onBack={() => handleBackClick(true)}
         onUpdate={handleStatusUpdate}
         context={context}
         error={error} 
@@ -120,7 +174,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
   return (
     <div className={styles.ttlDashboard}>
       <div className={styles.header}>
-        <button style={{position: 'absolute', left: '0'}} className={styles.stdButton} onClick={onBack}>← Back</button>
+        <button style={{position: 'absolute', left: '20px', top: '20px'}} className={styles.stdButton} onClick={onBack}>← Back</button>
         <h1>HR Dashboard</h1>
       </div>
 
@@ -148,7 +202,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
                 <tr 
                   key={request.ID} 
                   className={styles.requestRow}
-                  onClick={() => handleRequestClick(request)}
+                  onClick={() => handleRequestClick(request, true)}
                 >
                   <td>{request.Title}</td>
                   <td>{request.Author?.Title || '/'}</td>
@@ -160,7 +214,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className={styles.noData}>
+                <td colSpan={6} className={styles.noData}>
                   No requests to approve. Check back later.
                 </td>
               </tr>

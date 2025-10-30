@@ -44,10 +44,6 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
     loadData();
   }, [context]);
 
-  useEffect(() => {
-    console.log(request)
-  })
-  
   const validate = (): boolean => {
     let isValid = true;
 

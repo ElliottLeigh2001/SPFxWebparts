@@ -1,9 +1,9 @@
 import * as React from 'react';
 import type { ITtlWebpartProps } from './ITtlWebpartProps';
 import { useEffect, useState } from 'react';
-import { getRequestsData, getLoggedInUser, getRequestItemsByRequestId } from '../service/TTLService';
+import { getRequestsData, getLoggedInUser, getRequestItemsByRequestId, getApprovers, checkHR } from '../service/TTLService';
 import styles from './TtlWebpart.module.scss';
-import { UserRequest, UserRequestItem } from '../Interfaces/TTLInterfaces';
+import { Approver, UserRequest, UserRequestItem } from '../Interfaces/TTLInterfaces';
 import RequestDetails from './RequestDetails/RequestDetails';
 import NewRequestForm from './NewRequest/NewRequest';
 import ApproversDashboard from './Approvers/ApproversDashboard';
@@ -13,6 +13,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>();
+  const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
   const [newRequest, setNewRequest] = useState<boolean>(false);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +21,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showApproversDashboad, setShowApproverDashboard] = useState(false);
   const [showHRDashboad, setShowHRDashboard] = useState(false);
+  const [isHR, setIsHR] = useState(false);
 
   const getRequestStatusStyling = (status: string): string => {
     const statusMap: { [key: string]: string } = {
@@ -37,19 +39,23 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     return statusMap[status] || styles.inProcessByHR;
   };
 
-  const fetchRequests = async (): Promise<void> => {
+  const fetchData = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
-      const [requestData, user] = await Promise.all([
+      const [requestData, user, approvers, HR] = await Promise.all([
         getRequestsData(context),
-        getLoggedInUser(context)
+        getLoggedInUser(context),
+        getApprovers(context),
+        checkHR(context)
       ]);
       // Only show the requests that the user made
       const filteredRequests = requestData
         .filter(req => req.Author?.Id === user?.Id)
       setRequests(filteredRequests as UserRequest[]);
       setLoggedInUser(user);
+      setAllApprovers(approvers);
+      setIsHR(HR);
     } catch (error) {
       console.error('Error loading data:', error);
       setError('Failed to load requests data');
@@ -89,49 +95,94 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     }
   };
 
-useEffect(() => {
-  const handleUrlChange = () => {
-    const params = new URLSearchParams(window.location.search);
-    const requestId = params.get("requestId");
+  // Handle URL changes for all views
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const requestId = params.get("requestId");
+      const view = params.get("view");
 
-    if (requestId && requests.length > 0) {
-      const request = requests.find(req => req.ID === parseInt(requestId));
-      if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
-        handleRequestClick(request);
+      // If we have both view and requestId, handle the specific dashboard with request
+      if (view && requestId) {
+        if (view === "approvers") {
+          setShowApproverDashboard(true);
+          // The ApproversDashboard will handle the requestId internally
+        } else if (view === "HR") {
+          setShowHRDashboard(true);
+          // The HRDashboard will handle the requestId internally
+        }
+      } 
+      // Handle individual parameters
+      else if (requestId) {
+        // This is for personal request details
+        setSelectedRequest(null);
+        setRequestItems([]);
+        setNewRequest(false);
+        setShowApproverDashboard(false);
+        setShowHRDashboard(false);
+        
+        if (requests.length > 0) {
+          const request = requests.find(req => req.ID === parseInt(requestId));
+          if (request) {
+            handleRequestClick(request);
+          }
+        }
+      } else if (view === "approvers") {
+        setShowApproverDashboard(true);
+        setSelectedRequest(null);
+        setRequestItems([]);
+        setNewRequest(false);
+        setShowHRDashboard(false);
+      } else if (view === "HR") {
+        setShowHRDashboard(true);
+        setSelectedRequest(null);
+        setRequestItems([]);
+        setNewRequest(false);
+        setShowApproverDashboard(false);
+      } else if (view === "new") {
+        setNewRequest(true);
+        setSelectedRequest(null);
+        setRequestItems([]);
+        setShowApproverDashboard(false);
+        setShowHRDashboard(false);
+      } else {
+        // Default case - show main dashboard
+        setSelectedRequest(null);
+        setRequestItems([]);
+        setNewRequest(false);
+        setShowApproverDashboard(false);
+        setShowHRDashboard(false);
       }
-    } else if (!requestId && selectedRequest) {
-      // URL changed to have no requestId, but we have a selected request - go back to dashboard
-      setSelectedRequest(null);
-      setRequestItems([]);
-      setError(null);
-    }
-  };
-  // Check URL on initial load
-  handleUrlChange();
+    };
 
-  // Listen for URL changes (back/forward buttons)
-  window.addEventListener("popstate", handleUrlChange);
-  
-  return () => window.removeEventListener("popstate", handleUrlChange);
-}, [requests, selectedRequest]);
+    // Check URL on initial load
+    handleUrlChange();
 
-// Also check URL when requests change
-useEffect(() => {
-  if (requests.length > 0) {
-    const params = new URLSearchParams(window.location.search);
-    const requestId = params.get("requestId");
+    // Listen for URL changes (back/forward buttons)
+    window.addEventListener("popstate", handleUrlChange);
     
-    if (requestId) {
-      const request = requests.find(req => req.ID === parseInt(requestId));
-      if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
-        handleRequestClick(request);
+    return () => window.removeEventListener("popstate", handleUrlChange);
+  }, [requests]);
+
+  // Also check URL when requests change
+  useEffect(() => {
+    if (requests.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const requestId = params.get("requestId");
+      const view = params.get("view");
+      
+      // Only handle personal requests here, dashboard requests are handled by their components
+      if (requestId && !view) {
+        const request = requests.find(req => req.ID === parseInt(requestId));
+        if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
+          handleRequestClick(request);
+        }
       }
     }
-  }
-}, [requests]);
+  }, [requests]);
 
   useEffect(() => {
-    fetchRequests();
+    fetchData();
   }, [context, refreshTrigger]);
 
   const handleRequestClick = async (request: UserRequest) => {
@@ -142,6 +193,7 @@ useEffect(() => {
       const items = await getRequestItemsByRequestId(context, request.ID);
       setRequestItems(items);
       setSelectedRequest(request);
+      // Update URL for request details
       window.history.pushState({}, "", `?requestId=${request.ID}`);
     } catch (error) {
       console.error('Error loading request details:', error);
@@ -161,10 +213,12 @@ useEffect(() => {
   const handleBackClick = () => {
     setSelectedRequest(null);
     setRequestItems([]);
-    setShowApproverDashboard(false)
-    setShowHRDashboard(false)
+    setShowApproverDashboard(false);
+    setShowHRDashboard(false);
+    setNewRequest(false);
     setError(null);
     setRefreshTrigger(prev => prev + 1);
+    // Reset to main dashboard URL
     window.history.pushState({}, "", window.location.pathname);
   };
 
@@ -172,6 +226,31 @@ useEffect(() => {
     setNewRequest(false);
     // Refresh the list after creating a new request
     setRefreshTrigger(prev => prev + 1);
+    // Return to main dashboard URL
+    window.history.pushState({}, "", window.location.pathname);
+  };
+
+  const handleViewClick = (view: string) => {
+    // Reset states first
+    setSelectedRequest(null);
+    setRequestItems([]);
+    setNewRequest(false);
+    setShowApproverDashboard(false);
+    setShowHRDashboard(false);
+    
+    // Then set the correct view
+    switch(view) {
+      case 'new':
+        setNewRequest(true);
+        break;
+      case 'approvers':
+        setShowApproverDashboard(true);
+        break;
+      case 'HR':
+        setShowHRDashboard(true);
+        break;
+    }
+    window.history.pushState({}, "", `?view=${view}`);
   }
 
   if (isLoading) {
@@ -212,7 +291,9 @@ useEffect(() => {
       <NewRequestForm 
         onSave={handleNewRequestSave} 
         context={context} 
-        onCancel={() => setNewRequest(false)} 
+        onCancel={handleBackClick}
+        approvers={allApprovers} 
+        loggedInUser={loggedInUser}
       />
     );
   }
@@ -220,13 +301,13 @@ useEffect(() => {
   if (showApproversDashboad) {
     return (
       <ApproversDashboard context={context} onBack={handleBackClick}/>
-    )
+    );
   }
 
   if (showHRDashboad) {
     return (
       <HRDashboard context={context} onBack={handleBackClick}/>
-    )
+    );
   }
 
   return (
@@ -234,8 +315,12 @@ useEffect(() => {
       <div className={styles.header}>
         <h1>My Requests</h1>
         <div className={styles.headerButtons}>
-          <button onClick={() => setShowApproverDashboard(true)} className={styles.stdButton}>Approver</button>
-          <button onClick={() => setShowHRDashboard(true)} className={styles.stdButton}>HR</button>
+          {loggedInUser && allApprovers.some(approver => approver.TeamMember.EMail === loggedInUser.Email) && (
+            <button onClick={() => handleViewClick('approvers')} className={styles.stdButton}>Approver</button>
+          )}
+          {isHR && (
+            <button onClick={() => handleViewClick('HR')} className={styles.stdButton}>HR</button>
+          )}
         </div>
       </div>
 
@@ -284,7 +369,7 @@ useEffect(() => {
         </table>
       </div>
       <div className={styles.newRequestButtonContainer}>
-        <button className={styles.stdButton} onClick={() => setNewRequest(true)}>Make New Request</button>
+        <button className={styles.stdButton} onClick={() => handleViewClick('new')}>Make New Request</button>
       </div>
     </div>
   );

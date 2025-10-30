@@ -3,7 +3,7 @@ import * as React from 'react';
 import SoftwareForm from '../Forms/SoftwareForm';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
-import { createRequestWithItems, getApproverById, getApprovers, getTeams } from '../../service/TTLService';
+import { createRequestWithItems, getApproverById, getTeams } from '../../service/TTLService';
 import { Approver, Team, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useEffect, useState } from 'react';
 import AccomodationForm from '../Forms/AccomodationForm';
@@ -13,14 +13,20 @@ import newRequestStyles from './NewRequest.module.scss'
 import { Modal } from '@fluentui/react';
 import { sendEmail } from '../../service/AutomateService';
 
-const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; onSave: () => void; }> = ({ context, onCancel, onSave }) => {
+const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; onSave: () => void; approvers: Approver[]; loggedInUser: any}> = ({ 
+    context, 
+    onCancel, 
+    onSave, 
+    approvers, 
+    loggedInUser 
+}) => {
     const [title, setTitle] = useState('');
     const [goal, setGoal] = useState('');
     const [project, setProject] = useState('');
     const [team, setTeam] = useState<number | ''>('');
     const [approver, setApprover] = useState<number | ''>('');
     const [teams, setTeams] = useState<Team[]>([]);
-    const [approvers, setApprovers] = useState<Approver[]>([]);
+    const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
     const [items, setItems] = useState<UserRequestItem[]>([]);
     const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accomodation'|'actions'|null>(null);
     const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
@@ -37,8 +43,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
 
     useEffect(() => {
         const getApproversandTeams = async (): Promise<void> => {
-            const allApprovers: Approver[] = await getApprovers(context)
-            setApprovers(allApprovers)
+            setAllApprovers(approvers)
             const allTeams: Team[] = await getTeams(context)
             setTeams(allTeams);
         }
@@ -73,13 +78,12 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
     };
 
     const addItem = (item: UserRequestItem): void => {
-        // Ensure each new item gets a unique ID
         const newItem = {
             ...item,
-            ID: nextItemId // Assign the next available ID
+            ID: nextItemId
         };
         setItems(prev => [...prev, newItem]);
-        setNextItemId(prev => prev + 1); // Increment the ID counter
+        setNextItemId(prev => prev + 1);
         setActiveForm(null);
     };
 
@@ -114,7 +118,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
         }
         
         try {
-            await createRequestWithItems(context, { 
+            const requestId = await createRequestWithItems(context, { 
                 Title: title, 
                 Goal: goal, 
                 Project: project, 
@@ -126,7 +130,8 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
             if (type === 'Sent for approval') {
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.TeamMember?.EMail;
-                sendEmail({ emailType: "new request", approver: approverEmail });
+                const approverTitle = approverData.TeamMember?.Title;
+                sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, author: loggedInUser.Email });
             }
             
             // Reset form after successful save
@@ -252,7 +257,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                             required
                         >
                             <option value="">-- Select Approver --</option>
-                            {approvers.map((a: any) => (
+                            {allApprovers.map((a: any) => (
                                 <option key={a.Id} value={a.Id}>
                                     {a.TeamMember?.Title}
                                 </option>
@@ -269,7 +274,6 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                     <button className={styles.stdButton} onClick={() => setActiveForm('accomodation')}>Add Accomodation</button>
                 </div>
 
-                {/* Modal components remain the same */}
                 <Modal
                     isOpen={activeForm === 'software'}
                     onDismiss={closeModal}
@@ -290,7 +294,6 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                     </div>
                 </Modal>
 
-                {/* Other modals (training, travel, accommodation) remain the same */}
                 <Modal
                     isOpen={activeForm === 'training'}
                     onDismiss={closeModal}

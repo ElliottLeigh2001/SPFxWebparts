@@ -18,6 +18,8 @@ const AccomodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, 
   const [dateError, setDateError] = useState('');
   const [locationError, setLocationError] = useState('');
   const [linkError, setLinkError] = useState('');
+  const [startDateError, setStartDateError] = useState('');
+  const [endDateError, setEndDateError] = useState('');
 
   useEffect(() => {
     if (initialData) {
@@ -53,6 +55,20 @@ const AccomodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, 
       valid = false;
     } else {
       setLocationError('');
+    }
+
+    if (!startDate) {
+      setStartDateError('Start date is required');
+      valid = false;
+    } else {
+      setStartDateError('');
+    }
+
+    if (!endDate) {
+      setEndDateError('End date is required');
+      valid = false;
+    } else {
+      setEndDateError('');
     }
 
     if (!link) {
@@ -144,14 +160,16 @@ const validateHR = (): boolean => {
               <label className={styles.formRowLabel}>Start Date *</label>
               <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
               {dateError && <div className={styles.validationError}>{dateError}</div>}
+              {startDateError && <div className={styles.validationError}>{startDateError}</div>}
             </div>
             <div className={styles.formItem}>
-              <label className={styles.formRowLabel}>End Date</label>
+              <label className={styles.formRowLabel}>End Date *</label>
               <input type="date" value={endDate} onChange={e => setOData__EndDate(e.target.value)} />
+              {endDateError && <div className={styles.validationError}>{endDateError}</div>}
             </div>
           </div><div>
             <label className={styles.formRowLabel}>Link *</label>
-            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginBottom: '18px', marginTop: '6px' }} />
+            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px' }} />
             {linkError && <div className={styles.validationError}>{linkError}</div>}
           </div>
         </>

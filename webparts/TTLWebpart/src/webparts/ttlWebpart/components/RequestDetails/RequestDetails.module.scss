@@ -27,6 +27,7 @@
   display: flex;
   gap: 30px;
   flex-wrap: wrap;
+  justify-content: center;
   
   span {
     font-size: 14px;
@@ -161,14 +162,6 @@
   
   &:hover {
       border: 3px solid rgb(39, 109, 110);
-  }
-}
-
-.requestSummary {
-  span {
-    display: inline-block;
-    margin-right: 20px;
-    margin-bottom: 5px;
   }
 }
 

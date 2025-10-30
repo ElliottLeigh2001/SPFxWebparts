@@ -17,7 +17,7 @@ import { sendEmail } from '../../service/AutomateService';
 interface RequestDetailsProps {
   request: UserRequest;
   items: UserRequestItem[];
-  view: 'myView' | 'approver' | 'HR';
+  view: 'myView' | 'approvers' | 'HR';
   onBack: () => void;
   onUpdate: () => void;
   error?: string | null;
@@ -262,10 +262,14 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
     <div className={styles.ttlDashboard} onClick={() => {showCommentBox === true && showComment()}}>
       <div className={requestDetailsStyles.detailsHeader}>
-        <button className={requestDetailsStyles.backButton} onClick={onBack}>
-          ← Back
-        </button>
-
+        <div style={{position: 'absolute', left: '20px'}}>
+          <button className={requestDetailsStyles.backButton} onClick={onBack}>
+            ← Back
+          </button>
+        </div>
+        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px'}}>
+          <h1>Request Details: {displayedRequest.Title}</h1>
+        </div>
         <>
           <div className={requestDetailsStyles.detailsActions}>
             {request.OData__Comments && (
@@ -319,7 +323,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         </div>
       </>
 
-        <h1>Request Details: {displayedRequest.Title}</h1>
         <div className={requestDetailsStyles.requestSummary}>
             {view !== 'myView' && (
               <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
@@ -330,7 +333,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
           <span><strong>Status:</strong> {displayedRequest.RequestStatus}</span>
           <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
           <span><strong>Project:</strong> {displayedRequest.Project}</span>
-          <br />
           <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
         </div>
       </div>
@@ -406,9 +408,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
               setConfirmProcessing(true);
               try {
                   if (confirmAction === 'approve') {
-                    if (view === 'approver') {
+                    if (view === 'approvers') {
                       await updateRequestApprover('In process by HR');
-                      await sendEmail({emailType: 'HR', title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
+                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
                     }
                     else if (view === 'HR') {
                       await updateRequestApprover('Approved')
@@ -423,7 +425,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                     await updateRequestApprover('Sent for approval')
                     const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
                     const approverEmail = approverData?.TeamMember?.EMail;
-                    await sendEmail({ emailType: "new request", title: request.Title, author: request.Author?.EMail, approver: approverEmail });
+                    const approverTitle = approverData?.TeamMember?.Title;
+                    await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: approverEmail, approverTitle: approverTitle });
                   }
                   else if (confirmAction === 'reapprove') {
                     await updateRequestApprover('Needs reapproval', comment)
@@ -456,7 +459,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
             className={requestDetailsStyles.approveButton}
             disabled={isUpdatingStatus}
           >
-            {changedByHR ? 'Reapprove' : 'Approve'}
+          {changedByHR ? 'Reapprove' : 'Approve'}
           </button>
             <button 
               onClick={() => {setConfirmAction('deny'); setShowConfirmActionDialog(true)}}

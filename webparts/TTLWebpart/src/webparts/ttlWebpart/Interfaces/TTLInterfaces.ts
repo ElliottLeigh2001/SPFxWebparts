@@ -46,12 +46,14 @@ export interface UserRequestItem {
 export interface Approver {
     Id: number;
     TeamMember: {
-        Id: number;
-        Title: string;
+        Id?: number;
+        Title?: string;
+        EMail?: string;
     }
     BackUp: {
-        Id: number;
-        Title: string;
+        Id?: number;
+        Title?: string;
+        EMail: string;
     }
 }
 
