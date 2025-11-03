@@ -283,7 +283,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
 
   if (showApproversDashboad) {
     return (
-      <ApproversDashboard context={context} onBack={handleBackClick}/>
+      <ApproversDashboard context={context} onBack={handleBackClick} loggedInUser={loggedInUser}/>
     );
   }
 

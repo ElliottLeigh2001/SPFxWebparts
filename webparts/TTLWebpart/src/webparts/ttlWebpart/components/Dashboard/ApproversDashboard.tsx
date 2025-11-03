@@ -10,9 +10,10 @@ import DashboardComponent from './DashboardComponent';
 interface ApproversProps {
   context: WebPartContext;
   onBack: () => void;
+  loggedInUser: any;
 }
 
-const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack }) => {
+const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedInUser }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
@@ -21,18 +22,21 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack }) => {
 
   const fetchRequests = async (requestId?: number): Promise<void> => {
     try {
+      console.log(loggedInUser)
       setIsLoading(true);
       setError(null);
       const requestData = await getRequestsData(context, "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval')");
 
-      setRequests(requestData as UserRequest[]);
+      const filteredRequests = requestData
+        .filter(req => req.ApproverID?.Title === loggedInUser.Title)
+      setRequests(filteredRequests as UserRequest[]);
 
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
       if (selectedId) {
         const refreshedItems = await getRequestItemsByRequestId(context, Number(selectedId));
         setRequestItems(refreshedItems);
 
-        const refreshedRequest = requestData.find(r => (r as any).ID === Number(selectedId));
+        const refreshedRequest = filteredRequests.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
           setSelectedRequest(refreshedRequest as UserRequest);
         }
@@ -93,6 +97,10 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack }) => {
   useEffect(() => {
     fetchRequests();
   }, [context]);
+
+  useEffect(() => {
+    console.log(requests)
+  }, [requests])
 
   const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
     try {
@@ -173,7 +181,7 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack }) => {
   return (
     <div className={styles.ttlDashboard}>
       <div className={styles.header}>
-        <button style={{position: 'absolute', left: '20px', top: '20px'}} className={styles.stdButton} onClick={onBack}>Back</button>
+        <button className={styles.backButton} onClick={onBack}>Back</button>
         <h1>Approver Dashboard</h1>
       </div>
 

@@ -182,13 +182,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
   return (
     <div className={styles.ttlDashboard}>
       <div className={styles.header}>
-        <button
-          style={{ position: 'absolute', left: '20px', top: '20px' }}
-          className={styles.stdButton}
-          onClick={onBack}
-        >
-          Back
-        </button>
+        <button className={styles.backButton} onClick={onBack}>Back</button>
         <h1>HR Dashboard</h1>
       </div>
 

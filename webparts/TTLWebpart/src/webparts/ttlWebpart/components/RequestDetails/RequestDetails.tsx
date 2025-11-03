@@ -263,86 +263,86 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     <>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
     <div className={styles.ttlDashboard}>
-      <div className={requestDetailsStyles.detailsHeader}>
-        <div style={{position: 'absolute', left: '20px'}}>
+      <div className={requestDetailsStyles.detailsContainer}>
+        <div className={requestDetailsStyles.detailsHeader}>
           <button className={requestDetailsStyles.backButton} onClick={onBack}>
             Back
           </button>
-        </div>
-        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px'}}>
-          <h1>Request Details: {displayedRequest.Title}</h1>
-        </div>
-        <>
-          <div className={requestDetailsStyles.detailsActions}>
-          {request.OData__Comments && (
-            <div className={requestDetailsStyles.commentWrapper}>
-              <button
-                className={showCommentBox ? requestDetailsStyles.filledIconButton : requestDetailsStyles.iconButton}
-                onClick={showComment}
-                title="View comment"
-              >
-                <i className="fa fa-comment" aria-hidden="true"></i>
-              </button>
 
-              {showCommentBox && (
-                <div className={requestDetailsStyles.commentBox}>
-                  <div className={requestDetailsStyles.commentHeader}>
-                    <strong>Comment</strong>
-                    <button 
-                      className={requestDetailsStyles.closeButton}
-                      onClick={() => setShowCommentBox(false)}
-                      title="Close"
-                    >
-                      <i className="fa fa-times"></i>
-                    </button>
+          <h1>Request Details: {displayedRequest.Title}</h1>
+
+          <div className={requestDetailsStyles.detailsActions}>
+            {request.OData__Comments && (
+              <div className={requestDetailsStyles.commentWrapper}>
+                <button
+                  className={showCommentBox ? requestDetailsStyles.filledIconButton : requestDetailsStyles.iconButton}
+                  onClick={showComment}
+                  title="View comment"
+                >
+                  <i className="fa fa-comment" aria-hidden="true"></i>
+                </button>
+
+                {showCommentBox && (
+                  <div className={requestDetailsStyles.commentBox}>
+                    <div className={requestDetailsStyles.commentHeader}>
+                      <strong>Comment</strong>
+                      <button 
+                        className={requestDetailsStyles.closeButton}
+                        onClick={() => setShowCommentBox(false)}
+                        title="Close"
+                      >
+                        <i className="fa fa-times"></i>
+                      </button>
+                    </div>
+                    <p className={requestDetailsStyles.commentPlaceholder}>
+                      {request.OData__Comments}
+                    </p>
                   </div>
-                  <p className={requestDetailsStyles.commentPlaceholder}>
-                    {request.OData__Comments}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        {(displayedRequest.RequestStatus === 'Saved') && (
-          <>
-            <button
-              className={requestDetailsStyles.iconButton}
-              onClick={() => { setConfirmAction('send'); setShowConfirmActionDialog(true); } }
-              title="Send for approval"
-            >
-              <i className="fa fa-paper-plane" aria-hidden="true"></i>
-            </button>
-            <button
-              className={requestDetailsStyles.iconButton}
-              onClick={() => setEditingRequest(true)}
-              title="Edit"
-            >
-                <i className="fa fa-pencil" aria-hidden="true"></i>
-            </button>
-            </>
-        )}
-        {(displayedRequest.RequestStatus === 'Saved'  || displayedRequest.RequestStatus === 'Declined') && (
-          <button
-            className={requestDetailsStyles.iconButton}
-            onClick={() => setShowDeleteConfirm(true)}
-            title="Discard"
-          >
-            <i className="fa fa-trash" aria-hidden="true"></i>
-          </button>
-        )}
+                )}
+              </div>
+            )}
+            
+            {(displayedRequest.RequestStatus === 'Saved') && (
+              <>
+                <button
+                  className={requestDetailsStyles.iconButton}
+                  onClick={() => { setConfirmAction('send'); setShowConfirmActionDialog(true); } }
+                  title="Send for approval"
+                >
+                  <i className="fa fa-paper-plane" aria-hidden="true"></i>
+                </button>
+                <button
+                  className={requestDetailsStyles.iconButton}
+                  onClick={() => setEditingRequest(true)}
+                  title="Edit"
+                >
+                  <i className="fa fa-pencil" aria-hidden="true"></i>
+                </button>
+              </>
+            )}
+            
+            {(displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') && (
+              <button
+                className={requestDetailsStyles.iconButton}
+                onClick={() => setShowDeleteConfirm(true)}
+                title="Discard"
+              >
+                <i className="fa fa-trash" aria-hidden="true"></i>
+              </button>
+            )}
+          </div>
         </div>
-      </>
 
         <div className={requestDetailsStyles.requestSummary}>
-            {view !== 'myView' && (
-              <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
-            )}
-            {view === 'HR' && (
-              <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
-            )}
+          {view !== 'myView' && (
+            <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
+          )}
+          {view === 'HR' && (
+            <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
+          )}
           <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
           <span><strong>Project:</strong> {displayedRequest.Project}</span>
-          <span><strong>Project:</strong> {displayedRequest.TeamID?.Title}</span>
+          <span><strong>Team:</strong> {displayedRequest.TeamID?.Title || '/'}</span>
           <span><strong>Status:</strong> {displayedRequest.RequestStatus}</span>
           <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
         </div>
