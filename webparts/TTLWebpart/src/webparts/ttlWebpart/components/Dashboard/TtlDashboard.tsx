@@ -2,7 +2,7 @@ import * as React from 'react';
 import type { ITtlWebpartProps } from './ITtlWebpartProps';
 import { useEffect, useState } from 'react';
 import { getRequestsData, getLoggedInUser, getRequestItemsByRequestId, getApprovers, checkHR } from '../../service/TTLService';
-import styles from '../TtlWebpart.module.scss';
+import styles from './TtlWebpart.module.scss';
 import { Approver, UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import NewRequestForm from '../NewRequest/NewRequest';
@@ -216,14 +216,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   };
 
   const handleViewClick = (view: string) => {
-    // Reset states first
     setSelectedRequest(null);
     setRequestItems([]);
     setNewRequest(false);
     setShowApproverDashboard(false);
     setShowHRDashboard(false);
     
-    // Then set the correct view
     switch(view) {
       case 'new':
         setNewRequest(true);

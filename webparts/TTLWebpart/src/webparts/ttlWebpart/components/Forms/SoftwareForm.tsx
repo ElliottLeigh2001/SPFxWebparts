@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import styles from '../TtlWebpart.module.scss';
+import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FormProps } from './FormProps';
 import { validateCost, validateLink } from '../../Helpers/HelperFunctions';

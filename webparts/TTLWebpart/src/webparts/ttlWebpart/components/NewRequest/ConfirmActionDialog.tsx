@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Modal } from '@fluentui/react';
 import newRequestStyles from './NewRequest.module.scss';
-import styles from '../TtlWebpart.module.scss';
+import styles from '../Dashboard/TtlWebpart.module.scss';
 import { useState } from 'react';
 
 type ActionType = 'save' | 'send' | 'discard' | 'approve' | 'reapprove' | 'deny';

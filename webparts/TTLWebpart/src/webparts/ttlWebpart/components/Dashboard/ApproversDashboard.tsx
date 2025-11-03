@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
 import RequestDetails from '../RequestDetails/RequestDetails';
-import styles from '../TtlWebpart.module.scss';
+import styles from './TtlWebpart.module.scss';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import DashboardComponent from './DashboardComponent';
 
@@ -23,18 +23,16 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const requestData = await getRequestsData(context);
+      const requestData = await getRequestsData(context, "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval')");
 
-      const filteredRequests = requestData
-        .filter(req => req.RequestStatus === 'Sent for approval' || req.RequestStatus === 'Needs reapproval');
-      setRequests(filteredRequests as UserRequest[]);
+      setRequests(requestData as UserRequest[]);
 
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
       if (selectedId) {
         const refreshedItems = await getRequestItemsByRequestId(context, Number(selectedId));
         setRequestItems(refreshedItems);
 
-        const refreshedRequest = filteredRequests.find(r => (r as any).ID === Number(selectedId));
+        const refreshedRequest = requestData.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
           setSelectedRequest(refreshedRequest as UserRequest);
         }
@@ -175,7 +173,7 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack }) => {
   return (
     <div className={styles.ttlDashboard}>
       <div className={styles.header}>
-        <button style={{position: 'absolute', left: '20px', top: '20px'}} className={styles.stdButton} onClick={onBack}>← Back</button>
+        <button style={{position: 'absolute', left: '20px', top: '20px'}} className={styles.stdButton} onClick={onBack}>Back</button>
         <h1>Approver Dashboard</h1>
       </div>
 

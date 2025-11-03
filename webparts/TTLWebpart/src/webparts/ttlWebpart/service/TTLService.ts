@@ -42,23 +42,31 @@ export const checkHR = async (context: WebPartContext): Promise<boolean> => {
   return isHR
 };
 
-export const getRequestsData = async (context: WebPartContext): Promise<UserRequest[]> => {
-    try {
-        const response = await context.spHttpClient.get(
-            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,RequestStatus,OData__Comments,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`,
-            SPHttpClient.configurations.v1
-        );
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data.value as UserRequest[];
-    } catch (error) {
-        console.error('Error fetching requests data:', error);
-        return [];
+export const getRequestsData = async (
+  context: WebPartContext,
+  filter?: string
+): Promise<UserRequest[]> => {
+  try {
+    // Base query
+    let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,RequestStatus,OData__Comments,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`;
+
+    // Add optional $filter if provided
+    if (filter) {
+      apiUrl += `&$filter=${encodeURIComponent(filter)}`;
     }
+
+    const response = await context.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.value as UserRequest[];
+  } catch (error) {
+    console.error("Error fetching requests data:", error);
+    return [];
+  }
 };
 
 const mapSharePointItemToUserRequestItem = (sharePointItem: any): UserRequestItem => {

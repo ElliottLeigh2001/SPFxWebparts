@@ -8,7 +8,7 @@ import { Approver, Team, UserRequestItem } from '../../Interfaces/TTLInterfaces'
 import { useEffect, useState } from 'react';
 import AccomodationForm from '../Forms/AccomodationForm';
 import ConfirmActionDialog from './ConfirmActionDialog';
-import styles from '../TtlWebpart.module.scss';
+import styles from '../Dashboard/TtlWebpart.module.scss';
 import newRequestStyles from './NewRequest.module.scss'
 import { Modal } from '@fluentui/react';
 import { sendEmail } from '../../service/AutomateService';

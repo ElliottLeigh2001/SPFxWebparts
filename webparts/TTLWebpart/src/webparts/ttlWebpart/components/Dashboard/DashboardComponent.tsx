@@ -36,59 +36,57 @@ const DashboardComponent: React.FC<DashboardProps> = ({
 
   return (
     <div>
-
-    <div className={styles.tableContainer}>
-      <table className={styles.requestsTable}>
-        <thead>
-          <tr>
-            <th>Title</th>
-            {view !== "myView" && <th>Requester</th>}
-            {view === 'HR' && <th>Approver</th>}
-            <th>Total Cost</th>
-            <th>Project</th>
-            <th>Team</th>
-            <th>Submission Date</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentRequests.length > 0 ? (
-            currentRequests.map((request) => (
-              <tr
-                key={request.ID}
-                className={styles.requestRow}
-                onClick={() => onClick(request, true)}
-              >
-                <td>{request.Title}</td>
-                {view !== "myView" && (
-                  <td>{request.Author?.Title || "/"}</td>
-                )}
-                {view === 'HR' && (
-                  <td>{request.ApproverID?.Title || '/'}</td>
-                )}
-                <td>€ {request.TotalCost || "0"}</td>
-                <td>{request.Project || "/"}</td>
-                <td>{request.TeamID?.Title || "No team found"}</td>
-                <td>{formatDate(request.SubmissionDate)}</td>
-                <td>
-                  <span
-                    className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}
-                  >
-                    {request.RequestStatus || "Unknown"}
-                  </span>
-                </td>
+      <div className={styles.tableContainer}>
+        <div className={styles.tableWrapper}>
+          <table className={styles.requestsTable}>
+            <thead>
+              <tr>
+                <th>Title</th>
+                {view !== "myView" && <th>Requester</th>}
+                {view === 'HR' && <th>Approver</th>}
+                <th>Total Cost</th>
+                <th>Project</th>
+                <th>Team</th>
+                <th>Submission Date</th>
+                <th>Status</th>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={6} className={styles.noData}>
-                No requests to approve. Check back later.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+            </thead>
+            <tbody>
+              {currentRequests.length > 0 ? (
+                currentRequests.map((request) => (
+                  <tr
+                    key={request.ID}
+                    className={styles.requestRow}
+                    onClick={() => onClick(request, true)}
+                  >
+                    <td>{request.Title}</td>
+                    {view !== "myView" && <td>{request.Author?.Title || "/"}</td>}
+                    {view === 'HR' && <td>{request.ApproverID?.Title || '/'}</td>}
+                    <td>€ {request.TotalCost || "0"}</td>
+                    <td>{request.Project || "/"}</td>
+                    <td>{request.TeamID?.Title || "No team found"}</td>
+                    <td>{formatDate(request.SubmissionDate)}</td>
+                    <td>
+                      <span
+                        className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}
+                      >
+                        {request.RequestStatus || "Unknown"}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className={styles.noData}>
+                    No requests to approve. Check back later.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {totalPages > 1 && (
         <div className={styles.pagination}>
           <button

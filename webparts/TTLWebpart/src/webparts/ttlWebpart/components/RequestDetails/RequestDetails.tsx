@@ -116,11 +116,13 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
       // Refresh parent component
       if (onUpdate) onUpdate();
       
-      // Optionally navigate back after a short delay
-      setTimeout(() => {
-        onBack();
-      }, 1500);
-      
+      // Navigate back after a short delay
+      if (type !== 'Approved') {
+        setTimeout(() => {
+          onBack();
+        }, 1500);
+      }
+
     } catch (error) {
       console.error('Error approving request:', error);
       setStatusActionError('Failed to approve request');
@@ -260,11 +262,11 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   return (
     <>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
-    <div className={styles.ttlDashboard} onClick={() => {showCommentBox === true && showComment()}}>
+    <div className={styles.ttlDashboard}>
       <div className={requestDetailsStyles.detailsHeader}>
         <div style={{position: 'absolute', left: '20px'}}>
           <button className={requestDetailsStyles.backButton} onClick={onBack}>
-            ← Back
+            Back
           </button>
         </div>
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px'}}>
@@ -272,27 +274,35 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         </div>
         <>
           <div className={requestDetailsStyles.detailsActions}>
-            {request.OData__Comments && (
+          {request.OData__Comments && (
+            <div className={requestDetailsStyles.commentWrapper}>
+              <button
+                className={showCommentBox ? requestDetailsStyles.filledIconButton : requestDetailsStyles.iconButton}
+                onClick={showComment}
+                title="View comment"
+              >
+                <i className="fa fa-comment" aria-hidden="true"></i>
+              </button>
 
-              <div className={requestDetailsStyles.commentWrapper}>
-                <button
-                  className={showCommentBox ? requestDetailsStyles.filledIconButton : requestDetailsStyles.iconButton}
-                  onClick={() => {showCommentBox === false && showComment()}}
-                  title="View comment"
-                >
-                  <i className="fa fa-comment" aria-hidden="true"></i>
-                </button>
-
-                {showCommentBox && (
-                  <div className={requestDetailsStyles.commentBox}>
-                    <p style={{fontSize: '18px'}}><strong>Comment:</strong></p>
-                    <p className={requestDetailsStyles.commentPlaceholder}>
-                      {request.OData__Comments}
-                    </p>
+              {showCommentBox && (
+                <div className={requestDetailsStyles.commentBox}>
+                  <div className={requestDetailsStyles.commentHeader}>
+                    <strong>Comment</strong>
+                    <button 
+                      className={requestDetailsStyles.closeButton}
+                      onClick={() => setShowCommentBox(false)}
+                      title="Close"
+                    >
+                      <i className="fa fa-times"></i>
+                    </button>
                   </div>
-                )}
-              </div>
-            )}
+                  <p className={requestDetailsStyles.commentPlaceholder}>
+                    {request.OData__Comments}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         {(displayedRequest.RequestStatus === 'Saved') && (
           <>
             <button
@@ -333,8 +343,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
           <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
           <span><strong>Project:</strong> {displayedRequest.Project}</span>
           <span><strong>Project:</strong> {displayedRequest.TeamID?.Title}</span>
-          <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
           <span><strong>Status:</strong> {displayedRequest.RequestStatus}</span>
+          <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
         </div>
       </div>
 
@@ -395,8 +405,10 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         items={displayedItems}
         onEdit={handleEditItem}
         onDelete={handleDeleteItem}
+        onAdd={() => setShowAddModal(true)}
         showActions={(displayedRequest.RequestStatus === 'Saved' || view === 'HR')}
-        requestRequestStatus={displayedRequest.RequestStatus}
+        view={view}
+        request={displayedRequest}
       />
 
       <ConfirmActionDialog
@@ -442,10 +454,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
       />
     </div>
       <div className={styles.newRequestButtonContainer}>
-        {view === 'myView' && request.RequestStatus === 'Saved' && (
-          <button onClick={() => setShowAddModal(true)} className={styles.stdButton}>Add item</button>
-        )}
-        {view !== 'myView' && (
+        {view !== 'myView' && request.RequestStatus !== 'Approved' && (
 
           <div style={{display: 'flex', gap: '20px'}}>
           <button

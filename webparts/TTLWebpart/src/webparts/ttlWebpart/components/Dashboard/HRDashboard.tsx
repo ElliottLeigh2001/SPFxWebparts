@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
 import RequestDetails from '../RequestDetails/RequestDetails';
-import styles from '../TtlWebpart.module.scss';
+import styles from './TtlWebpart.module.scss';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import DashboardComponent from './DashboardComponent';
 
@@ -18,23 +18,23 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'toApprove' | 'approved'>('toApprove');
 
   const fetchRequests = async (requestId?: number): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
-      const requestData = await getRequestsData(context);
+      const requestData = await getRequestsData(context, "(RequestStatus eq 'In process by HR' or RequestStatus eq 'Approved')");
 
-      const filteredRequests = requestData
-        .filter(req => req.RequestStatus === 'In process by HR');
-      setRequests(filteredRequests as UserRequest[]);
+
+      setRequests(requestData as UserRequest[]);
 
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
       if (selectedId) {
         const refreshedItems = await getRequestItemsByRequestId(context, Number(selectedId));
         setRequestItems(refreshedItems);
 
-        const refreshedRequest = filteredRequests.find(r => (r as any).ID === Number(selectedId));
+        const refreshedRequest = requestData.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
           setSelectedRequest(refreshedRequest as UserRequest);
         }
@@ -137,6 +137,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
   // Handle status update and refresh the list
   const handleStatusUpdate = async (): Promise<void> => {
     await fetchRequests();
+    setActiveTab('approved')
   };
 
   if (isLoading) {
@@ -172,25 +173,60 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
     );
   }
 
+  const filteredRequests = requests.filter(req =>
+    activeTab === 'toApprove'
+      ? req.RequestStatus === 'In process by HR'
+      : req.RequestStatus === 'Approved'
+  );
+
   return (
     <div className={styles.ttlDashboard}>
       <div className={styles.header}>
-        <button style={{position: 'absolute', left: '20px', top: '20px'}} className={styles.stdButton} onClick={onBack}>← Back</button>
+        <button
+          style={{ position: 'absolute', left: '20px', top: '20px' }}
+          className={styles.stdButton}
+          onClick={onBack}
+        >
+          Back
+        </button>
         <h1>HR Dashboard</h1>
       </div>
 
-      {error && (
-        <div className={styles.error}>
-          <p>{error}</p>
+      <div className={styles.tabContainer}>
+        <div className={styles.tabButtonWrapper}>
+          <div
+            className={`${styles.activeBg} ${
+              activeTab === 'approved' ? styles.slideRight : styles.slideLeft
+            }`}
+          ></div>
+
+          <button
+            className={`${styles.tabButtonToApprove} ${
+              activeTab === 'toApprove' ? styles.activeTabText : ''
+            }`}
+            onClick={() => setActiveTab('toApprove')}
+          >
+            To Approve
+          </button>
+          <button
+            className={`${styles.tabButtonApproved} ${
+              activeTab === 'approved' ? styles.activeTabText : ''
+            }`}
+            onClick={() => setActiveTab('approved')}
+          >
+            Approved
+          </button>
         </div>
-      )}
+      </div>
+
+
+      {error && <div className={styles.error}><p>{error}</p></div>}
 
       <DashboardComponent
         onClick={handleRequestClick}
-        requests={requests}
+        requests={filteredRequests}
         view='HR'
       />
-
     </div>
   );
 }
