@@ -1,3 +1,13 @@
+const daysOfWeek: Record<number, string> = {
+  0: "Sun",
+  1: "Mon",
+  2: "Tue",
+  3: "Wed",
+  4: "Thu",
+  5: "Fri",
+  6: "Sat"
+};
+
 // Date formatting for displaying start and end dates
 export const formatDate = (startTime: string, endTime: string): string => {
   const startDate = new Date(startTime);
@@ -7,9 +17,9 @@ export const formatDate = (startTime: string, endTime: string): string => {
   if (startDate.getDate() === endDate.getDate() &&
       startDate.getMonth() === endDate.getMonth() &&
       startDate.getFullYear() === endDate.getFullYear()) {
-    return `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()} from ${pad(startDate.getHours())}:${pad(startDate.getMinutes())} to ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+    return `${daysOfWeek[startDate.getDay()]} ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()} from ${pad(startDate.getHours())}:${pad(startDate.getMinutes())} to ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
   } else {
-    return `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()} ${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${pad(endDate.getDate())}/${pad(endDate.getMonth() + 1)}/${endDate.getFullYear()} ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+    return `${daysOfWeek[startDate.getDay()]} ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()} ${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${daysOfWeek[endDate.getDay()]} ${pad(endDate.getDate())}/${pad(endDate.getMonth() + 1)}/${endDate.getFullYear()} ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
   }
 };
 
@@ -18,6 +28,6 @@ export const formatSingleDate = (date: string): string => {
   const startDate = new Date(date);
   const pad = (num: number): string => (num < 10 ? '0' + num : num.toString());
 
-  return `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()}`;
+  return `${daysOfWeek[startDate.getDay()]} ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()}`;
 
 };

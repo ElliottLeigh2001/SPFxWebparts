@@ -1,91 +1,61 @@
 
 .detailsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  background-color: #fff;
-  padding: 40px 20px 40px 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafa 100%);
+  padding: 50px 25px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  animation: fadeIn 0.6s ease-in-out;
 }
 
-.backButton {
-  display: flex;
-  background: none;
-  border: none;
-  color: white;
-  background-color: rgb(47, 129, 131);
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 10px;
-  padding: 8px 20px;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.backButton { 
+  display: flex; 
+  background: none; 
+  border: none; 
+  color: white; 
+  background-color: rgb(47, 129, 131); 
+  border-radius: 4px; 
+  font-size: 16px; 
+  cursor: pointer; 
+  margin-bottom: 10px; 
+  padding: 4px 20px 5px 20px; 
 }
 
 .detailsImage {
   width: 100%;
-  max-width: 400px;
-  height: 200px;
+  max-width: 600px;
+  height: 280px;
   object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 15px;
-}
-
-.backButton:hover {
-  background-color: rgb(39, 109, 110);
-}
-
-.signOutButton {
-    background-color: transparent;
-    color: #333;
-    border: 3px solid rgb(47, 129, 131);
-    padding: 10px 24px;
-    border-radius: 12px;
-    font-size: 16px;
-    margin-bottom: 30px;
-  margin-top: 60px;
-  cursor: pointer;
-}
-
-.signOutButton:hover {
-  border: 3px solid rgb(39, 109, 110);
-  background-color: #ccc;
-}
-
-.signUpButton {
-    background: none;
-  border: none;
-  color: white;
-  background-color: rgb(47, 129, 131);
-  border: 3px solid rgb(47, 129, 131);
   border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 30px;
-  margin-top: 60px;
-  padding: 10px 24px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.4s ease;
 }
 
-.signUpButton:hover {
-  background-color: rgb(39, 109, 110);
-  border: 3px solid rgb(39, 109, 110);
-}
-
-.signUpButton:disabled,
-.signOutButton:disabled {
-    opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.topRightBox {
+.left {
   position: absolute;
-  top: 50px;
-  right: 30px;
+  left: 20px;
+  top: 40px;
+}
+
+.right {
+  position: absolute;
+  right: 20px;
+  top: 40px;
   background: #f9f9f9;
   padding: 18px 24px;
   border-radius: 8px;
   box-shadow: 0 0 8px rgba(0,0,0,0.1);
   max-width: 200px;
   max-height: 500px;
-  overflow-y: auto;
 
   h4 {
     margin-top: 0;
@@ -106,33 +76,98 @@
   }
 }
 
+.backButton:hover {
+  background-color: rgb(39, 109, 110);
+}
+
+.signOutButton {
+  background-color: transparent;
+  color: #333;
+  border: 3px solid rgb(47, 129, 131);
+  color: rgb(47, 129, 131);
+  font-weight: 600;
+  padding: 4px 20px 6px 20px;
+  border-radius: 4px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.signOutButton:hover {
+  border: 3px solid rgb(39, 109, 110);
+  color: rgb(39, 109, 110);
+  background-color: #ccc;
+}
+
+.signUpButton {
+  background: none;
+  border: none;
+  color: white;
+  background-color: rgb(47, 129, 131);
+  border: 3px solid rgb(47, 129, 131);
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 4px 20px 6px 20px;
+}
+
+.signUpButton:hover {
+  background-color: rgb(39, 109, 110);
+  border: 3px solid rgb(39, 109, 110);
+}
+
+.signUpButton:disabled,
+.signOutButton:disabled {
+    opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .cantSignUp {
     color: red;
     font-size: large;
 }
 
 .signupDeadline {
-    color: red;
-    font-weight: bold;
-    margin-top: 20px;
+  background: #ffeaea;
+  color: #c81e1e;
+  font-weight: 600;
+  border: 1px solid #f5b5b5;
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .foodEvent {
     color: green;
 }
 
-.descriptionContainer {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  max-height: 600px;
-  overflow-y: auto;
+.foodEvent {
+  background-color: #e5f7e9;
+  color: #2f8d42;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+
+.descriptionContainer { 
+  display: flex; 
+  justify-content: center; 
+  width: 100%; 
 }
 
 .description {
-  width: 45%;
-  margin-top: 15px;
+  width: 50%;
   color: #333;
+}
+
+.seeMore {
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
 }
 
 .loading {
@@ -166,10 +201,15 @@
   color: white;
 }
 
+@media (max-width: 900px) {
+  .left {
+    position: inherit !important;
+  }
+}
+
 @media (max-width: 1250px) {
-  .topRightBox {
+  .right {
     position: inherit !important;
     max-width: 100% !important;
-    max-height: 200px !important;
   }
 }

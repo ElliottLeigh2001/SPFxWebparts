@@ -24,10 +24,10 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   // But if any new event types were made, they would be useless until a new
   // Form was created anyway
   const eventTypes: Record<string, string> = {
-    "Standard": "Basic Events",
+    "Standard": "Basic events",
     "Sinterklaas": "Sinterklaas",
     "Family": "Family",
-    "Staff Party": "Staff party",
+    "Staff party": "Staff party",
     "Sport": "Sport",
     "No signup": "No signup",
     "Custom": "Others"
@@ -164,14 +164,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   };
 
   // Carousel arrows logic
-  const handlePrev = (): void => {
-    setCurrentIndex((prev) => Math.max(prev - ITEMS_PER_PAGE, 0));
-  };
-  const handleNext = (): void => {
-    setCurrentIndex((prev) =>
-      Math.min(prev + ITEMS_PER_PAGE, items.length - ITEMS_PER_PAGE)
-    );
-  };
+  // (handlers moved below so they can use computed `pages` / `pageIndex`)
 
   if (loading) return <div>Loading events...</div>;
   if (selectedEvent) {
@@ -187,8 +180,22 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     );
   }
 
-  const visibleItems = items.slice(currentIndex, currentIndex + ITEMS_PER_PAGE);
-  
+  const truncate = (text: string, length: number) => {
+    return text.length > length ? text.slice(0, length) + "..." : text;
+  }
+
+  const pages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
+  const pageIndex = Math.floor(currentIndex / ITEMS_PER_PAGE);
+
+  // Carousel arrows logic
+  const handlePrev = (): void => {
+    setCurrentIndex((prev) => Math.max(prev - ITEMS_PER_PAGE, 0));
+  };
+  const handleNext = (): void => {
+    const maxStart = Math.max(0, (pages - 1) * ITEMS_PER_PAGE);
+    setCurrentIndex((prev) => Math.min(prev + ITEMS_PER_PAGE, maxStart));
+  };
+
   return (
     <>
     <div className={styles.pageHeader}>
@@ -264,58 +271,79 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
         <main className={styles.mainContent}>
 
           {items.length > 0 ? (
-            <div className={styles.eventContainer}>
-              {visibleItems.map((item) => {
+            <div className={styles.eventViewport}>
+              <div
+                className={styles.track}
+                style={{ transform: `translateX(-${pageIndex * 100}%)` }}
+              >
+                {Array.from({ length: pages }).map((_, p) => {
+                  const pageItems = items.slice(
+                    p * ITEMS_PER_PAGE,
+                    p * ITEMS_PER_PAGE + ITEMS_PER_PAGE
+                  );
+
+                  return (
+                    <div className={styles.page} key={p}>
+                      {pageItems.map((item) => {
                 const imageData = item.Image0
                   ? JSON.parse(item.Image0)
                   : null;
                 const imageUrl = imageData
                   ? `${context.pageContext.web.absoluteUrl}/Lists/HR_Events/Attachments/${item.Id}/${imageData.fileName}`
                   : undefined;
-
-                return (
-                  <div
-                    key={item.Id}
-                    className={styles.eventItem}
-                    onClick={() => {
-                      setSelectedEvent(item);
-                      window.history.pushState(
-                        {},
-                        "",
-                        `?eventId=${item.Id}`
+                      return (
+                        <div
+                          key={item.Id}
+                          className={styles.eventItem}
+                          onClick={() => {
+                            setSelectedEvent(item);
+                            window.history.pushState(
+                              {},
+                              "",
+                              `?eventId=${item.Id}`
+                            );
+                          }}
+                        >
+                          {imageUrl && (
+                            <img
+                              src={imageUrl}
+                              alt={item.Title}
+                              className={styles.eventImg}
+                            />
+                          )}
+                          <div>
+                            <h4 style={{display: 'flex', width: '90%', justifySelf: 'center', justifyContent: 'center'}}>{truncate(item.Title, 50)}</h4>
+                            <div style={{display: 'flex', width: '90%', justifySelf: 'center', justifyContent: 'center'}}>📍{truncate(item.Location, 30)}</div>
+                            <p>{formatSingleDate(item.StartTime)}</p>
+                          </div>
+                        </div>
                       );
-                    }}
-                  >
-                    {imageUrl && (
-                      <img
-                        src={imageUrl}
-                        alt={item.Title}
-                        className={styles.eventImg}
-                      />
-                    )}
-                    <div>
-                      <h4>{item.Title}</h4>
-                      <div>📍{item.Location}</div>
-                      <p>{formatSingleDate(item.StartTime)}</p>
-                    </div>
+                    })}
                   </div>
                 );
               })}
+              </div>
             </div>
           ) : (
-            <p>There are no upcoming events</p>
+            <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+              {filters.length > 0 ? (
+                <h3>There are no events that meet the filter criteria</h3>
+              ) : (
+                <h3>There are no upcoming events</h3>
+              )}
+            </div>
           )}
 
           {items.length > ITEMS_PER_PAGE && (
             <div className={styles.carouselControls}>
-              <button onClick={handlePrev} disabled={currentIndex === 0}>
-                &#10094;
+              <button onClick={handlePrev} disabled={pageIndex === 0}>
+                <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M12.35 15.85a.5.5 0 0 1-.7 0L6.16 10.4a.55.55 0 0 1 0-.78l5.49-5.46a.5.5 0 1 1 .7.7L7.2 10l5.16 5.15c.2.2.2.5 0 .7Z"></path></svg>
               </button>
               <button
                 onClick={handleNext}
-                disabled={currentIndex + ITEMS_PER_PAGE >= items.length}
+                disabled={pageIndex >= pages - 1}
               >
-                &#10095;
+                <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7.65 4.15c.2-.2.5-.2.7 0l5.49 5.46c.21.22.21.57 0 .78l-5.49 5.46a.5.5 0 0 1-.7-.7L12.8 10 7.65 4.85a.5.5 0 0 1 0-.7Z"></path></svg>
               </button>
             </div>
           )}

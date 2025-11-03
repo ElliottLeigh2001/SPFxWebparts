@@ -1,4 +1,4 @@
-import { EventItem } from "../../EventsInterfaces";
+import { EventItem } from "../../../EventsInterfaces";
 
 export interface SignupModalProps {
   event: EventItem;

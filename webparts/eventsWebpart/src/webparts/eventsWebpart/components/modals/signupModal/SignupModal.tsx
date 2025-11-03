@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { SportFormFields } from '../form-fields/Sport/SportFormField';
-import { FoodFormFields } from '../form-fields/Food/FoodFormFields';
-import { CarpoolingFormFields } from '../form-fields/Carpooling/CarpoolingFormFields';
-import  { FamilyFormFields } from '../form-fields/Family/FamilyFormFields';
-import { SinterklaasFormFields } from '../form-fields/Sinterklaas/SinterklaasFormFields';
-import { PlusOneFormFields } from '../form-fields/PlusOne/PlusOneFormFields';
+import { SportFormFields } from '../../form-fields/Sport/SportFormField';
+import { FoodFormFields } from '../../form-fields/Food/FoodFormFields';
+import { CarpoolingFormFields } from '../../form-fields/Carpooling/CarpoolingFormFields';
+import  { FamilyFormFields } from '../../form-fields/Family/FamilyFormFields';
+import { SinterklaasFormFields } from '../../form-fields/Sinterklaas/SinterklaasFormFields';
+import { PlusOneFormFields } from '../../form-fields/PlusOne/PlusOneFormFields';
 import modalStyles from './SignupModal.module.scss';
 import { SignupModalProps } from './SignupModalInterface';
 
@@ -20,9 +20,9 @@ interface FormData {
   departureFrom: string;
   amountOfKids: number;
   kidsData: [];
-  ageChild1: number;
-  ageChild2: number;
-  ageChild3: number;
+  ageChild1: string;
+  ageChild2: string;
+  ageChild3: string;
 }
 
 export const SignupModal: React.FC<SignupModalProps> = ({
@@ -43,9 +43,9 @@ export const SignupModal: React.FC<SignupModalProps> = ({
     departureFrom: '',
     amountOfKids: 0,
     kidsData: [],
-    ageChild1: 0,
-    ageChild2: 0,
-    ageChild3: 0,
+    ageChild1: '',
+    ageChild2: '',
+    ageChild3: '',
   });
 
   // Change the form fields based on which kind of event was selected
@@ -55,7 +55,16 @@ export const SignupModal: React.FC<SignupModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await onSubmit(formData);
+    
+    // Convert age strings to numbers for submission
+    const submissionData = {
+      ...formData,
+      ageChild1: formData.ageChild1 ? parseInt(formData.ageChild1) || 0 : 0,
+      ageChild2: formData.ageChild2 ? parseInt(formData.ageChild2) || 0 : 0,
+      ageChild3: formData.ageChild3 ? parseInt(formData.ageChild3) || 0 : 0,
+    };
+    
+    await onSubmit(submissionData);
     onClose();
   };
 
@@ -74,9 +83,9 @@ export const SignupModal: React.FC<SignupModalProps> = ({
       departureFrom: '',
       amountOfKids: 0,
       kidsData: [],
-      ageChild1: 0,
-      ageChild2: 0,
-      ageChild3: 0,
+      ageChild1:'',
+      ageChild2:'',
+      ageChild3:'',
     });
   };
 

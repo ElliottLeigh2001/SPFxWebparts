@@ -39,10 +39,12 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
               <input
                 type="text"
                 value={ageChild1}
-                onChange={(e) => setAgeChild1(Number(e.target.value))}
+                onChange={(e) => setAgeChild1(e.target.value)}
                 disabled={disabled}
                 className={styles.textInput}
                 required
+                pattern="[0-9]*" // Optional: only allow numbers
+                inputMode="numeric" // Shows numeric keyboard on mobile
               />
             </label>
           </div>
@@ -53,10 +55,13 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
             <input
               type="text"
               value={ageChild2}
-              onChange={(e) => setAgeChild2(Number(e.target.value))}
+              onChange={(e) => setAgeChild2(e.target.value)}
               disabled={disabled}
               className={styles.textInput}
-              required />
+              required
+              pattern="[0-9]*"
+              inputMode="numeric"
+            />
             </label>
           </div>
         )}
@@ -67,10 +72,13 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
               <input
                 type="text"
                 value={ageChild3}
-                onChange={(e) => setAgeChild3(Number(e.target.value))}
+                onChange={(e) => setAgeChild3(e.target.value)}
                 disabled={disabled}
                 className={styles.textInput}
-                required />
+                required
+                pattern="[0-9]*"
+                inputMode="numeric"
+              />
             </label>
           </div>
         )}
