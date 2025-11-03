@@ -7,7 +7,7 @@ import ConfirmDeleteDialog from './ConfirmDeleteDialog';
 import EditItemModal from './EditItemModal';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { Modal } from '@fluentui/react';
-import styles from '../TtlWebpart.module.scss';
+import styles from '../Dashboard/TtlWebpart.module.scss';
 import requestDetailsStyles from './RequestDetails.module.scss';
 import * as React from 'react';
 import AddItemModal from './AddItemModal';
@@ -100,7 +100,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     }
   };
 
-    // Approve request function
+  // Approve request function
   const updateRequestApprover = async (type: string, comment?: string): Promise<void> => {
     if (!request.ID) return;
     
@@ -330,10 +330,11 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
             {view === 'HR' && (
               <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
             )}
-          <span><strong>Status:</strong> {displayedRequest.RequestStatus}</span>
           <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
           <span><strong>Project:</strong> {displayedRequest.Project}</span>
+          <span><strong>Project:</strong> {displayedRequest.TeamID?.Title}</span>
           <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
+          <span><strong>Status:</strong> {displayedRequest.RequestStatus}</span>
         </div>
       </div>
 

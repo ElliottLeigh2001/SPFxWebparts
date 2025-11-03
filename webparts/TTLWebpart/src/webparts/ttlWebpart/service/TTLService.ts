@@ -45,7 +45,7 @@ export const checkHR = async (context: WebPartContext): Promise<boolean> => {
 export const getRequestsData = async (context: WebPartContext): Promise<UserRequest[]> => {
     try {
         const response = await context.spHttpClient.get(
-            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,RequestStatus,OData__Comments,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`,
+            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,RequestStatus,OData__Comments,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`,
             SPHttpClient.configurations.v1
         );
         
@@ -170,7 +170,8 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
         TeamIDId: Number(request.TeamID) || null,
         ApproverIDId: Number(request.ApproverID) || null,
         RequestStatus: type || 'Saved',
-        TotalCost: request.TotalCost || 0
+        TotalCost: request.TotalCost || 0,
+        SubmissionDate: new Date()
     });
     const requestId = (reqAdd && (reqAdd.Id ?? reqAdd.ID)) as number | undefined;
     if (!requestId) {
@@ -281,7 +282,7 @@ export const updateRequest = async (context: WebPartContext, requestId: number, 
         Title: requestData.Title || '',
         Goal: requestData.Goal || '',
         Project: requestData.Project || '',
-        TotalCost: requestData.TotalCost || 0
+        TotalCost: requestData.TotalCost || 0,
     };
 
     // Handle TeamID - it's an object with Id property
@@ -519,6 +520,7 @@ export const updateRequestStatus = async (
   
   await list.items.getById(requestId).update({
     RequestStatus: requestStatus,
-    OData__Comments: comment
+    OData__Comments: comment,
+    SubmissionDate: new Date()
   });
 };

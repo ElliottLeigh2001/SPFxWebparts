@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import styles from '../TtlWebpart.module.scss';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FormProps } from './FormProps';
-import { validateCost, validateLink } from '../../service/FormService';
+import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
 const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialData, view }) => {
   const [title, setTitle] = useState(initialData?.Title || '');

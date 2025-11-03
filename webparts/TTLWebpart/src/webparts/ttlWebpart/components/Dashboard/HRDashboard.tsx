@@ -5,6 +5,7 @@ import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLSe
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from '../TtlWebpart.module.scss';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
+import DashboardComponent from './DashboardComponent';
 
 interface HRProps {
   context: WebPartContext;
@@ -184,44 +185,12 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
         </div>
       )}
 
-      <div className={styles.tableContainer}>
-        <table className={styles.requestsTable}>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Requester</th>
-              <th>Approver</th>
-              <th>Total Cost</th>
-              <th>Project</th>
-              <th>Team</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.length > 0 ? (
-              requests.map((request) => (
-                <tr 
-                  key={request.ID} 
-                  className={styles.requestRow}
-                  onClick={() => handleRequestClick(request, true)}
-                >
-                  <td>{request.Title}</td>
-                  <td>{request.Author?.Title || '/'}</td>
-                  <td>{request.ApproverID?.Title || 'No approver found'}</td>
-                  <td>€ {request.TotalCost || '0'}</td>
-                  <td>{request.Project || 'No project found'}</td>
-                  <td>{request.TeamID?.Title || 'No team found'}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className={styles.noData}>
-                  No requests to approve. Check back later.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DashboardComponent
+        onClick={handleRequestClick}
+        requests={requests}
+        view='HR'
+      />
+
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import requestDetailsStyles from './RequestDetails.module.scss';
-import styles from '../TtlWebpart.module.scss';
+import styles from '../Dashboard/TtlWebpart.module.scss';
 
 interface Props {
   items: UserRequestItem[];

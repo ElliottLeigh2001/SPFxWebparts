@@ -1,13 +1,14 @@
 import * as React from 'react';
 import type { ITtlWebpartProps } from './ITtlWebpartProps';
 import { useEffect, useState } from 'react';
-import { getRequestsData, getLoggedInUser, getRequestItemsByRequestId, getApprovers, checkHR } from '../service/TTLService';
-import styles from './TtlWebpart.module.scss';
-import { Approver, UserRequest, UserRequestItem } from '../Interfaces/TTLInterfaces';
-import RequestDetails from './RequestDetails/RequestDetails';
-import NewRequestForm from './NewRequest/NewRequest';
-import ApproversDashboard from './Approvers/ApproversDashboard';
-import HRDashboard from './HR/HRDashboard';
+import { getRequestsData, getLoggedInUser, getRequestItemsByRequestId, getApprovers, checkHR } from '../../service/TTLService';
+import styles from '../TtlWebpart.module.scss';
+import { Approver, UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import RequestDetails from '../RequestDetails/RequestDetails';
+import NewRequestForm from '../NewRequest/NewRequest';
+import ApproversDashboard from './ApproversDashboard';
+import HRDashboard from './HRDashboard';
+import DashboardComponent from './DashboardComponent';
 
 const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -22,22 +23,6 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [showApproversDashboad, setShowApproverDashboard] = useState(false);
   const [showHRDashboad, setShowHRDashboard] = useState(false);
   const [isHR, setIsHR] = useState(false);
-
-  const getRequestStatusStyling = (status: string): string => {
-    const statusMap: { [key: string]: string } = {
-      'Saved': styles.saved,
-      'Unsaved': styles.saved,
-      'Sent for approval': styles.sentForApproval,
-      'In Process By HR': styles.inProcessByHR,
-      'Needs reapproval': styles.needsReapproval,
-      'Processed by HR': styles.approved,
-      'Declined': styles.declined,
-      'Cancelled': styles.declined,
-      'Approved': styles.approved,
-    };
-
-    return statusMap[status] || styles.inProcessByHR;
-  };
 
   const fetchData = async (): Promise<void> => {
     try {
@@ -316,10 +301,10 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         <h1>My Requests</h1>
         <div className={styles.headerButtons}>
           {loggedInUser && allApprovers.some(approver => approver.TeamMember.EMail === loggedInUser.Email) && (
-            <button onClick={() => handleViewClick('approvers')} className={styles.stdButton}>Approver</button>
+            <button onClick={() => handleViewClick('approvers')} style={{width: '110px'}} className={styles.stdButton}>Approver</button>
           )}
           {isHR && (
-            <button onClick={() => handleViewClick('HR')} className={styles.stdButton}>HR</button>
+            <button onClick={() => handleViewClick('HR')} style={{width: '110px'}} className={styles.stdButton}>HR</button>
           )}
         </div>
       </div>
@@ -330,44 +315,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         </div>
       )}
 
-      <div className={styles.tableContainer}>
-        <table className={styles.requestsTable}>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Project</th>
-              <th>Total Cost</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.length > 0 ? (
-              requests.map((request) => (
-                <tr 
-                  key={request.ID} 
-                  className={styles.requestRow}
-                  onClick={() => handleRequestClick(request)}
-                >
-                  <td>{request.Title}</td>
-                  <td>{request.Project || '/'}</td>
-                  <td>€ {request.TotalCost || '0'}</td>
-                  <td>
-                    <span className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>
-                      {request.RequestStatus || 'Pending'}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className={styles.noData}>
-                  You don't have any requests yet. Click "Make New Request" to create one.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DashboardComponent
+        onClick={handleRequestClick}
+        requests={requests}
+        view='myView'
+      />
+
       <div className={styles.newRequestButtonContainer}>
         <button className={styles.stdButton} onClick={() => handleViewClick('new')}>Make New Request</button>
       </div>

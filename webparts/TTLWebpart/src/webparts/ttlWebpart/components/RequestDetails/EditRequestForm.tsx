@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import * as React from 'react';
 import { UserRequest, Team, Approver } from '../../Interfaces/TTLInterfaces';
 import { getTeams, getApprovers } from '../../service/TTLService';
-import styles from '../TtlWebpart.module.scss';
+import styles from '../Dashboard/TtlWebpart.module.scss';
 
 interface EditRequestFormProps {
   context: WebPartContext;

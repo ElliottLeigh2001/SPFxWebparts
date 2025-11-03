@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import styles from '../TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
-import { validateCost, validateLink } from '../../service/FormService';
+import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
 const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
   const [title, setTitle] = useState(initialData?.Title || '');

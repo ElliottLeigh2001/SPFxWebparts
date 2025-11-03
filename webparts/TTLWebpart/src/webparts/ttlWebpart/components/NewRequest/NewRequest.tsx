@@ -124,7 +124,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                 Project: project, 
                 TeamID: team, 
                 ApproverID: approver, 
-                TotalCost: totalCost 
+                TotalCost: totalCost
             }, items, type);
 
             if (type === 'Sent for approval') {

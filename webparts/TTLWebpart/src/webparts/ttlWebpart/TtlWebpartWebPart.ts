@@ -1,8 +1,8 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-import TtlWebpart from './components/TtlDashboard';
-import { ITtlWebpartProps } from './components/ITtlWebpartProps';
+import TtlWebpart from './components/Dashboard/TtlDashboard';
+import { ITtlWebpartProps } from './components/Dashboard/ITtlWebpartProps';
 
 export interface ITtlWebpartWebPartProps {
   description: string;

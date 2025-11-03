@@ -3,6 +3,7 @@ export interface UserRequest {
     Title: string;
     TotalCost: string;
     OData__Comments: string;
+    SubmissionDate?: Date;
     RequestItemID: {
         Id: number;
     }[];

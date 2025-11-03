@@ -277,7 +277,6 @@ input:focus {
   cursor: not-allowed;
 }
 
-// Item list
 .ttlForm ul {
   list-style: none;
   padding: 0;
@@ -316,6 +315,41 @@ input:focus {
 
 .error {
   color: red;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 8px;
+}
+
+.pageButton,
+.pageNumber {
+  background-color: white;
+  border: 1px solid #2f8183;
+  color: #2f8183;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #2f8183;
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.activePage {
+  background-color: #2f8183;
+  color: white;
+  font-weight: 600;
 }
 
 @media (max-width: 1150px) {
