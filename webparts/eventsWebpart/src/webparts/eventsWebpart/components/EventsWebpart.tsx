@@ -114,11 +114,15 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       try {
         const listItems = await getListData();
         const now = new Date();
-        // Only get events that are in the future
-        const upcoming = listItems.filter(
-          (item) => new Date(item.EndTime) > now
-        );
-        // Set them twice (used for filtering)
+
+        // Include events that end any time before the END of their EndTime day
+        const upcoming = listItems.filter((item) => {
+          const end = new Date(item.EndTime);
+          const endOfDay = new Date(end);
+          endOfDay.setHours(23, 59, 59, 999); // set to 23:59:59.999
+          return endOfDay > now;
+        });
+
         setAllItems(upcoming);
         setItems(upcoming);
 
