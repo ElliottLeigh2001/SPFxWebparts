@@ -24,7 +24,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const requestData = await getRequestsData(context, "(RequestStatus eq 'In process by HR' or RequestStatus eq 'Approved')");
+      const requestData = await getRequestsData(context, "(RequestStatus eq 'In process by HR' or RequestStatus eq 'Booking' or RequestStatus eq 'Completed')");
 
 
       setRequests(requestData as UserRequest[]);
@@ -176,7 +176,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
   const filteredRequests = requests.filter(req =>
     activeTab === 'toApprove'
       ? req.RequestStatus === 'In process by HR'
-      : req.RequestStatus === 'Approved'
+      : (req.RequestStatus === 'Booking' || req.RequestStatus === 'Completed')
   );
 
   return (

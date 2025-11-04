@@ -4,7 +4,7 @@ import newRequestStyles from './NewRequest.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { useState } from 'react';
 
-type ActionType = 'save' | 'send' | 'discard' | 'approve' | 'reapprove' | 'deny';
+type ActionType = 'save' | 'send' | 'discard' | 'approve' | 'reapprove' | 'deny' | 'completed';
 
 interface Props {
   isOpen: boolean;
@@ -20,7 +20,8 @@ const titles: Record<ActionType, string> = {
   discard: 'Confirm Discard',
   approve: 'Confirm Approval',
   reapprove: 'Confirm Reapprove',
-  deny: 'Confirm Denial'
+  deny: 'Confirm Denial',
+  completed: 'Confirm Booking'
 };
 
 const messages: Record<ActionType, string> = {
@@ -29,7 +30,8 @@ const messages: Record<ActionType, string> = {
   discard: 'Are you sure you want to discard this request? This cannot be undone.',
   approve: 'Are you sure you want to approve this request?',
   reapprove: 'Are you sure you want to send this request for reapproval?',
-  deny: 'Are you sure you want to deny this request?'
+  deny: 'Are you sure you want to deny this request?',
+  completed: 'Are you sure you want to mark this request as booked?'
 };
 
 const ConfirmActionDialog: React.FC<Props> = ({ isOpen, action, isProcessing, onCancel, onConfirm }) => {

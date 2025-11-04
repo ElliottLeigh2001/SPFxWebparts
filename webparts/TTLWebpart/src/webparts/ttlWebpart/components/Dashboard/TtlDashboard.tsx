@@ -16,7 +16,6 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>();
   const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
-  const [CEO, setCEO] = useState<Approver[]>([]);
   const [isCEO, setIsCEO] = useState<boolean>(false);
   const [newRequest, setNewRequest] = useState<boolean>(false);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
@@ -48,7 +47,6 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       const boss = approvers.filter(app => app.CEO);
 
       setAllApprovers(approversWithoutCEO);
-      setCEO(boss);
       setIsCEO(boss.some(app => app.CEO.EMail === user?.Email));
       setIsHR(HR);
 
@@ -330,8 +328,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         <h1>My Requests</h1>
         <div className={styles.headerButtons}>
           {loggedInUser && (
-            (allApprovers.some(approver => approver.TeamMember.EMail === loggedInUser.Email) ||
-            CEO.some(approver => approver.CEO.EMail === loggedInUser.Email)) && (
+            allApprovers.some(approver => approver.TeamMember.EMail === loggedInUser.Email) && (
               <button
                 onClick={() => handleViewClick('approvers')}
                 style={{ width: '110px' }}

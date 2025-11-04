@@ -2,6 +2,7 @@ import * as React from 'react';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import requestDetailsStyles from './RequestDetails.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
+import { formatDate } from '../../Helpers/HelperFunctions';
 
 interface Props {
   items: UserRequestItem[];
@@ -28,7 +29,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
       'Software': 'fa-solid fa-computer fa-lg',
       'Training': 'fa-solid fa-user-graduate fa-lg',
       'Travel': 'fa-solid fa-plane-departure fa-lg',
-      'Accomodation': 'fa-solid fa-hotel fa-lg'
+      'Accomodation': 'fa-solid fa-bed fa-lg'
     };
   
     return typeMap[type]|| 'fa-solid fa-question';
@@ -103,7 +104,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
             </>
           )}
 
-          {(item.RequestType === 'Training' || item.RequestType === 'Travel' || item.RequestType === 'Accommodation') && (
+          {item.RequestType !== 'Software' && (
             <>
               {item.Location && (
                 <div className={requestDetailsStyles.fieldGroup}>
@@ -114,13 +115,13 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
               {item.StartDate && (
                 <div className={requestDetailsStyles.fieldGroup}>
                   <span className={requestDetailsStyles.fieldLabel}>Start Date:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{new Date(item.StartDate).toLocaleDateString()}</span>
+                  <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.StartDate))}</span>
                 </div>
               )}
               {item.OData__EndDate && (
                 <div className={requestDetailsStyles.fieldGroup}>
                   <span className={requestDetailsStyles.fieldLabel}>End Date:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{new Date(item.OData__EndDate).toLocaleDateString()}</span>
+                  <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.OData__EndDate))}</span>
                 </div>
               )}
             </>

@@ -50,7 +50,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [statusActionError, setStatusActionError] = useState<string | null>(null);
   const [showConfirmActionDialog, setShowConfirmActionDialog] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|null>(null);
+  const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
@@ -123,7 +123,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
       if (onUpdate) onUpdate();
       
       // Navigate back after a short delay
-      if (type !== 'Approved') {
+      if (type !== 'Booking') {
         setTimeout(() => {
           onBack();
         }, 1500);
@@ -449,8 +449,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                       } 
                     }
                     else if (view === 'HR') {
-                      await updateRequestApprover('Approved')
-                      await sendEmail({emailType: 'approved', title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
+                      await updateRequestApprover('Booking')
                     }
                   } 
                   else if (confirmAction === 'deny') {
@@ -467,6 +466,10 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                   else if (confirmAction === 'reapprove') {
                     await updateRequestApprover('Needs reapproval', comment)
                   }
+                  else if (confirmAction === 'completed') {
+                    await updateRequestApprover('Completed')
+                    await sendEmail({emailType: 'approved', title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
+                  }
               } finally {
                   setConfirmProcessing(false);
                   setShowConfirmActionDialog(false);
@@ -477,7 +480,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
       />
     </div>
       <div className={styles.newRequestButtonContainer}>
-        {view !== 'myView' && request.RequestStatus !== 'Approved' && (
+        {view !== 'myView' && (request.RequestStatus !== 'Completed' && request.RequestStatus !== 'Booking') && (
 
           <div style={{display: 'flex', gap: '20px'}}>
           <button
@@ -505,6 +508,15 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
               <p>{statusActionError}</p>
             )}
           </div>
+        )}
+        {view === 'HR' && request.RequestStatus === 'Booking' && (
+          <button
+            onClick={() => {setConfirmAction('completed'); setShowConfirmActionDialog(true)}}
+            className={requestDetailsStyles.approveButton}
+            style={{width: '150px'}}
+          >
+            Mark as booked
+          </button>
         )} 
       </div>
     </>

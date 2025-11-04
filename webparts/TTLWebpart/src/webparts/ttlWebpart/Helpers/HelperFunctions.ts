@@ -51,8 +51,9 @@ export const getRequestStatusStyling = (status: string): string => {
       'Needs reapproval': styles.needsReapproval,
       'Processed by HR': styles.approved,
       'Declined': styles.declined,
-      'Cancelled': styles.declined,
+      'Booking': styles.booking,
       'Approved': styles.approved,
+      'Completed': styles.approved,
     };
 
     return statusMap[status] || styles.inProcessByHR;
