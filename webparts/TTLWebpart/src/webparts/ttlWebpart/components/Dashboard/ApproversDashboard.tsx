@@ -20,16 +20,20 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedI
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRequests = async (requestId?: number): Promise<void> => {
+  // Get all requests for approvers
+  const fetchData = async (requestId?: number): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
+      // Only get requests with the correct statuses for approver
       const requestData = await getRequestsData(context, "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval')");
 
+      // Filter on requests meant for the approver
       const filteredRequests = requestData
         .filter(req => req.ApproverID?.Title === loggedInUser.Title)
       setRequests(filteredRequests as UserRequest[]);
 
+      // Get items after an update in any child component to the UI always stays up to date
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
       if (selectedId) {
         const refreshedItems = await getRequestItemsByRequestId(context, Number(selectedId));
@@ -94,7 +98,7 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedI
   }, [requests]);
 
   useEffect(() => {
-    fetchRequests();
+    fetchData();
   }, [context]);
 
   const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
@@ -137,7 +141,7 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedI
 
   // Handle status update and refresh the list
   const handleStatusUpdate = async (): Promise<void> => {
-    await fetchRequests();
+    await fetchData();
   };
 
   if (isLoading) {

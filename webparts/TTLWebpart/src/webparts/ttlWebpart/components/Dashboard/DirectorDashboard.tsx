@@ -178,25 +178,33 @@ const DirectorDashboard: React.FC<directorProps> = ({ context, onBack, loggedInU
 
   return (
     <div className={styles.ttlDashboard}>
-      <div className={styles.header}>
-        <button className={styles.backButton} onClick={onBack}>Back</button>
-        <h1 style={{fontSize: '30px'}}>Approver Dashboard</h1>
-      </div>
+      {isCEO ? (
+        <>
+          <div className={styles.header}>
+            <button className={styles.backButton} onClick={onBack}>Back</button>
+            <h1 style={{ fontSize: '30px' }}>Approver Dashboard</h1>
+          </div>
 
-      {error && (
-        <div className={styles.error}>
-          <p>{error}</p>
+          {error && (
+            <div className={styles.error}>
+              <p>{error}</p>
+            </div>
+          )}
+
+          <DashboardComponent
+            onClick={handleRequestClick}
+            requests={requests}
+            view="director"
+          />
+        </>
+      ) : (
+        <div style={{display: 'flex', justifyContent: 'center'}}>
+          <h2>You don't have the correct permissions to access to this page</h2>
         </div>
       )}
-
-    <DashboardComponent
-        onClick={handleRequestClick}
-        requests={requests}
-        view='director'
-    />
-
     </div>
   );
+
 }
 
 export default DirectorDashboard;
