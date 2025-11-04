@@ -22,7 +22,6 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedI
 
   const fetchRequests = async (requestId?: number): Promise<void> => {
     try {
-      console.log(loggedInUser)
       setIsLoading(true);
       setError(null);
       const requestData = await getRequestsData(context, "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval')");
@@ -97,10 +96,6 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedI
   useEffect(() => {
     fetchRequests();
   }, [context]);
-
-  useEffect(() => {
-    console.log(requests)
-  }, [requests])
 
   const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
     try {
@@ -182,7 +177,7 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedI
     <div className={styles.ttlDashboard}>
       <div className={styles.header}>
         <button className={styles.backButton} onClick={onBack}>Back</button>
-        <h1>Approver Dashboard</h1>
+        <h1 style={{fontSize: '30px'}}>Approver Dashboard</h1>
       </div>
 
       {error && (

@@ -7,34 +7,37 @@ import styles from './TtlWebpart.module.scss';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import DashboardComponent from './DashboardComponent';
 
-interface HRProps {
+interface directorProps {
   context: WebPartContext;
   onBack: () => void;
+  loggedInUser: any;
+  isCEO: boolean;
 }
 
-const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
+const DirectorDashboard: React.FC<directorProps> = ({ context, onBack, loggedInUser, isCEO }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'toApprove' | 'approved'>('toApprove');
 
   const fetchRequests = async (requestId?: number): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
-      const requestData = await getRequestsData(context, "(RequestStatus eq 'In process by HR' or RequestStatus eq 'Approved')");
 
+      const requestData = await getRequestsData(context, "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval' or RequestStatus eq 'Awaiting CEO approval')")
 
-      setRequests(requestData as UserRequest[]);
+      const filteredCEORequests = requestData
+        .filter((req) => Number(req.TotalCost) > 5000)
+      setRequests(filteredCEORequests as UserRequest[])
 
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
       if (selectedId) {
         const refreshedItems = await getRequestItemsByRequestId(context, Number(selectedId));
         setRequestItems(refreshedItems);
 
-        const refreshedRequest = requestData.find(r => (r as any).ID === Number(selectedId));
+      const refreshedRequest = filteredCEORequests.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
           setSelectedRequest(refreshedRequest as UserRequest);
         }
@@ -55,14 +58,14 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
       const requestId = params.get("requestId");
       const view = params.get("view");
 
-      // Only handle if we're in HR view and have a requestId
-      if (view === "HR" && requestId && requests.length > 0) {
+      // Only handle if we're in director view and have a requestId
+      if (view === "director" && requestId && requests.length > 0) {
         const request = requests.find(req => req.ID === parseInt(requestId));
         if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
           handleRequestClick(request, false); // Don't push state to avoid infinite loop
         }
-      } else if (view === "HR" && !requestId && selectedRequest) {
-        // URL changed to have no requestId, but we have a selected request - go back to HR list
+      } else if (view === "director" && !requestId && selectedRequest) {
+        // URL changed to have no requestId, but we have a selected request - go back to director list
         handleBackClick(false); // Don't push state
       }
     };
@@ -83,7 +86,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
       const requestId = params.get("requestId");
       const view = params.get("view");
       
-      if (view === "HR" && requestId) {
+      if (view === "director" && requestId) {
         const request = requests.find(req => req.ID === parseInt(requestId));
         if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
           handleRequestClick(request, false);
@@ -105,9 +108,9 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
       setRequestItems(items);
       setSelectedRequest(request);
 
-      // Update URL for HR request details
+      // Update URL for director request details
       if (pushState) {
-        window.history.pushState({}, "", `?view=HR&requestId=${request.ID}`);
+        window.history.pushState({}, "", `?view=director&requestId=${request.ID}`);
       }
 
     } catch (error) {
@@ -128,16 +131,15 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
     setRequestItems([]);
     setError(null);
     
-    // Update URL back to HR dashboard (without requestId)
+    // Update URL back to director dashboard (without requestId)
     if (pushState) {
-      window.history.pushState({}, "", `?view=HR`);
+      window.history.pushState({}, "", `?view=director`);
     }
   };
 
   // Handle status update and refresh the list
   const handleStatusUpdate = async (): Promise<void> => {
     await fetchRequests();
-    setActiveTab('approved')
   };
 
   if (isLoading) {
@@ -161,68 +163,40 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
 
   if (selectedRequest) {
     return (
-      <RequestDetails   
+      <RequestDetails
         request={selectedRequest}
         items={requestItems}
-        view='HR'
+        view='director'
         onBack={() => handleBackClick(true)}
         onUpdate={handleStatusUpdate}
         context={context}
         error={error} 
+        isCEO={isCEO}
       />
     );
   }
-
-  const filteredRequests = requests.filter(req =>
-    activeTab === 'toApprove'
-      ? req.RequestStatus === 'In process by HR'
-      : req.RequestStatus === 'Approved'
-  );
 
   return (
     <div className={styles.ttlDashboard}>
       <div className={styles.header}>
         <button className={styles.backButton} onClick={onBack}>Back</button>
-        <h1 style={{fontSize: '30px'}}>HR Dashboard</h1>
+        <h1 style={{fontSize: '30px'}}>Approver Dashboard</h1>
       </div>
 
-      <div className={styles.tabContainer}>
-        <div className={styles.tabButtonWrapper}>
-          <div
-            className={`${styles.activeBg} ${
-              activeTab === 'approved' ? styles.slideRight : styles.slideLeft
-            }`}
-          ></div>
-
-          <button
-            className={`${styles.tabButtonToApprove} ${
-              activeTab === 'toApprove' ? styles.activeTabText : ''
-            }`}
-            onClick={() => setActiveTab('toApprove')}
-          >
-            To Approve
-          </button>
-          <button
-            className={`${styles.tabButtonApproved} ${
-              activeTab === 'approved' ? styles.activeTabText : ''
-            }`}
-            onClick={() => setActiveTab('approved')}
-          >
-            Approved
-          </button>
+      {error && (
+        <div className={styles.error}>
+          <p>{error}</p>
         </div>
-      </div>
+      )}
 
-
-      {error && <div className={styles.error}><p>{error}</p></div>}
-
-      <DashboardComponent
+    <DashboardComponent
         onClick={handleRequestClick}
-        requests={filteredRequests}
-        view='HR'
-      />
+        requests={requests}
+        view='director'
+    />
+
     </div>
   );
 }
 
-export default HRDashboard;
+export default DirectorDashboard;

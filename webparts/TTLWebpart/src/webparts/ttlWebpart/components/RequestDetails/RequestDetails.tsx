@@ -17,11 +17,12 @@ import { sendEmail } from '../../service/AutomateService';
 interface RequestDetailsProps {
   request: UserRequest;
   items: UserRequestItem[];
-  view: 'myView' | 'approvers' | 'HR';
+  view: 'myView' | 'approvers' | 'HR' | 'director';
   onBack: () => void;
   onUpdate: () => void;
   error?: string | null;
   context: WebPartContext;
+  isCEO?: boolean;
 }
 
 const RequestDetails: React.FC<RequestDetailsProps> = ({ 
@@ -31,7 +32,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   onBack, 
   onUpdate, 
   error, 
-  context 
+  context,
+  isCEO
 }) => {
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
@@ -101,17 +103,21 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   };
 
   // Approve request function
-  const updateRequestApprover = async (type: string, comment?: string): Promise<void> => {
+  const updateRequestApprover = async (type: string, comment?: string, updateApprovedByCEO?: boolean): Promise<void> => {
     if (!request.ID) return;
     
     setIsUpdatingStatus(true);
     setStatusActionError(null);
     
     try {
-      await updateRequestStatus(context, request.ID, type, comment);
+      await updateRequestStatus(context, request.ID, type, comment, updateApprovedByCEO);
       
       // Show success message or update local state
-      setDisplayedRequest(prev => ({ ...prev, RequestStatus: type }));
+      setDisplayedRequest(prev => ({ 
+        ...prev, 
+        RequestStatus: type,
+        ...(updateApprovedByCEO ? { ApprovedByCEO: true } : {})
+      }));
       
       // Refresh parent component
       if (onUpdate) onUpdate();
@@ -421,9 +427,26 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
               setConfirmProcessing(true);
               try {
                   if (confirmAction === 'approve') {
-                    if (view === 'approvers') {
-                      await updateRequestApprover('In process by HR');
-                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
+                    if (isCEO) {
+                      if (request.RequestStatus === 'Awaiting CEO approval') {
+                        await updateRequestApprover('In process by HR', undefined, true);
+                        await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
+                      } else {
+                        await updateRequestApprover('Sent for approval', undefined, true);
+                      }
+                    }
+                    else if (view === 'approvers') {
+                      let nextStatus;
+                      if (Number(request.TotalCost) > 5000) {
+                        nextStatus = request.ApprovedByCEO ? 'In process by HR' : 'Awaiting CEO approval';
+                      } else {
+                        nextStatus = 'In process by HR'
+                      }
+                      await updateRequestApprover(nextStatus);
+                      
+                      if (nextStatus === 'In process by HR') {
+                        await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
+                      } 
                     }
                     else if (view === 'HR') {
                       await updateRequestApprover('Approved')
@@ -439,7 +462,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                     const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
                     const approverEmail = approverData?.TeamMember?.EMail;
                     const approverTitle = approverData?.TeamMember?.Title;
-                    await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: approverEmail, approverTitle: approverTitle });
+                    await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: approverEmail, approverTitle: approverTitle, });
                   }
                   else if (confirmAction === 'reapprove') {
                     await updateRequestApprover('Needs reapproval', comment)

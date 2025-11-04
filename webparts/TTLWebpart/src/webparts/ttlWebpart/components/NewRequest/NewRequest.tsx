@@ -43,7 +43,9 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
 
     useEffect(() => {
         const getApproversandTeams = async (): Promise<void> => {
-            setAllApprovers(approvers)
+            console.log(approvers)
+            const approversWithoutCEO = approvers.filter(app => app.TeamMember)
+            setAllApprovers(approversWithoutCEO)
             const allTeams: Team[] = await getTeams(context)
             setTeams(allTeams);
         }
@@ -131,7 +133,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.TeamMember?.EMail;
                 const approverTitle = approverData.TeamMember?.Title;
-                sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, author: loggedInUser.Email });
+                sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, author: loggedInUser.Email, totalCost: totalCost.toString() });
             }
             
             // Reset form after successful save

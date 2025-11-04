@@ -9,12 +9,15 @@ import NewRequestForm from '../NewRequest/NewRequest';
 import ApproversDashboard from './ApproversDashboard';
 import HRDashboard from './HRDashboard';
 import DashboardComponent from './DashboardComponent';
+import DirectorDashboard from './DirectorDashboard';
 
 const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>();
   const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
+  const [CEO, setCEO] = useState<Approver[]>([]);
+  const [isCEO, setIsCEO] = useState<boolean>(false);
   const [newRequest, setNewRequest] = useState<boolean>(false);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,25 +25,33 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showApproversDashboad, setShowApproverDashboard] = useState(false);
   const [showHRDashboad, setShowHRDashboard] = useState(false);
+  const [showDirectorDashboad, setShowDirectorDashboard] = useState(false);
   const [isHR, setIsHR] = useState(false);
 
   const fetchData = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
+
       const [requestData, user, approvers, HR] = await Promise.all([
         getRequestsData(context),
         getLoggedInUser(context),
         getApprovers(context),
         checkHR(context)
       ]);
-      // Only show the requests that the user made
-      const filteredRequests = requestData
-        .filter(req => req.Author?.Id === user?.Id)
+
+      const filteredRequests = requestData.filter(req => req.Author?.Id === user?.Id);
       setRequests(filteredRequests as UserRequest[]);
       setLoggedInUser(user);
-      setAllApprovers(approvers);
+
+      const approversWithoutCEO = approvers.filter(app => app.TeamMember);
+      const boss = approvers.filter(app => app.CEO);
+
+      setAllApprovers(approversWithoutCEO);
+      setCEO(boss);
+      setIsCEO(boss.some(app => app.CEO.EMail === user?.Email));
       setIsHR(HR);
+
     } catch (error) {
       console.error('Error loading data:', error);
       setError('Failed to load requests data');
@@ -95,6 +106,8 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         } else if (view === "HR") {
           setShowHRDashboard(true);
           // The HRDashboard will handle the requestId internally
+        } else if (view === 'director') {
+          setShowDirectorDashboard(true)
         }
       } 
       // Handle individual parameters
@@ -105,6 +118,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         setNewRequest(false);
         setShowApproverDashboard(false);
         setShowHRDashboard(false);
+        setShowDirectorDashboard(false)
         
         if (requests.length > 0) {
           const request = requests.find(req => req.ID === parseInt(requestId));
@@ -120,6 +134,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         setShowHRDashboard(false);
       } else if (view === "HR") {
         setShowHRDashboard(true);
+        setSelectedRequest(null);
+        setRequestItems([]);
+        setNewRequest(false);
+        setShowApproverDashboard(false);
+      } else if (view === "director") {
+        setShowDirectorDashboard(true);
         setSelectedRequest(null);
         setRequestItems([]);
         setNewRequest(false);
@@ -200,6 +220,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     setRequestItems([]);
     setShowApproverDashboard(false);
     setShowHRDashboard(false);
+    setShowDirectorDashboard(false)
     setNewRequest(false);
     setError(null);
     setRefreshTrigger(prev => prev + 1);
@@ -221,6 +242,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     setNewRequest(false);
     setShowApproverDashboard(false);
     setShowHRDashboard(false);
+    setShowDirectorDashboard(false)
     
     switch(view) {
       case 'new':
@@ -231,6 +253,9 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         break;
       case 'HR':
         setShowHRDashboard(true);
+        break;
+      case 'director':
+        setShowDirectorDashboard(true);
         break;
     }
     window.history.pushState({}, "", `?view=${view}`);
@@ -293,16 +318,34 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     );
   }
 
+  if (showDirectorDashboad) {
+    return (
+      <DirectorDashboard context={context} onBack={handleBackClick} isCEO={isCEO} loggedInUser={loggedInUser}/>
+    );
+  }
+
   return (
     <div className={styles.ttlDashboard}>
       <div className={styles.header}>
         <h1>My Requests</h1>
         <div className={styles.headerButtons}>
-          {loggedInUser && allApprovers.some(approver => approver.TeamMember.EMail === loggedInUser.Email) && (
-            <button onClick={() => handleViewClick('approvers')} style={{width: '110px'}} className={styles.stdButton}>Approver</button>
+          {loggedInUser && (
+            (allApprovers.some(approver => approver.TeamMember.EMail === loggedInUser.Email) ||
+            CEO.some(approver => approver.CEO.EMail === loggedInUser.Email)) && (
+              <button
+                onClick={() => handleViewClick('approvers')}
+                style={{ width: '110px' }}
+                className={styles.stdButton}
+              >
+                Approver
+              </button>
+            )
           )}
           {isHR && (
             <button onClick={() => handleViewClick('HR')} style={{width: '110px'}} className={styles.stdButton}>HR</button>
+          )}
+          {isCEO && (
+            <button onClick={() => handleViewClick('director')} style={{width: '110px'}} className={styles.stdButton}>Director</button>
           )}
         </div>
       </div>

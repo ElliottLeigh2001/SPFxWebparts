@@ -10,7 +10,7 @@ interface Props {
   onAdd: () => void;
   showActions: boolean;
   request: UserRequest;
-  view: "approvers" | "myView" | "HR"
+  view: "approvers" | "myView" | "HR" | "director"
 }
 
 
@@ -24,7 +24,6 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
   };
   
   const getTypeIcon = (type: string): string => {
-    console.log(type)
     const typeMap: { [key: string]: string } = {
       'Software': 'fa-solid fa-computer fa-lg',
       'Training': 'fa-solid fa-user-graduate fa-lg',

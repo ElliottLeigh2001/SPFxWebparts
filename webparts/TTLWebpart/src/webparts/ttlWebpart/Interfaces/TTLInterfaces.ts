@@ -4,6 +4,7 @@ export interface UserRequest {
     TotalCost: string;
     OData__Comments: string;
     SubmissionDate?: Date;
+    ApprovedByCEO?: boolean;
     RequestItemID: {
         Id: number;
     }[];
@@ -54,7 +55,12 @@ export interface Approver {
     BackUp: {
         Id?: number;
         Title?: string;
-        EMail: string;
+        EMail?: string;
+    }
+    CEO: {
+        Id?: number;
+        Title?: string;
+        EMail?: string;
     }
 }
 

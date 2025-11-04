@@ -48,7 +48,7 @@ export const getRequestsData = async (
 ): Promise<UserRequest[]> => {
   try {
     // Base query
-    let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,RequestStatus,OData__Comments,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`;
+    let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,OData__Comments,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`;
 
     // Add optional $filter if provided
     if (filter) {
@@ -438,7 +438,7 @@ export const deleteRequestWithItems = async (context: WebPartContext, requestId:
 export const getApprovers = async (context: WebPartContext): Promise<Approver[]> => {
     try {
         const response: SPHttpClientResponse = await context.spHttpClient.get(
-            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamMember/Title,TeamMember/Id,TeamMember/EMail,BackUp/Title,BackUp/Id,BackUp/EMail&$expand=TeamMember,BackUp`,
+            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamMember/Title,TeamMember/Id,TeamMember/EMail,BackUp/Title,BackUp/Id,BackUp/EMail,CEO/Id,CEO/Title,CEO/EMail&$expand=TeamMember,BackUp,CEO`,
             SPHttpClient.configurations.v1
         );
         
@@ -521,7 +521,8 @@ export const updateRequestStatus = async (
   context: WebPartContext, 
   requestId: number, 
   requestStatus: string,
-  comment: any,
+  comment?: string,
+  setApprovedByCEO?: boolean,
 ): Promise<void> => {
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_Requests');
@@ -529,6 +530,7 @@ export const updateRequestStatus = async (
   await list.items.getById(requestId).update({
     RequestStatus: requestStatus,
     OData__Comments: comment,
-    SubmissionDate: new Date()
+    SubmissionDate: new Date(),
+    ...(setApprovedByCEO ? { ApprovedByCEO: true } : {})
   });
 };
