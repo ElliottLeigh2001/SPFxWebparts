@@ -112,6 +112,13 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
                   <span className={requestDetailsStyles.fieldValue}>{item.Location}</span>
                 </div>
               )}
+              {item.StartDate === item.OData__EndDate ? (
+                <div className={requestDetailsStyles.fieldGroup}>
+                  <span className={requestDetailsStyles.fieldLabel}>Date:</span>
+                  <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.StartDate!))}</span>
+                </div>
+              ) : (
+              <>
               {item.StartDate && (
                 <div className={requestDetailsStyles.fieldGroup}>
                   <span className={requestDetailsStyles.fieldLabel}>Start Date:</span>
@@ -123,6 +130,8 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
                   <span className={requestDetailsStyles.fieldLabel}>End Date:</span>
                   <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.OData__EndDate))}</span>
                 </div>
+              )}
+              </>
               )}
             </>
           )}

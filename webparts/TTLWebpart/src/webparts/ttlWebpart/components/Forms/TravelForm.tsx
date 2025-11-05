@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
-import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
+import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
 const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
   const [title, setTitle] = useState(initialData?.Title || '');
-  const [date, setDate] = useState(initialData?.StartDate || '');
+  const [date, setDate] = useState(formatEditingDate(initialData?.StartDate) || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
   const [attachments, setAttachments] = useState(initialData?.Attachments || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
@@ -16,17 +16,6 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }
   const [costError, setCostError] = useState('');
   const [dateError, setDateError] = useState('');
   const [linkError, setLinkError] = useState('');
-
-  useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.Title || '');
-      setProvider(initialData.Provider || '');
-      setCost(initialData.Cost || '');
-      setDate(initialData.StartDate || '');
-      setAttachments(initialData.Attachments || '');
-      setLink(initialData.Link || '');
-    }
-    }, [initialData]);
 
   const validate = (): boolean => {
     let valid = true;

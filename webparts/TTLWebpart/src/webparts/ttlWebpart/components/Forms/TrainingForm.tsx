@@ -1,15 +1,15 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
-import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
+import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
 const TrainingForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
-  const [startDate, setStartDate] = useState(initialData?.StartDate || '');
-  const [endDate, setOData__EndDate] = useState(initialData?.OData__EndDate || '');
+  const [startDate, setStartDate] = useState(formatEditingDate(initialData?.StartDate) || '');
+  const [endDate, setOData__EndDate] = useState(formatEditingDate(initialData?.OData__EndDate) || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
   const [link, setLink] = useState(initialData?.Link || '');
   const [titleError, setTitleError] = useState('');
@@ -19,18 +19,6 @@ const TrainingForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view
   const [linkError, setLinkError] = useState('');
   const [startDateError, setStartDateError] = useState('');
   const [endDateError, setEndDateError] = useState('');
-
-  useEffect(() => {
-      if (initialData) {
-        setTitle(initialData.Title || '');
-        setProvider(initialData.Provider || '');
-        setCost(initialData.Cost || '');
-        setLocation(initialData.Location || '');
-        setStartDate(initialData.StartDate || '');
-        setOData__EndDate(initialData.OData__EndDate || '');
-        setLink(initialData.Link || '');
-      }
-    }, [initialData]);
 
   const validate = (): boolean => {
     let valid = true;
