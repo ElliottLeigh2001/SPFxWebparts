@@ -108,14 +108,22 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     
     setIsUpdatingStatus(true);
     setStatusActionError(null);
+
+    let submissionDate: any;
+    if (type === "Sent for approval") {
+      submissionDate = new Date();
+    } else {
+      submissionDate = undefined;
+    }
     
     try {
-      await updateRequestStatus(context, request.ID, type, comment, updateApprovedByCEO);
+      await updateRequestStatus(context, request.ID, type, comment, submissionDate, updateApprovedByCEO);
       
       // Show success message or update local state
       setDisplayedRequest(prev => ({ 
         ...prev, 
         RequestStatus: type,
+        SubmissionDate: submissionDate || undefined,
         ...(updateApprovedByCEO ? { ApprovedByCEO: true } : {})
       }));
       
@@ -413,7 +421,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         onEdit={handleEditItem}
         onDelete={handleDeleteItem}
         onAdd={() => setShowAddModal(true)}
-        showActions={((displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') || view === 'HR')}
+        showActions={((displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') || 
+                      (view === 'HR' && displayedRequest.RequestStatus === 'In process by HR'))}
         view={view}
         request={displayedRequest}
       />

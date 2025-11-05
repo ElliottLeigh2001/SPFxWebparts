@@ -35,19 +35,6 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
     }
   }, [initialData]);
 
-  
-  useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.Title || '');
-      setProvider(initialData.Provider || '');
-      setCost(initialData.Cost || '');
-      setLicensing(initialData.Licensing || 'Monthly');
-      setLicenseType(initialData.LicenseType || 'Group');
-      setUsersLicense(initialData.UsersLicense || []);
-      setLink(initialData.Link || '');
-    }
-  }, [initialData]);
-
   const validate = (): boolean => {
     let valid = true;
 
@@ -142,7 +129,7 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
               {providerError && <div className={styles.validationError}>{providerError}</div>}
             </div>
             <div className={styles.formItemShort}>
-              <label className={styles.formRowLabel}>Cost *</label>
+              <label className={styles.formRowLabel}>Cost (€)*</label>
               <input value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? 'invalid' : ''} />
               {costError && <div className={styles.validationError}>{costError}</div>}
             </div>

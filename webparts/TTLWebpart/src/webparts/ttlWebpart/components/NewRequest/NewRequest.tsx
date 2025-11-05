@@ -391,7 +391,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                         <tr key={idx}>
                             <td>{it.Title}</td>
                             <td>{it.RequestType}</td>
-                            <td>{it.Cost}</td>
+                            <td>€ {it.Cost}</td>
                             <td>
                                 <i
                                     className="fa fa-pencil"

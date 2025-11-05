@@ -76,15 +76,16 @@ To import into SharePoint site collection:
 - Managing your own requests on your dashboard 
   - Filtering
   - Sorting
-- Getting request details
+- Getting request details (your dashboard)
   - Performing CRUD operations
-  - Sending for approval
+  - Sending for approval / saving
+  - Viewing comments
 - Adding new requests with specific request items
 - Approval system with multiple steps
 - Dashboards for the managing director, approvers and HR
   - Filtering
   - Sorting
-- Getting request details for managing director, approvers and HR
+- Getting request details (managing director, approvers and HR)
   - Approving / denying requests
   - Adding comments
 - Email flows to inform people on their requests

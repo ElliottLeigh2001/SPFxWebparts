@@ -171,6 +171,12 @@ export const createRequestItem = async (context: WebPartContext, item: UserReque
 export const createRequestWithItems = async (context: WebPartContext, request: any, items: any[], type: string): Promise<number> => {
     const sp = getSP(context);
     const requestsList = sp.web.lists.getByTitle('TTL_Requests');
+    let submissionDate;
+    if (type === 'Sent for approval') {
+      submissionDate = new Date();
+    } else {
+      submissionDate = null;
+    }
 
     // Create the main request
     const reqAdd = await requestsList.items.add({
@@ -181,7 +187,7 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
         ApproverIDId: Number(request.ApproverID) || null,
         RequestStatus: type || 'Saved',
         TotalCost: request.TotalCost || 0,
-        SubmissionDate: new Date()
+        SubmissionDate: submissionDate
     });
     const requestId = (reqAdd && (reqAdd.Id ?? reqAdd.ID)) as number | undefined;
     if (!requestId) {
@@ -518,6 +524,7 @@ export const updateRequestStatus = async (
   requestId: number, 
   requestStatus: string,
   comment?: string,
+  submissionDate?: Date,
   setApprovedByCEO?: boolean,
 ): Promise<void> => {
   const sp = getSP(context);
@@ -526,7 +533,7 @@ export const updateRequestStatus = async (
   await list.items.getById(requestId).update({
     RequestStatus: requestStatus,
     OData__Comments: comment,
-    SubmissionDate: new Date(),
+    SubmissionDate: submissionDate,
     ...(setApprovedByCEO ? { ApprovedByCEO: true } : {})
   });
 };
