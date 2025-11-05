@@ -11,9 +11,10 @@ interface ApproversProps {
   context: WebPartContext;
   onBack: () => void;
   loggedInUser: any;
+  isApprover: boolean;
 }
 
-const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedInUser }) => {
+const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedInUser, isApprover }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
@@ -179,23 +180,30 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedI
 
   return (
     <div className={styles.ttlDashboard}>
-      <div className={styles.header}>
-        <button className={styles.backButton} onClick={onBack}>Back</button>
-        <h1 style={{fontSize: '30px'}}>Approver Dashboard</h1>
-      </div>
-
-      {error && (
-        <div className={styles.error}>
-          <p>{error}</p>
+      {isApprover ? (
+        <>
+        <div className={styles.header}>
+          <button className={styles.backButton} onClick={onBack}>Back</button>
+          <h1 style={{fontSize: '30px'}}>Approver Dashboard</h1>
+        </div>
+  
+        {error && (
+          <div className={styles.error}>
+            <p>{error}</p>
+          </div>
+        )}
+  
+        <DashboardComponent
+          onClick={handleRequestClick}
+          requests={requests}
+          view='approvers'
+        />
+      </>
+      ) : (
+        <div style={{display: 'flex', justifyContent: 'center'}}>
+          <h2>You don't have the correct permissions to access to this page</h2>
         </div>
       )}
-
-      <DashboardComponent
-        onClick={handleRequestClick}
-        requests={requests}
-        view='approvers'
-      />
-      
     </div>
   );
 }

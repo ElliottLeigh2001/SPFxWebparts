@@ -182,7 +182,7 @@ const DirectorDashboard: React.FC<directorProps> = ({ context, onBack, loggedInU
         <>
           <div className={styles.header}>
             <button className={styles.backButton} onClick={onBack}>Back</button>
-            <h1 style={{ fontSize: '30px' }}>Approver Dashboard</h1>
+            <h1 style={{ fontSize: '30px' }}>Director Dashboard</h1>
           </div>
 
           {error && (

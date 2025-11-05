@@ -205,20 +205,41 @@ const DashboardComponent: React.FC<DashboardProps> = ({ onClick, requests, view 
             disabled={currentPage === 1}
             onClick={() => handlePageChange(currentPage - 1)}
           >
-            Prev
+            Previous
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              className={`${styles.pageNumber} ${
-                currentPage === i + 1 ? styles.activePage : ""
-              }`}
-              onClick={() => handlePageChange(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((page) => {
+              return (
+                page === 1 ||
+                page === totalPages ||
+                Math.abs(page - currentPage) <= 1
+              )
+            })
+            .reduce((acc: (number | string)[], page, index, filtered) => {
+              if (index > 0 && page - (filtered[index - 1] as number) > 1) {
+                acc.push('…')
+              }
+              acc.push(page)
+              return acc
+            }, [])
+            .map((page, i) =>
+              page === '…' ? (
+                <span key={`ellipsis-${i}`}>
+                  …
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  className={`${styles.pageNumber} ${
+                    currentPage === page ? styles.activePage : ''
+                  }`}
+                  onClick={() => handlePageChange(page as number)}
+                >
+                  {page}
+                </button>
+              )
+            )}
 
           <button
             className={styles.pageButton}
@@ -229,6 +250,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({ onClick, requests, view 
           </button>
         </div>
       )}
+
     </div>
   )
 }

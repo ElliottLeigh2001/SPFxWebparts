@@ -16,7 +16,6 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>();
   const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
-  const [isCEO, setIsCEO] = useState<boolean>(false);
   const [newRequest, setNewRequest] = useState<boolean>(false);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +24,9 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [showApproversDashboad, setShowApproverDashboard] = useState(false);
   const [showHRDashboad, setShowHRDashboard] = useState(false);
   const [showDirectorDashboad, setShowDirectorDashboard] = useState(false);
+  const [isCEO, setIsCEO] = useState<boolean>(false);
   const [isHR, setIsHR] = useState(false);
+  const [isApprover, setIsApprover] = useState(false);
 
   const fetchData = async (): Promise<void> => {
     try {
@@ -43,11 +44,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       setRequests(filteredRequests as UserRequest[]);
       setLoggedInUser(user);
 
-      const approversWithoutCEO = approvers.filter(app => app.TeamMember);
+      const _approvers = approvers.filter(app => app.TeamMember);
       const boss = approvers.filter(app => app.CEO);
 
-      setAllApprovers(approversWithoutCEO);
-      setIsCEO(boss.some(app => app.CEO.EMail === user?.Email));
+      setIsApprover(_approvers.some(app => app.TeamMember.EMail === user?.Email))
+      setAllApprovers(_approvers);
+      setIsCEO(boss.some(boss => boss.CEO.EMail === user?.Email));
       setIsHR(HR);
 
     } catch (error) {
@@ -306,13 +308,13 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
 
   if (showApproversDashboad) {
     return (
-      <ApproversDashboard context={context} onBack={handleBackClick} loggedInUser={loggedInUser}/>
+      <ApproversDashboard context={context} onBack={handleBackClick} loggedInUser={loggedInUser} isApprover={isApprover}/>
     );
   }
 
   if (showHRDashboad) {
     return (
-      <HRDashboard context={context} onBack={handleBackClick}/>
+      <HRDashboard context={context} onBack={handleBackClick} isHR={isHR}/>
     );
   }
 

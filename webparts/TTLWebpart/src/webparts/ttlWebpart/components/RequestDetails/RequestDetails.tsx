@@ -308,7 +308,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
               </div>
             )}
             
-            {(displayedRequest.RequestStatus === 'Saved') && (
+            {(displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') && (
               <>
                 <button
                   className={requestDetailsStyles.iconButton}
@@ -324,10 +324,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                 >
                   <i className="fa fa-pencil" aria-hidden="true"></i>
                 </button>
-              </>
-            )}
             
-            {(displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') && (
               <button
                 className={requestDetailsStyles.iconButton}
                 onClick={() => setShowDeleteConfirm(true)}
@@ -335,6 +332,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
               >
                 <i className="fa fa-trash" aria-hidden="true"></i>
               </button>
+              </>
             )}
           </div>
         </div>
@@ -412,7 +410,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         onEdit={handleEditItem}
         onDelete={handleDeleteItem}
         onAdd={() => setShowAddModal(true)}
-        showActions={(displayedRequest.RequestStatus === 'Saved' || view === 'HR')}
+        showActions={((displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') || view === 'HR')}
         view={view}
         request={displayedRequest}
       />

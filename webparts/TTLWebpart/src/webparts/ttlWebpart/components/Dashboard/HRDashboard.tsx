@@ -10,9 +10,10 @@ import DashboardComponent from './DashboardComponent';
 interface HRProps {
   context: WebPartContext;
   onBack: () => void;
+  isHR: boolean;
 }
 
-const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
+const HRDashboard: React.FC<HRProps> = ({ context, onBack, isHR }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
@@ -181,46 +182,47 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack }) => {
 
   return (
     <div className={styles.ttlDashboard}>
-      <div className={styles.header}>
-        <button className={styles.backButton} onClick={onBack}>Back</button>
-        <h1 style={{fontSize: '30px'}}>HR Dashboard</h1>
-      </div>
-
-      <div className={styles.tabContainer}>
-        <div className={styles.tabButtonWrapper}>
-          <div
-            className={`${styles.activeBg} ${
-              activeTab === 'approved' ? styles.slideRight : styles.slideLeft
-            }`}
-          ></div>
-
-          <button
-            className={`${styles.tabButtonToApprove} ${
-              activeTab === 'toApprove' ? styles.activeTabText : ''
-            }`}
-            onClick={() => setActiveTab('toApprove')}
-          >
-            To Approve
-          </button>
-          <button
-            className={`${styles.tabButtonApproved} ${
-              activeTab === 'approved' ? styles.activeTabText : ''
-            }`}
-            onClick={() => setActiveTab('approved')}
-          >
-            Approved
-          </button>
+      {isHR ? (
+        <>
+        <div className={styles.header}>
+          <button className={styles.backButton} onClick={onBack}>Back</button>
+          <h1 style={{ fontSize: '30px' }}>HR Dashboard</h1>
         </div>
-      </div>
+        <div className={styles.tabContainer}>
+          <div className={styles.tabButtonWrapper}>
+              <div
+                className={`${styles.activeBg} ${activeTab === 'approved' ? styles.slideRight : styles.slideLeft}`}
+              ></div>
 
-
-      {error && <div className={styles.error}><p>{error}</p></div>}
-
-      <DashboardComponent
-        onClick={handleRequestClick}
-        requests={filteredRequests}
-        view='HR'
-      />
+              <button
+                className={`${styles.tabButtonToApprove} ${activeTab === 'toApprove' ? styles.activeTabText : ''}`}
+                onClick={() => setActiveTab('toApprove')}
+              >
+                To Approve
+              </button>
+              <button
+                className={`${styles.tabButtonApproved} ${activeTab === 'approved' ? styles.activeTabText : ''}`}
+                onClick={() => setActiveTab('approved')}
+              >
+                Approved
+              </button>
+            </div>
+          </div>
+  
+  
+        {error && <div className={styles.error}><p>{error}</p></div>}
+  
+        <DashboardComponent
+          onClick={handleRequestClick}
+          requests={filteredRequests}
+          view='HR'
+        />
+        </>
+      ) : (
+        <div style={{display: 'flex', justifyContent: 'center'}}>
+          <h2>You don't have the correct permissions to access to this page</h2>
+        </div>
+      )}
     </div>
   );
 }

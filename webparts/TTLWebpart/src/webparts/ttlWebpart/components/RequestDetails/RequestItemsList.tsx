@@ -61,7 +61,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
           {showActions && (
             <div className={requestDetailsStyles.cardActions}>
               <i className="fa fa-pencil" onClick={() => onEdit(item)} />
-              {request.RequestStatus === 'Saved' && (
+              {(request.RequestStatus === 'Saved' || request.RequestStatus === 'Declined') && (
                 <i className="fa fa-trash-o" onClick={() => onDelete(item)} />
               )}
             </div>
