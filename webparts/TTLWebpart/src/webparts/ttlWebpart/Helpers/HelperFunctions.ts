@@ -8,15 +8,17 @@ export const validateCost = (cost: any): { isValid: boolean; value: number; erro
   } else if (typeof cost === 'string') {
     const trimmedCost = cost.trim();
 
+    // Only allow numbers and decimal points
     if (!/^[-]?\d+(\.\d+)?$/.test(trimmedCost)) {
       return { isValid: false, value: 0, error: 'Cost must contain only numbers and an optional decimal point' };
     }
-
+    // Convert to float
     costValue = parseFloat(trimmedCost);
   } else {
     return { isValid: false, value: 0, error: 'Cost must be a number or a numeric string' };
   }
 
+  // Error handling
   if (isNaN(costValue)) {
     return { isValid: false, value: 0, error: 'Cost must be a valid number' };
   }
@@ -28,12 +30,13 @@ export const validateCost = (cost: any): { isValid: boolean; value: number; erro
   return { isValid: true, value: costValue, error: '' };
 };
 
-
+// Check if links are valid (start with https://www. etc.)
 export const validateLink = (link: any): any => {
   const  linkRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/
   return link.match(linkRegex)
 }
 
+// Format dates to something more sane than mm/dd/yyyy
 export const formatDate = (dateString: string | Date): string => {
   if (!dateString) return "-";
 
@@ -48,6 +51,7 @@ export const formatDate = (dateString: string | Date): string => {
   return `${day}-${month}-${year}`;
 };
 
+// For editing items, another format is required (year-month-day)
 export const formatEditingDate = (dateString: string | undefined): string => {
   if (!dateString) return "-";
 
@@ -62,6 +66,7 @@ export const formatEditingDate = (dateString: string | undefined): string => {
   return `${year}-${month}-${day}`;
 };
 
+// Show statuses as different colours
 export const getRequestStatusStyling = (status: string): string => {
     const statusMap: { [key: string]: string } = {
       'Saved': styles.saved,

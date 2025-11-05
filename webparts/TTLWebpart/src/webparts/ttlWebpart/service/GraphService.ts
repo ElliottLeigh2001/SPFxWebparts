@@ -1,6 +1,7 @@
 // import { WebPartContext } from '@microsoft/sp-webpart-base';
 
-// // Simple helper to call Microsoft Graph presence endpoint for a user.
+// // Helper to call Microsoft Graph presence endpoint for a user (could maybe be used in the future)
+
 // export const getUserPresence = async (context: WebPartContext, userIdOrUpn: string): Promise<any> => {
 //   if (!context || !context.msGraphClientFactory) {
 //     throw new Error('Missing msGraphClientFactory on context');

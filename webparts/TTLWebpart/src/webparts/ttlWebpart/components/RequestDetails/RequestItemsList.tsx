@@ -16,6 +16,8 @@ interface Props {
 
 
 const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, showActions, request, view }) => {
+
+  // Helper function to get display string for UsersLicense
   const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {
     if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
         return '/';
@@ -24,6 +26,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
     return usersLicense.length > 0 ? usersLicense.join(', ') : '/';
   };
   
+  // Helper function to get icon class based on request type
   const getTypeIcon = (type: string): string => {
     const typeMap: { [key: string]: string } = {
       'Software': 'fa-solid fa-computer fa-lg',
@@ -36,6 +39,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
   
   }
   
+  // Helper function to get background color based on request type
   const getRequestTypeColor = (type: string): string => {
     const colorMap: { [key: string]: string } = {
       'Software': '#e3f2fd',

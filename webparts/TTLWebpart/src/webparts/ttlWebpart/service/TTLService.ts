@@ -4,6 +4,7 @@ import { SPFx } from "@pnp/sp/presets/all";
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { Approver, Team, UserRequest, UserRequestItem } from "../Interfaces/TTLInterfaces";
 
+// Define spfi for CRUD operations to lists
 let sp: SPFI;
 export const getSP = (context: WebPartContext): SPFI => {
   if (!sp) {
@@ -12,6 +13,7 @@ export const getSP = (context: WebPartContext): SPFI => {
   return sp;
 };
 
+// Gets the data of the logged in user
 export const getLoggedInUser = async (context: WebPartContext) => {
     try {
         const sp = getSP(context)
@@ -31,7 +33,7 @@ export const checkHR = async (context: WebPartContext): Promise<boolean> => {
     SPHttpClient.configurations.v1
   );
   const data = await response.json();
-  // If the user is a member or owner of the site, they can see the HR dashboard button
+  // If the user is a member of the site, they can see the HR dashboard button
   const userGroups =
     data.Groups?.map((grp: any) => grp.Title.toLowerCase()) || [];
   const isHR = userGroups.some((group: string) =>
@@ -42,6 +44,7 @@ export const checkHR = async (context: WebPartContext): Promise<boolean> => {
   return isHR
 };
 
+// Get data of requests (including data from lookups)
 export const getRequestsData = async (
   context: WebPartContext,
   filter?: string
@@ -69,6 +72,7 @@ export const getRequestsData = async (
   }
 };
 
+// Map SharePoint item to UserRequestItem interface
 const mapSharePointItemToUserRequestItem = (sharePointItem: any): UserRequestItem => {
     let usersLicenseValue = '/';
 
@@ -97,6 +101,7 @@ const mapSharePointItemToUserRequestItem = (sharePointItem: any): UserRequestIte
     };
 };
 
+// Get all request items for a given request ID
 export const getRequestItemsByRequestId = async (context: WebPartContext, requestId: number): Promise<UserRequestItem[]> => {
     // First get the request to find linked item IDs
     const requestResponse = await context.spHttpClient.get(
@@ -108,6 +113,7 @@ export const getRequestItemsByRequestId = async (context: WebPartContext, reques
         throw new Error(`HTTP error! status: ${requestResponse.status}`);
     }
     
+    // Extract item IDs
     const requestData = await requestResponse.json();
     const requestItemIds = requestData.RequestItemID?.map((item: { Id: any; }) => item.Id) || [];
     
@@ -136,6 +142,8 @@ export const getRequestItemsByRequestId = async (context: WebPartContext, reques
 export const createRequestItem = async (context: WebPartContext, item: UserRequestItem): Promise<number> => {
     const sp = getSP(context);
     const list = sp.web.lists.getByTitle('TTL_RequestItem');
+
+    // Ensure user IDs for UsersLicense field
     const userIds = await getUserIds(sp, item.UsersLicense || []);
 
     const listItemData: any = {
@@ -156,13 +164,7 @@ export const createRequestItem = async (context: WebPartContext, item: UserReque
     }
 
   const addResult = await list.items.add(listItemData);
-
-    const maybeId = (addResult && (addResult.data?.Id ?? addResult.data?.ID ?? addResult.data?.id ?? addResult.Id ?? addResult.ID)) as number | undefined;
-    if (!maybeId) {
-        console.warn('createRequestItem: unexpected add result shape, returning 0', addResult);
-        return 0;
-    }
-    return maybeId;
+  return addResult.Id
 };
 
 // Create a request in TTL_Requests and attach request items (by creating items and setting lookup)
@@ -237,15 +239,9 @@ export const createRequestItemForExistingRequest = async (
   }
 
   const addResult = await list.items.add(listItemData);
-
-  const maybeId = (addResult && (addResult.data?.Id ?? addResult.data?.ID ?? addResult.data?.id ?? addResult.Id ?? addResult.ID)) as number | undefined;
-  if (!maybeId) {
-    console.warn('createRequestItemForExistingRequest: unexpected add result shape, returning 0', addResult);
-    return 0;
-  }
-
-  await updateRequestWithItemId(context, requestId, maybeId);
-  return maybeId;
+  const finalId = addResult.Id
+  await updateRequestWithItemId(context, requestId, finalId);
+  return finalId;
 };
 
 // Update the RequestItemID field in TTL_Requests with a new item ID
@@ -435,6 +431,7 @@ export const deleteRequestWithItems = async (context: WebPartContext, requestId:
     await requestsList.items.getById(requestId).delete();
 };
 
+// Get all approvers from the approvers list in SharePoint
 export const getApprovers = async (context: WebPartContext): Promise<Approver[]> => {
     try {
         const response: SPHttpClientResponse = await context.spHttpClient.get(
@@ -454,6 +451,7 @@ export const getApprovers = async (context: WebPartContext): Promise<Approver[]>
     }
 }
 
+// Get an approver from their id
 export const getApproverById = async (
   context: WebPartContext, 
   approverId: number,
@@ -471,6 +469,7 @@ export const getApproverById = async (
   }
 };
 
+// Get all teams from the teams list in SharePoint
 export const getTeams = async (context: WebPartContext): Promise<Team[]> => {
     try {
         const response: SPHttpClientResponse = await context.spHttpClient.get(
@@ -497,13 +496,7 @@ const getUserIds = async (sp: SPFI, users: any[]): Promise<number[]> => {
     try {
       // Check if we have a valid loginName
       let userIdentifier = u.loginName || u.principalName || u.email || u.key;
-      
-      // If we have an ID but no loginName, we might need to get the user details first
-      if (!userIdentifier && u.id) {
-        console.warn("User has ID but no loginName:", u);
-        continue; // Skip this user or implement fallback logic
-      }
-      
+
       const ensured = await sp.web.ensureUser(userIdentifier);
       ids.push(ensured.Id);
       
@@ -517,6 +510,9 @@ const getUserIds = async (sp: SPFI, users: any[]): Promise<number[]> => {
 };
 
 // FOR APPROVERS AND HR
+
+// Update the status of a request
+// Also add a comment to the request if one was provided
 export const updateRequestStatus = async (
   context: WebPartContext, 
   requestId: number, 

@@ -137,6 +137,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     }
   };
 
+  // Update request item
   const handleUpdateItem = async (updatedItem: UserRequestItem): Promise<void> => {
     if (!editingItem?.ID) return;
 
@@ -146,6 +147,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     try {
       await updateRequestItem(context, editingItem.ID, updatedItem);
 
+      // If in HR view and cost was changed, mark as changed by HR
       if (view === 'HR' && updatedItem.Cost !== editingItem.Cost?.toString()) {
         setChangedByHR(true);
         sessionStorage.setItem(`changedByHR${request.ID}`, "true")
@@ -157,6 +159,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
       try {
         const rid = (displayedRequest && (displayedRequest.ID || (displayedRequest as any).Id)) || (request && (request.ID || (request as any).Id));
         if (rid) {
+          // Recalculate total cost of request
           const newTotal = await recalcAndUpdateRequestTotal(context, Number(rid));
           setDisplayedRequest(prev => ({ ...prev, TotalCost: String(newTotal) }));
           onUpdate();
