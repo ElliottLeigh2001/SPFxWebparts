@@ -202,15 +202,15 @@
   color: white;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .left {
-    position: inherit !important;
+    position: initial !important;
   }
 }
 
 @media (max-width: 1250px) {
   .right {
-    position: inherit !important;
+    position: initial !important;
     max-width: 100% !important;
   }
 }

@@ -94,6 +94,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
           className={detailsStyles.signOutButton} 
           onClick={handleSignOut}
           disabled={loading}
+          style={!event.SignupDeadline ? {marginTop: '40px'} : {}}
         >
           {loading ? 'Signing Out...' : 'Sign Out'}
         </button>
@@ -104,6 +105,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
           className={detailsStyles.signUpButton} 
           onClick={() => setShowModal(true)}
           disabled={loading}
+          style={!event.SignupDeadline ? {marginTop: '40px'} : {}}
         >
           Sign Up
         </button>
@@ -134,6 +136,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
         className={detailsStyles.signUpButton}
         onClick={() => (window.location.href = signInUrl)}
         disabled={loading}
+        style={!event.SignupDeadline ? {marginTop: '40px'} : {}}
       >
         Sign Up
       </button>
@@ -188,9 +191,11 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       
       {event.FoodEvent && <div className={detailsStyles.foodEvent}>Food Included</div>}
       
-      <div style={{margin: '20px'}} className={detailsStyles.signupDeadline}>
-        {event.SignupDeadline && `Sign up deadline: ${formatSingleDate(event.SignupDeadline)} at 23:59`}
-      </div>
+      {event.SignupDeadline && (
+        <div style={{margin: '20px'}} className={detailsStyles.signupDeadline}>
+           Sign up deadline: {formatSingleDate(event.SignupDeadline)} at 23:59
+        </div>
+      )}
 
       {checkingStatus ? (
         <div className={detailsStyles.loading}>Checking signup status...</div>
