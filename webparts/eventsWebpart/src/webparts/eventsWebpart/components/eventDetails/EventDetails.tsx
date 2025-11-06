@@ -20,7 +20,6 @@ export const getSP = (context: WebPartContext): SPFI => {
 
 const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack: () => void; }> = ({ context, event, onBack }) => {
   const [showModal, setShowModal] = useState(false);
-  const [attendees, setAttendees] = useState<any[]>([]);
   const [allAttendees, setAllAttendees] = useState<any[]>([]);
   const [showAttendeesModal, setShowAttendeesModal] = useState(false);
   const {
@@ -68,9 +67,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
           }, {})
         );
 
-        const firstTenAttendees = uniqueAttendees.slice(0, 10);
         setAllAttendees(uniqueAttendees);
-        setAttendees(firstTenAttendees);
       } catch (error) {
         console.error("Error fetching attendees:", error);
       }
@@ -78,7 +75,6 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
 
     fetchAttendees();
   }, [context, event]);
-
 
   // Sign up, sign out and deadline logic
   const renderSignupButton = () => {
@@ -145,7 +141,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
   
   return (
 <div className={detailsStyles.detailsContainer}>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
     <div className={detailsStyles.left}>
       <button onClick={onBack} className={detailsStyles.backButton}>Back</button>
     </div>
@@ -159,24 +155,8 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       )}
 
       {(event.EventTypes !== "No signup" && event.EventTypes !== "Custom") && (
-        <div className={detailsStyles.right}>
-          <h4>Attendees ({allAttendees.length})</h4>
-          {attendees.length > 0 ? (
-            <>
-              <ul>
-                {attendees.map((att) => (
-                  <li key={att.Id}>
-                    <strong>{att.Attendee?.Title}</strong>
-                  </li>
-                ))}
-              </ul>
-              {allAttendees.length > attendees.length && (
-                <p onClick={() => setShowAttendeesModal(true)} className={detailsStyles.seeMore}>See more</p>
-              )}
-            </>
-          ) : (
-            <p>No attendees yet</p>
-          )}
+        <div onClick={() => setShowAttendeesModal(true)} className={detailsStyles.right}>
+          <i className="fa fa-user" aria-hidden="true"></i>
         </div>
       )}
       <div style={{display: 'flex', justifyContent: 'center', width: "60%", margin: '20px'}}>

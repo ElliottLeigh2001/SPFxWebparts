@@ -13,7 +13,7 @@ export const SportFormFields: React.FC<SportFormFieldsProps> = ({
     <>
       <div className={styles.checkboxContainer}>
         <label htmlFor="shirt">
-          Do you have an AmeXio sport shirt?
+          Do you need an AmeXio sport shirt?
           <input
             type="checkbox"
             id="shirt"

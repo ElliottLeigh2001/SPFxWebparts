@@ -28,6 +28,7 @@
   cursor: pointer; 
   margin-bottom: 10px; 
   padding: 4px 20px 5px 20px; 
+  width: 70px;
 }
 
 .detailsImage {
@@ -51,29 +52,20 @@
   position: absolute;
   right: 20px;
   top: 40px;
-  background: #f9f9f9;
-  padding: 18px 24px;
-  border-radius: 8px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
-  max-width: 200px;
-  max-height: 500px;
+  cursor: pointer;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  height: 60px;
+  width: 70px;
+  align-content: center;
+  transition: color 0.2s ease;
 
-  h4 {
-    margin-top: 0;
-    font-size: large;
-    text-decoration: underline;
-  }
+  i {
+    font-size: 40px;
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  li {
-    font-size: 0.9rem;
-    margin-bottom: 10px;
-    padding: 4px 0;
+    &:hover {
+      color: rgb(47, 129, 131);
+    }
   }
 }
 
@@ -83,7 +75,6 @@
 
 .signOutButton {
   background-color: transparent;
-  color: #333;
   border: 3px solid rgb(47, 129, 131);
   color: rgb(47, 129, 131);
   font-weight: 600;
@@ -97,7 +88,7 @@
 .signOutButton:hover {
   border: 3px solid rgb(39, 109, 110);
   color: rgb(39, 109, 110);
-  background-color: #ccc;
+  background-color: #cccccc98;
 }
 
 .signUpButton {
@@ -203,7 +194,7 @@
 }
 
 @media (max-width: 1000px) {
-  .left {
+  .left, .right {
     position: initial !important;
   }
 }
