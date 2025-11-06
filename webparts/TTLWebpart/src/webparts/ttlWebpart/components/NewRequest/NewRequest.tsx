@@ -38,12 +38,12 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
     const [goalError, setGoalError] = useState('');
     const [teamError, setTeamError] = useState('');
     const [approverError, setApproverError] = useState('');
+    const [projectError, setProjectError] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [nextItemId, setNextItemId] = useState(1);
 
     useEffect(() => {
         const getApproversandTeams = async (): Promise<void> => {
-            console.log(approvers)
             const approversWithoutCEO = approvers.filter(app => app.TeamMember)
             setAllApprovers(approversWithoutCEO)
             const allTeams: Team[] = await getTeams(context)
@@ -62,7 +62,8 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
         if (!title.trim()) {
             setTitleError('Title is required');
             isValid = false;
-        }
+        } 
+        
         if (!goal.trim()) {
             setGoalError('Goal is required');
             isValid = false;
@@ -75,7 +76,17 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
             setApproverError('Please select an approver');
             isValid = false;
         }
+        
+        if (title.length > 255) {
+            setTitleError('Max length of title is 255 characters')
+            isValid = false;
+        }
 
+        if (project.length > 255) {
+            setProjectError('Max length of title is 255 characters')
+            isValid = false;
+        }
+        
         return isValid;
     };
 
@@ -215,12 +226,13 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                 <div className={styles.formRow}>
                     <div className={styles.formItem}>
                         <label className={styles.formRowLabel}>Title *</label>
-                        <input className={!title ? 'invalid' : ''} value={title} onChange={e => setTitle(e.target.value)} required />
+                        <input className={titleError ? 'invalid' : ''} value={title} onChange={e => setTitle(e.target.value)} required />
                         {titleError && <div className={styles.validationError}>{titleError}</div>}
                     </div>
                     <div className={styles.formItem}>
                         <label className={styles.formRowLabel}>Project </label>
-                        <input value={project} onChange={e => setProject(e.target.value)} required />
+                        <input className={projectError ? 'invalid' : ''} value={project} onChange={e => setProject(e.target.value)} required />
+                        {projectError && <div className={styles.validationError}>{projectError}</div>}
                     </div>
                 </div>
 

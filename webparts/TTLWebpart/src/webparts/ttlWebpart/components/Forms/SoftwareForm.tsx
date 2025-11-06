@@ -19,6 +19,8 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
   const [linkError, setLinkError] = useState('');
   const [costError, setCostError] = useState('');
   const [usersLicenseError, setUsersLicenseError] = useState('');
+  const [isLoading, setIsLoading] = useState(false)
+  
 
   const peoplePickerContext: IPeoplePickerContext = {
     absoluteUrl: context.pageContext.web.absoluteUrl,
@@ -38,18 +40,20 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
   const validate = (): boolean => {
     let valid = true;
 
+    setTitleError('');
+    setProviderError('');
+    setLinkError('');
+    setCostError('');
+    setUsersLicenseError('');
+
     if (!title) {
       setTitleError('Title is required');
       valid = false;
-    } else {
-      setTitleError('');
     }
 
     if (!provider) {
       setProviderError('Provider is required');
       valid = false;
-    } else {
-      setProviderError('');
     }
 
     if (!link) {
@@ -58,8 +62,6 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
     } else if (!validateLink(link)) {
       setLinkError('Link must be a url (ex. https://www.google.com)');
       valid = false;
-    } else {
-      setLinkError('');
     }
 
     const costValidation = validateCost(cost);
@@ -71,8 +73,16 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
     if (usersLicense.length === 0) {
       setUsersLicenseError('Who will be using this license is required');
       valid = false;
-    } else {
-      setUsersLicenseError('');
+    }
+
+    if (title.length > 255) {
+        setTitleError('Max length of title is 255 characters')
+        valid = false;
+    }
+
+    if (provider.length > 255) {
+        setProviderError('Max length of provider is 255 characters')
+        valid = false;
     }
 
     return valid;
@@ -99,12 +109,23 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
   };
 
   const handleSave = (): void => {
+    if (isLoading) return;
+    setIsLoading(true);
+
     if (view === 'HR') {
-      if (!validateHR()) return;
+      if (!validateHR()) {
+        setIsLoading(false);
+        return;
+      }
       onSave({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
+      setIsLoading(false);
     }
-    if (!validate()) return;
+    if (!validate()) {
+      setIsLoading(false);
+      return;
+    }
     onSave({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
+    setIsLoading(false);
   };
 
   return (
@@ -112,7 +133,7 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
       {view === 'HR' ? (
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
           <label className={styles.formRowLabel}>Cost</label>
-          <input style={{width: '50%'}} value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? 'invalid' : ''} />
+          <input style={{width: '50%'}} value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
       ) : (
@@ -120,20 +141,21 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
         <div className={styles.formRow}>
             <div className={styles.formItemShort}>
               <label className={styles.formRowLabel}>Title *</label>
-              <input value={title} onChange={e => setTitle(e.target.value)} className={!title ? 'invalid' : ''} />
+              <input value={title} onChange={e => setTitle(e.target.value)} className={titleError ? styles.invalid : ''} />
               {titleError && <div className={styles.validationError}>{titleError}</div>}
             </div>
             <div className={styles.formItemShort}>
               <label className={styles.formRowLabel}>Provider *</label>
-              <input value={provider} onChange={e => setProvider(e.target.value)} className={!provider ? 'invalid' : ''} />
+              <input value={provider} onChange={e => setProvider(e.target.value)} className={providerError ? styles.invalid : ''} />
               {providerError && <div className={styles.validationError}>{providerError}</div>}
             </div>
             <div className={styles.formItemShort}>
               <label className={styles.formRowLabel}>Cost (€)*</label>
-              <input value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? 'invalid' : ''} />
+              <input value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''} />
               {costError && <div className={styles.validationError}>{costError}</div>}
             </div>
-          </div><div className={styles.formRow}>
+          </div>
+          <div className={styles.formRow}>
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>Billing *</label>
                 <select name="Licensing" id="Licensing" value={licensing} onChange={e => setLicensing(e.target.value)}>
@@ -149,24 +171,27 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
                   <option value="Individual">Individual</option>
                 </select>
               </div>
-            </div><div className={styles.formRow}>
+            </div>
+            <div className={styles.formRow}>
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>Who will be using this license? *</label>
-                <PeoplePicker
-                  context={peoplePickerContext}
-                  personSelectionLimit={10}
-                  showtooltip={true}
-                  required={true}
-                  principalTypes={[PrincipalType.User, PrincipalType.SharePointGroup, PrincipalType.SecurityGroup]}
-                  resolveDelay={500}
-                  defaultSelectedUsers={initialUsers}
-                  onChange={handleUsersChange}
-                />
+                <div className={usersLicenseError ? styles.invalid : ''}>
+                  <PeoplePicker
+                    context={peoplePickerContext}
+                    personSelectionLimit={10}
+                    showtooltip={true}
+                    required={true}
+                    principalTypes={[PrincipalType.User, PrincipalType.SharePointGroup, PrincipalType.SecurityGroup]}
+                    resolveDelay={500}
+                    defaultSelectedUsers={initialUsers}
+                    onChange={handleUsersChange}
+                  />
+                </div>
                 {usersLicenseError && <div className={styles.validationError}>{usersLicenseError}</div>}
               </div>
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>Link *</label>
-                <input style={{ height: '25px' }} value={link} onChange={e => setLink(e.target.value)} />
+                <input style={{ height: '25px' }} value={link} onChange={e => setLink(e.target.value)} className={linkError ? styles.invalid : ''}/>
                 {linkError && <div className={styles.validationError}>{linkError}</div>}
               </div>
             </div>
@@ -174,8 +199,8 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
       )}
 
       <div className={styles.formActions}>
-        <button className={styles.saveButton} onClick={handleSave}>{initialData ? 'Edit Item' : 'Add Item'}</button>
-        <button className={styles.cancelButton} onClick={onCancel}>Cancel</button>
+        <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit Item' : 'Add Item'}</button>
+        <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
       </div>
     </div>
   );
