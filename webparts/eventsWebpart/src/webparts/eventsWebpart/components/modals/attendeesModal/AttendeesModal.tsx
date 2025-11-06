@@ -19,12 +19,15 @@ export const AttendeesModal: React.FC<AttendeesModalProps> = ({ event, attendees
   const willDrive = attendees.filter(a => a.Carpooling === 'I will drive for my colleagues');
   const notInterested = attendees.filter(a => !a.Carpooling || a.Carpooling === 'Not interested in carpooling');
 
-  // For non-carpooling events, display the attendee list in 3 balanced columns to save space
+  // For non-carpooling events, display the attendee list in 1-3 balanced columns depending on total
   const total = attendees.length;
-  const chunk = Math.ceil(total / 3) || 0;
-  const col1 = attendees.slice(0, chunk);
-  const col2 = attendees.slice(chunk, chunk * 2);
-  const col3 = attendees.slice(chunk * 2);
+  // If no attendees, we'll show a message instead of columns
+  const columnsCount = total === 0 ? 0 : Math.min(3, total);
+  const chunk = columnsCount > 0 ? Math.ceil(total / columnsCount) : 0;
+  const columns: typeof attendees[] = [];
+  for (let i = 0; i < columnsCount; i++) {
+    columns.push(attendees.slice(i * chunk, i * chunk + chunk));
+  }
 
   return (
     <div className={modalStyles.modalOverlay}>
@@ -35,37 +38,23 @@ export const AttendeesModal: React.FC<AttendeesModalProps> = ({ event, attendees
         <h2>Attendees for {event.Title}</h2>
 
         {!event.Carpooling ? (
-          <div className={modalStyles.attendeesGrid}>
-            <div className={`${modalStyles.carpoolColumn} ${modalStyles.attendeesColumn}`}>
-              {col1.length > 0 ? (
-                <ul>
-                  {col1.map(att => (
-                    <li key={att.Id}><strong>{att.Attendee?.Title}</strong></li>
-                  ))}
-                </ul>
-              ) : null}
+          columnsCount === 0 ? (
+            <p className={modalStyles.empty}>There are no attendees for this event.</p>
+          ) : (
+            <div className={`${modalStyles.attendeesGrid} ${(modalStyles as any)[`cols${columnsCount}`]}`}>
+              {columns.map((col, idx) => (
+                <div key={idx} className={`${modalStyles.carpoolColumn} ${modalStyles.attendeesColumn}`}>
+                  {col.length > 0 ? (
+                    <ul>
+                      {col.map(att => (
+                        <li key={att.Id}><strong>{att.Attendee?.Title}</strong></li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ))}
             </div>
-
-            <div className={`${modalStyles.carpoolColumn} ${modalStyles.attendeesColumn}`}>
-              {col2.length > 0 ? (
-                <ul>
-                  {col2.map(att => (
-                    <li key={att.Id}><strong>{att.Attendee?.Title}</strong></li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-
-            <div className={`${modalStyles.carpoolColumn} ${modalStyles.attendeesColumn}`}>
-              {col3.length > 0 ? (
-                <ul>
-                  {col3.map(att => (
-                    <li key={att.Id}><strong>{att.Attendee?.Title}</strong></li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          </div>
+          )
         ) : (
           <div className={modalStyles.carpoolGrid}>
             <div className={modalStyles.carpoolColumn}>

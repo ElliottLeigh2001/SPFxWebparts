@@ -44,8 +44,8 @@
 
 .closeButton {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -10px;
+  right: -10px;
   background: none;
   border: none;
   font-size: 3rem;
@@ -68,8 +68,20 @@
   gap: 12px;
   margin-top: 10px;
 
+  &.cols1 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  &.cols2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  &.cols3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   @media (max-width: 900px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }
 
