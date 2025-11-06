@@ -13,6 +13,7 @@ import * as React from 'react';
 import AddItemModal from './AddItemModal';
 import ConfirmActionDialog from '../NewRequest/ConfirmActionDialog';
 import { sendEmail } from '../../service/AutomateService';
+import { getRequestStatusStyling } from '../../Helpers/HelperFunctions';
 
 interface RequestDetailsProps {
   request: UserRequest;
@@ -351,13 +352,11 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
           {view !== 'myView' && (
             <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
           )}
-          {view === 'HR' && (
-            <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
-          )}
+          <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
           <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
-          <span><strong>Project:</strong> {displayedRequest.Project}</span>
+          <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
           <span><strong>Team:</strong> {displayedRequest.TeamID?.Title || '/'}</span>
-          <span><strong>Status:</strong> {displayedRequest.RequestStatus}</span>
+          <span><strong>Status:</strong> <span style={{padding: '4px 12px'}} className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
           <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
         </div>
       </div>

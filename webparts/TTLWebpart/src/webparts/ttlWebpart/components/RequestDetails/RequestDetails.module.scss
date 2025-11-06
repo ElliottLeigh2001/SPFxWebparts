@@ -39,9 +39,6 @@
     left: 50%;
     transform: translateX(-50%);
     max-width: 60%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 
@@ -392,16 +389,14 @@
 .cardActions {
   display: flex;
   gap: 12px;
+  transition: color 0.2 ease;
   
   i {
     cursor: pointer;
     font-size: 18px;
-    
-    &.fa-pencil { color: green; }
-    &.fa-trash-o { color: red; }
-    
+
     &:hover {
-      opacity: 0.7;
+      color: rgb(47, 129, 131);
     }
   }
 }
@@ -484,6 +479,16 @@
       margin-right: 10px;
     }
   }
+
+  .detailsHeader {
+    flex-direction: column;
+    
+    h1 {
+      position: initial;
+      transform: translateX(0px);
+    }
+  }
+
 }
 
 @media (max-width: 1250px) {    
