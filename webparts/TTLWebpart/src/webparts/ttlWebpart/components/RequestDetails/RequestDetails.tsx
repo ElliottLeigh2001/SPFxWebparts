@@ -124,7 +124,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         ...prev, 
         RequestStatus: type,
         SubmissionDate: submissionDate || undefined,
-        ...(updateApprovedByCEO ? { ApprovedByCEO: true } : {})
       }));
       
       // Refresh parent component
@@ -441,8 +440,10 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                       if (request.RequestStatus === 'Awaiting CEO approval') {
                         await updateRequestApprover('In process by HR', undefined, true);
                         await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
-                      } else {
+                      } else if (request.RequestStatus === 'Sent for approval') {
                         await updateRequestApprover('Sent for approval', undefined, true);
+                      } else if (request.RequestStatus === 'Needs reapproval') {
+                        await updateRequestApprover('Needs reapproval', undefined, true)
                       }
                     }
                     else if (view === 'approvers') {
@@ -474,7 +475,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                     await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: approverEmail, approverTitle: approverTitle, });
                   }
                   else if (confirmAction === 'reapprove') {
-                    await updateRequestApprover('Needs reapproval', comment)
+                    await updateRequestApprover('Needs reapproval', comment, false)
                   }
                   else if (confirmAction === 'completed') {
                     await updateRequestApprover('Completed')

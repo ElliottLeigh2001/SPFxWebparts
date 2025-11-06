@@ -29,7 +29,7 @@ const DirectorDashboard: React.FC<directorProps> = ({ context, onBack, loggedInU
       const requestData = await getRequestsData(context, "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval' or RequestStatus eq 'Awaiting CEO approval')")
 
       const filteredCEORequests = requestData
-        .filter((req) => Number(req.TotalCost) > 5000)
+        .filter((req) => Number(req.TotalCost) > 5000 && !req.ApprovedByCEO)
       setRequests(filteredCEORequests as UserRequest[])
 
       const selectedId = requestId ?? (selectedRequest as any)?.Id;

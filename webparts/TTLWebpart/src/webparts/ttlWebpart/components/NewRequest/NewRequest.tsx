@@ -393,16 +393,18 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                             <td>{it.RequestType}</td>
                             <td>€ {it.Cost}</td>
                             <td>
-                                <i
-                                    className="fa fa-pencil"
-                                    style={{ fontSize: '24px', color: 'green', cursor: 'pointer', marginRight: '8px' }}
-                                    onClick={() => editItem(idx)}
-                                />
-                                <i
-                                    className="fa fa-trash-o"
-                                    style={{ fontSize: '24px', color: 'red', cursor: 'pointer', marginLeft: '8px' }}
-                                    onClick={() => removeItem(idx)}
-                                />
+                                <div className={newRequestStyles.itemActions}>
+                                    <i
+                                        className="fa fa-pencil"
+                                        style={{ marginRight: '8px' }}
+                                        onClick={() => editItem(idx)}
+                                    />
+                                    <i
+                                        className="fa fa-trash-o"
+                                        style={{ marginLeft: '8px' }}
+                                        onClick={() => removeItem(idx)}
+                                    />
+                                </div>
                             </td>
                         </tr>
                     ))}

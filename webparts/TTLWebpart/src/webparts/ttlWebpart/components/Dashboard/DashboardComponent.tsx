@@ -186,7 +186,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({ onClick, requests, view 
                   <tr>
                     <td colSpan={
                       // calculate columns count to set correct colspan
-                      (1 /* Title */ + (view !== 'myView' ? 1 : 0) + (view === 'HR' ? 1 : 0) + 1 /* Total Cost */ + 1 /* Project */ + 1 /* Team */ + 1 /* Submission Date */ + 1 /* Status */)
+                      (6 + (view !== 'myView' ? 1 : 0) + (view === 'HR' ? 1 : 0))
                     } className={styles.noData}>
                       No requests to show.
                     </td>

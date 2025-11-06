@@ -121,3 +121,16 @@
   padding: 20px;
   align-items: center;
 }
+
+.itemActions {
+  cursor: pointer;
+  font-size: 24px;
+  color: '#444';
+  transition: color 0.2 ease;
+
+  i {
+    &:hover {
+      color: rgb(47, 129, 131);
+    }
+  }
+}

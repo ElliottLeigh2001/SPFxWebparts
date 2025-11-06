@@ -534,6 +534,6 @@ export const updateRequestStatus = async (
     RequestStatus: requestStatus,
     OData__Comments: comment,
     SubmissionDate: submissionDate,
-    ...(setApprovedByCEO ? { ApprovedByCEO: true } : {})
+    ApprovedByCEO: setApprovedByCEO
   });
 };

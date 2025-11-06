@@ -3,7 +3,7 @@
 }
 
 .detailsHeader {
-  background: #f8f9fa;
+  background-color: white;
   padding: 20px;
   border-radius: 8px;
   position: relative;
@@ -57,7 +57,7 @@
   flex-wrap: wrap;
   padding: 20px;
   gap: 20px;
-  background-color: #f8f9fa;
+  background-color: white;
   border-radius: 8px;
   border: 1px solid #e9ecef;
   margin: 0 20px;
@@ -69,76 +69,6 @@
       color: #495057;
     }
   }
-}
-
-.detailsTableContainer {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  
-  h2 {
-    padding: 20px 24px;
-    margin: 0;
-    background-color: #f8f9fa;
-    font-size: 20px;
-    border-bottom: 1px solid #e1e5e9;
-  }
-}
-
-.detailsTable {
-  width: 100%;
-  border-collapse: collapse;
-  overflow-x: scroll;
-  
-  thead {
-    background-color: #f8f9fa;
-    
-    th {
-      padding: 16px 12px;
-      text-align: left;
-      font-weight: 600;
-
-      border-bottom: 2px solid #e1e5e9;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-  }
-  
-  tbody {
-    td {
-      padding: 16px 12px;
-      border-bottom: 1px solid #e1e5e9;
-      font-size: 13px;
-    }
-    
-    tr:last-child td {
-      border-bottom: none;
-    }
-  }
-}
-
-.detailsTableWrapper {
-  overflow-x: auto;
-  width: 100%;
-}
-
-.detailsTableWrapper::-webkit-scrollbar {
-  height: 8px;
-}
-.detailsTableWrapper::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
-}
-.detailsTableWrapper::-webkit-scrollbar-thumb:hover {
-  background: #999;
-}
-
-.detailsTable td:nth-child(11) {
-  max-width: 50px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .linkCell {
@@ -189,33 +119,6 @@
   
   &:hover {
       border: 3px solid rgb(39, 109, 110);
-  }
-}
-
-.detailsTableContainer {
-  background: white;
-  border-radius: 8px;
-  padding-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.detailsTable {
-  width: 100%;
-  border-collapse: collapse;
-  
-  th, td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
-  }
-  
-  th {
-    background: #f8f9fa;
-    font-weight: 600;
-  }
-  
-  tr:hover {
-    background: #f8f9fa;
   }
 }
 
@@ -570,14 +473,6 @@
     min-width: 95%;
     max-width: 95%;
     margin: 20px auto;
-  }
-  
-  .detailsTable {
-    font-size: 14px;
-    
-    th, td {
-      padding: 8px 4px;
-    }
   }
   
   .headerActions {
