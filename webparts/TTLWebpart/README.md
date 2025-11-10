@@ -2,7 +2,7 @@
 
 ## Summary
 
-This SPFx webpart is an extensive "application" to manage requests concerning trainings, travels, accomodations and software licenses. Each user has their own
+This SPFx webpart is an extensive "application" to manage requests concerning trainings, travels, accommodations and software licenses. Each user has their own
 dashboard where thye can visualise, add, update and delete requests. Once a request is created, the user can either 'save' their request so they can edit it later, or they can
 send it for approval. At this point, the request isn't editable and it goes to the dashboard of the approver that was selected during the process of making the request.
 The approver can either approve or deny any requests in their dashboard (and provide a comment on denial). If approved, HR members can in their turn approve or deny requests in their
@@ -39,8 +39,8 @@ Request is approved by all required approvers: requester is informed that their 
 - DirectorDashboard.tsx: Dashboard that shows requests that are 'sent for approval' and exceed 5000 EUR
 - DashboardComponent.tsx: Component that contains the table with requests, tailored for each type of dashboard
 
-- NewRequest.tsx: Component for adding new requests and managing request items to that request (trainings, tavels, accomodations and software licenses)
-- AccomodationForm.tsx: Form to add an accomodation to a request
+- NewRequest.tsx: Component for adding new requests and managing request items to that request (trainings, tavels, accommodations and software licenses)
+- AccommodationForm.tsx: Form to add an accommodation to a request
 - Software.tsx: Form to add a software license to a request
 - TrainingForm.tsx: Form to add a training to a request
 - TravelForm.tsx: Form to add a travel to a request

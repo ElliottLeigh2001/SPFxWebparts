@@ -4,7 +4,7 @@ import styles from '../Dashboard/TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
-const AccomodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
+const AccommodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
@@ -115,7 +115,7 @@ const validateHR = (): boolean => {
         setIsLoading(false);
         return;
       }
-      onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Accomodation' });
+      onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Accommodation' });
       setIsLoading(false);
     }
 
@@ -123,7 +123,7 @@ const validateHR = (): boolean => {
       setIsLoading(false);
       return;
     }
-    onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Accomodation' });
+    onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Accommodation' });
     setIsLoading(false)
   };
 
@@ -190,4 +190,4 @@ const validateHR = (): boolean => {
   );
 };
 
-export default AccomodationForm;
+export default AccommodationForm;

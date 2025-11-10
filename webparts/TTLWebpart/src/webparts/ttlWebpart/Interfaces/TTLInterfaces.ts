@@ -2,7 +2,6 @@ export interface UserRequest {
     ID: number;
     Title: string;
     TotalCost: string;
-    OData__Comments: string;
     SubmissionDate?: Date;
     ApprovedByCEO?: boolean;
     RequestItemID: {
@@ -11,6 +10,17 @@ export interface UserRequest {
     Goal: string;
     Project: string;
     RequestStatus: string;
+    CommentID?: {
+        Id?: number;
+        Title?: string;
+        Body?: string;
+        Author?: {
+            Id?: number;
+            Title?: string;
+            EMail?: string;
+        };
+        Created?: string;
+    }[];
     TeamID?: {
         Id?: number;
         Title?: string;

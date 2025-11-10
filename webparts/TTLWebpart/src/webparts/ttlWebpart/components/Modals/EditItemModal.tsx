@@ -3,15 +3,15 @@ import { Modal } from '@fluentui/react';
 import SoftwareForm from '../Forms/SoftwareForm';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
-import AccomodationForm from '../Forms/AccomodationForm';
-import requestDetailsStyles from './RequestDetails.module.scss';
+import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import AccommodationForm from '../Forms/AccomodationForm';
 
 
 interface Props {
   context: WebPartContext;
-  activeForm: 'software'|'training'|'travel'|'accomodation'|null;
+  activeForm: 'software'|'training'|'travel'|'accommodation'|null;
   editingItem?: UserRequestItem | undefined;
   isUpdating: boolean;
   view: string;
@@ -91,7 +91,7 @@ const EditItemModal: React.FC<Props> = ({ context, activeForm, editingItem, isUp
       </Modal>
 
       <Modal
-        isOpen={activeForm === 'accomodation'}
+        isOpen={activeForm === 'accommodation'}
         onDismiss={onCancel}
         isBlocking={false}
         containerClassName={requestDetailsStyles.modalContainer}
@@ -101,7 +101,7 @@ const EditItemModal: React.FC<Props> = ({ context, activeForm, editingItem, isUp
           <button className={requestDetailsStyles.modalCloseButton} onClick={onCancel}>×</button>
         </div>
         <div className={requestDetailsStyles.modalBody}>
-          <AccomodationForm
+          <AccommodationForm
             context={context}
             onSave={onSave}
             onCancel={onCancel}

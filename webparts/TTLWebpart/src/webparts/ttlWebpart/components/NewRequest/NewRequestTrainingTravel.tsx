@@ -1,19 +1,18 @@
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import * as React from 'react';
-import SoftwareForm from '../Forms/SoftwareForm';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import { createRequestWithItems, getApproverById, getTeams } from '../../service/TTLService';
 import { Approver, Team, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useEffect, useState } from 'react';
-import AccomodationForm from '../Forms/AccomodationForm';
-import ConfirmActionDialog from './ConfirmActionDialog';
+import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import newRequestStyles from './NewRequest.module.scss'
 import { Modal } from '@fluentui/react';
 import { sendEmail } from '../../service/AutomateService';
+import AccommodationForm from '../Forms/AccomodationForm';
 
-const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; onSave: () => void; approvers: Approver[]; loggedInUser: any}> = ({ 
+const NewRequestTrainingTravel: React.FC<{ context: WebPartContext; onCancel: () => void; onSave: () => void; approvers: Approver[]; loggedInUser: any}> = ({ 
     context, 
     onCancel, 
     onSave, 
@@ -28,7 +27,8 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
     const [teams, setTeams] = useState<Team[]>([]);
     const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
     const [items, setItems] = useState<UserRequestItem[]>([]);
-    const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accomodation'|'actions'|null>(null);
+    const [activeForm, setActiveForm] = useState<'training'|'travel'|'accommodation'|null>(null);
+    const [activeFormName, setActiveFormName] = useState<'training'|'travel'|'accommodation'|null>(null);
     const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
     const [isSaving, setIsSaving] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -41,6 +41,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
     const [projectError, setProjectError] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [nextItemId, setNextItemId] = useState(1);
+    const [isReturnJourney, setIsReturnJourney] = useState(false);
 
     useEffect(() => {
         const getApproversandTeams = async (): Promise<void> => {
@@ -147,15 +148,6 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                 sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, author: loggedInUser.Email, totalCost: totalCost.toString() });
             }
             
-            // Reset form after successful save
-            setTitle('');
-            setGoal('');
-            setProject('');
-            setTeam('');
-            setApprover('');
-            setItems([]);
-            setNextItemId(1);
-            
             // Call the parent's onSave to refresh the dashboard
             onSave();
             
@@ -170,44 +162,83 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
     const closeModal = (): void => {
         setEditingItem(undefined);
         setActiveForm(null);
+        setIsReturnJourney(false);
     };
 
-    const handleFormSave = (item: UserRequestItem): void => {
+    const handleFormSave = (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>): void => {
         if (editingItem) {
             updateItem({ ...item, ID: editingItem.ID });
         } else {
             addItem(item);
         }
+
+        // If there are next forms in the sequence, open the first one
+        if (nextForms && nextForms.length > 0) {
+            const nextForm = nextForms[0];
+
+            // Travel form
+            if (nextForm.type === 'travel') {
+                // If it's return journey, don't set editing item
+                if (nextForm.data?.isReturnJourney) {
+                    setIsReturnJourney(true);
+                    setEditingItem(undefined);
+                } else {
+                    setIsReturnJourney(false);
+                    setEditingItem(nextForm.data ?? undefined);
+                }
+
+                setActiveForm('travel');
+                setActiveFormName('travel');
+            }
+
+            // Accommodation form
+            if (nextForm.type === 'accommodation') {
+                setIsReturnJourney(false);
+                setEditingItem(nextForm.data ?? undefined);
+                setActiveForm('accommodation');
+                setActiveFormName('accommodation');
+            }
+
+        } else {
+            setEditingItem(undefined);
+            setActiveForm(null);
+            setActiveFormName(null);
+            setIsReturnJourney(false);
+        }
     };
 
     const getModalTitle = (): string => {
         if (editingItem) {
-            return `Edit ${activeForm}`;
+            return `Edit ${activeFormName}`;
         }
-        return `Add ${activeForm}`;
+        else if (isReturnJourney) {
+            return `Add return journey`; 
+        }
+        return `Add ${activeFormName}`;
     };
 
+    const disabled = isSaving || items.length === 0
     return (
         <>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
             <div className={styles.ttlForm}>
                 <div className={styles.formHeader}>
-                    <h2>New Request</h2>
+                    <h2>New Training / Travel Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
                             className={newRequestStyles.iconButton}
-                            disabled={isSaving || items.length === 0}
+                            disabled={disabled}
                             onClick={() => { setConfirmAction('save'); setConfirmOpen(true); }}
-                            title="Save"
+                            title={disabled ? "Add an item to your request before saving" : "Save"}
                         >
                             <i className="fa fa-bookmark-o" aria-hidden="true"></i>
                         </button>
 
                         <button
                             className={newRequestStyles.iconButton}
-                            disabled={isSaving || items.length === 0}
+                            disabled={disabled}
                             onClick={() => { setConfirmAction('send'); setConfirmOpen(true); }}
-                            title="Send for approval"
+                            title={disabled ? "Add an item to your request before sending" : "Send for approval"}
                         >
                             <i className="fa fa-paper-plane" aria-hidden="true"></i>
                         </button>
@@ -223,15 +254,17 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                     </div>
                 </div>
 
+                <h4>General Information</h4>
+
                 <div className={styles.formRow}>
                     <div className={styles.formItem}>
                         <label className={styles.formRowLabel}>Title *</label>
-                        <input className={titleError ? 'invalid' : ''} value={title} onChange={e => setTitle(e.target.value)} required />
+                        <input className={titleError ? styles.invalid : ''} value={title} onChange={e => setTitle(e.target.value)} required />
                         {titleError && <div className={styles.validationError}>{titleError}</div>}
                     </div>
                     <div className={styles.formItem}>
                         <label className={styles.formRowLabel}>Project </label>
-                        <input className={projectError ? 'invalid' : ''} value={project} onChange={e => setProject(e.target.value)} required />
+                        <input className={projectError ? styles.invalid : ''} value={project} onChange={e => setProject(e.target.value)} required />
                         {projectError && <div className={styles.validationError}>{projectError}</div>}
                     </div>
                 </div>
@@ -281,32 +314,13 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                     </div>
                 </div>
 
-                <div className={styles.formActions}>
-                    <button className={styles.stdButton} onClick={() => setActiveForm('software')}>Add Software</button>
-                    <button className={styles.stdButton} onClick={() => setActiveForm('training')}>Add Training</button>
-                    <button className={styles.stdButton} onClick={() => setActiveForm('travel')}>Add Travel</button>
-                    <button className={styles.stdButton} onClick={() => setActiveForm('accomodation')}>Add Accomodation</button>
-                </div>
+                <h4 style={{marginTop: "3em"}}>Add items to your request</h4>
 
-                <Modal
-                    isOpen={activeForm === 'software'}
-                    onDismiss={closeModal}
-                    isBlocking={false}
-                    containerClassName={newRequestStyles.modalContainer}
-                >
-                    <div className={newRequestStyles.modalHeader}>
-                        <h3>{getModalTitle()}</h3>
-                        <button className={newRequestStyles.modalCloseButton} onClick={closeModal}>×</button>
-                    </div>
-                    <div className={newRequestStyles.modalBody}>
-                        <SoftwareForm 
-                            context={context} 
-                            onSave={handleFormSave} 
-                            onCancel={closeModal} 
-                            initialData={editingItem}
-                        />
-                    </div>
-                </Modal>
+                <div className={newRequestStyles.addButtons}>
+                    <button className={styles.stdButton} onClick={() => {setActiveForm('training'); setActiveFormName('training')}}>Add Training Item</button>
+                    <button className={styles.stdButton} onClick={() => {setActiveForm('travel'); setActiveFormName('travel')}}>Add Travel Item</button>
+                    <button className={styles.stdButton} onClick={() => {setActiveForm('accommodation'); setActiveFormName('accommodation')}}>Add Accommodation Item</button>
+                </div>
 
                 <Modal
                     isOpen={activeForm === 'training'}
@@ -344,12 +358,13 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                             onSave={handleFormSave} 
                             onCancel={closeModal} 
                             initialData={editingItem}
+                            isReturnJourney={isReturnJourney}
                         />
                     </div>
                 </Modal>
 
                 <Modal
-                    isOpen={activeForm === 'accomodation'}
+                    isOpen={activeForm === 'accommodation'}
                     onDismiss={closeModal}
                     isBlocking={false}
                     containerClassName={newRequestStyles.modalContainer}
@@ -359,7 +374,7 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                         <button className={newRequestStyles.modalCloseButton} onClick={closeModal}>×</button>
                     </div>
                     <div className={newRequestStyles.modalBody}>
-                        <AccomodationForm 
+                        <AccommodationForm 
                             context={context} 
                             onSave={handleFormSave} 
                             onCancel={closeModal} 
@@ -368,60 +383,41 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
                     </div>
                 </Modal>
 
-                <Modal
-                    isOpen={activeForm === 'actions'}
-                    onDismiss={closeModal}
-                    isBlocking={false}
-                    containerClassName={newRequestStyles.modalContainer}
-                >
-                    <div className={newRequestStyles.modalHeader}>
-                        <h3>{getModalTitle()}</h3>
-                        <button className={newRequestStyles.modalCloseButton} onClick={closeModal}>×</button>
-                    </div>
-                    <div className={newRequestStyles.modalBody}>
-                        <AccomodationForm 
-                            context={context} 
-                            onSave={handleFormSave} 
-                            onCancel={closeModal} 
-                            initialData={editingItem}
-                        />
-                    </div>
-                </Modal>
-
-                <h3>Items ({items.length})</h3>
-                <table className={newRequestStyles.itemsTable}>
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>Cost</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {items.map((it, idx) => (
-                        <tr key={idx}>
-                            <td>{it.Title}</td>
-                            <td>{it.RequestType}</td>
-                            <td>€ {it.Cost}</td>
-                            <td>
-                                <div className={newRequestStyles.itemActions}>
-                                    <i
-                                        className="fa fa-pencil"
-                                        style={{ marginRight: '8px' }}
-                                        onClick={() => editItem(idx)}
-                                    />
-                                    <i
-                                        className="fa fa-trash-o"
-                                        style={{ marginLeft: '8px' }}
-                                        onClick={() => removeItem(idx)}
-                                    />
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
+                {items.length > 0 && (
+                  <>
+                    <h3>Shopping Basket ({items.length})</h3><table className={newRequestStyles.itemsTable}>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Cost</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map((it, idx) => (
+                                <tr key={idx}>
+                                    <td>{it.Title}</td>
+                                    <td>{it.RequestType}</td>
+                                    <td>€ {it.Cost}</td>
+                                    <td>
+                                        <div className={newRequestStyles.itemActions}>
+                                            <i
+                                                className="fa fa-pencil"
+                                                style={{ marginRight: '8px' }}
+                                                onClick={() => editItem(idx)} />
+                                            <i
+                                                className="fa fa-trash-o"
+                                                style={{ marginLeft: '8px' }}
+                                                onClick={() => removeItem(idx)} />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                  </>
+                )}
 
                 {error && <div className={styles.validationError}>{error}</div>}
 
@@ -454,4 +450,4 @@ const NewRequestForm: React.FC<{ context: WebPartContext; onCancel: () => void; 
     );
 }
 
-export default NewRequestForm;
+export default NewRequestTrainingTravel;

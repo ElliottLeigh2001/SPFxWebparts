@@ -5,11 +5,11 @@ import { getRequestsData, getLoggedInUser, getRequestItemsByRequestId, getApprov
 import styles from './TtlWebpart.module.scss';
 import { Approver, UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import RequestDetails from '../RequestDetails/RequestDetails';
-import NewRequestForm from '../NewRequest/NewRequest';
 import ApproversDashboard from './ApproversDashboard';
 import HRDashboard from './HRDashboard';
 import DashboardComponent from './DashboardComponent';
 import DirectorDashboard from './DirectorDashboard';
+import ChooseNewRequest from '../NewRequest/ChooseNewRequest';
 
 const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -296,11 +296,11 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   
   if (newRequest) {
     return (
-      <NewRequestForm 
-        onSave={handleNewRequestSave} 
-        context={context} 
+      <ChooseNewRequest
+        context={context}
+        onSave={handleNewRequestSave}
         onCancel={handleBackClick}
-        approvers={allApprovers} 
+        approvers={allApprovers}
         loggedInUser={loggedInUser}
       />
     );

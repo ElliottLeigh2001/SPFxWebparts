@@ -7,4 +7,7 @@ export interface FormProps {
   onCancel: () => void;
   initialData?: UserRequestItem;
   view?: string;
+  // Optional callbacks for chained flows (e.g., training -> travel -> accommodation)
+  onRequestTravel?: (item: UserRequestItem) => void;
+  onRequestNext?: (item: UserRequestItem, options?: any) => void;
 }

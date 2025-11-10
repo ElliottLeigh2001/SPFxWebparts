@@ -3,17 +3,20 @@ import { useState, useEffect } from 'react';
 import EditRequestForm from './EditRequestForm';
 import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById } from '../../service/TTLService';
 import RequestItemsList from './RequestItemsList';
-import ConfirmDeleteDialog from './ConfirmDeleteDialog';
-import EditItemModal from './EditItemModal';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { Modal } from '@fluentui/react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import requestDetailsStyles from './RequestDetails.module.scss';
 import * as React from 'react';
-import AddItemModal from './AddItemModal';
-import ConfirmActionDialog from '../NewRequest/ConfirmActionDialog';
+import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import { sendEmail } from '../../service/AutomateService';
 import { getRequestStatusStyling } from '../../Helpers/HelperFunctions';
+import CommentsSection from './CommentsSection';
+import AddItemModal from '../Modals/AddItemModal';
+import ConfirmDeleteDialog from '../Modals/ConfirmDeleteDialog';
+import EditItemModal from '../Modals/EditItemModal';
+import { createComment } from '../../service/CommentService';
+import { TTLComment } from '../../Interfaces/TTLCommentInterface';
 
 interface RequestDetailsProps {
   request: UserRequest;
@@ -38,7 +41,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
 }) => {
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
-  const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accomodation'|null>(null);
+  const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -53,7 +56,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   const [showConfirmActionDialog, setShowConfirmActionDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
-  const [showCommentBox, setShowCommentBox] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
 
 
@@ -104,7 +106,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   };
 
   // Approve request function
-  const updateRequestApprover = async (type: string, comment?: string, updateApprovedByCEO?: boolean): Promise<void> => {
+  const updateRequestApprover = async (type: string, updateApprovedByCEO?: boolean): Promise<void> => {
     if (!request.ID) return;
     
     setIsUpdatingStatus(true);
@@ -118,7 +120,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     }
     
     try {
-      await updateRequestStatus(context, request.ID, type, comment, submissionDate, updateApprovedByCEO);
+      await updateRequestStatus(context, request.ID, type, submissionDate, updateApprovedByCEO);
       
       // Show success message or update local state
       setDisplayedRequest(prev => ({ 
@@ -227,6 +229,21 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     }
   };
 
+  const handleAddComment = async (commentText: string) => {
+    if (!commentText.trim()) return;
+
+    try {
+      const comment: TTLComment = {
+        Title: `Comment on Request ${request.ID}`,
+        Body: commentText,
+      };
+
+      await createComment(context, comment, request.ID);
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
   // Show confirmation dialog when the delete icon is pressed
   const handleDeleteItem = (requestItem: UserRequestItem): void =>  {
     setSelectedItemToDelete(requestItem);
@@ -272,10 +289,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
     setShowAddModal(false);
   };
 
-  const showComment = (): void => {
-    setShowCommentBox(prev => !prev);
-  };
-
   return (
     <>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
@@ -289,36 +302,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
           <h1>Request Details: {displayedRequest.Title}</h1>
 
           <div className={requestDetailsStyles.detailsActions}>
-            {request.OData__Comments && (
-              <div className={requestDetailsStyles.commentWrapper}>
-                <button
-                  className={showCommentBox ? requestDetailsStyles.filledIconButton : requestDetailsStyles.iconButton}
-                  onClick={showComment}
-                  title="View comment"
-                >
-                  <i className="fa fa-comment" aria-hidden="true"></i>
-                </button>
-
-                {showCommentBox && (
-                  <div className={requestDetailsStyles.commentBox}>
-                    <div className={requestDetailsStyles.commentHeader}>
-                      <strong>Comment</strong>
-                      <button 
-                        className={requestDetailsStyles.closeButton}
-                        onClick={() => setShowCommentBox(false)}
-                        title="Close"
-                      >
-                        <i className="fa fa-times"></i>
-                      </button>
-                    </div>
-                    <p className={requestDetailsStyles.commentPlaceholder}>
-                      {request.OData__Comments}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-            
             {(displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') && (
               <>
                 <button
@@ -425,6 +408,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         request={displayedRequest}
       />
 
+
       <ConfirmActionDialog
           isOpen={showConfirmActionDialog}
           action={confirmAction}
@@ -435,14 +419,17 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
               setConfirmProcessing(true);
               try {
                   if (confirmAction === 'approve') {
+                    if (comment) {
+                      await handleAddComment(comment)
+                    }
                     if (isCEO) {
                       if (request.RequestStatus === 'Awaiting CEO approval') {
-                        await updateRequestApprover('In process by HR', undefined, true);
+                        await updateRequestApprover('In process by HR', true);
                         await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
                       } else if (request.RequestStatus === 'Sent for approval') {
-                        await updateRequestApprover('Sent for approval', undefined, true);
+                        await updateRequestApprover('Sent for approval', true);
                       } else if (request.RequestStatus === 'Needs reapproval') {
-                        await updateRequestApprover('Needs reapproval', undefined, true)
+                        await updateRequestApprover('Needs reapproval', true)
                       }
                     }
                     else if (view === 'approvers') {
@@ -463,7 +450,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                     }
                   } 
                   else if (confirmAction === 'deny') {
-                    await updateRequestApprover('Declined', comment);
+                    await updateRequestApprover('Declined');
+                    await handleAddComment(comment!)
                     await sendEmail({emailType: "deny", title: request.Title, author: request.Author?.EMail, comment: comment})
                   }
                   else if (confirmAction === 'send') {
@@ -474,24 +462,25 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
                     await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: approverEmail, approverTitle: approverTitle, });
                   }
                   else if (confirmAction === 'reapprove') {
-                    await updateRequestApprover('Needs reapproval', comment, false)
+                    await handleAddComment(comment!)
+                    await updateRequestApprover('Needs reapproval', false)
                   }
                   else if (confirmAction === 'completed') {
                     await updateRequestApprover('Completed')
                     await sendEmail({emailType: 'approved', title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
                   }
-              } finally {
+                } finally {
                   setConfirmProcessing(false);
                   setShowConfirmActionDialog(false);
                   setConfirmAction(null);
                   sessionStorage.removeItem(`changedByHR${request.ID}`)
-              }
-          }}
+                }
+              }}
       />
     </div>
       <div className={styles.newRequestButtonContainer}>
         {view !== 'myView' && (request.RequestStatus !== 'Completed' && request.RequestStatus !== 'Booking') && (
-
+          
           <div style={{display: 'flex', gap: '20px'}}>
           <button
             onClick={() => {
@@ -521,14 +510,19 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
         )}
         {view === 'HR' && request.RequestStatus === 'Booking' && (
           <button
-            onClick={() => {setConfirmAction('completed'); setShowConfirmActionDialog(true)}}
-            className={requestDetailsStyles.approveButton}
-            style={{width: '150px'}}
+          onClick={() => {setConfirmAction('completed'); setShowConfirmActionDialog(true)}}
+          className={requestDetailsStyles.approveButton}
+          style={{width: '150px'}}
           >
             Mark as booked
           </button>
         )} 
       </div>
+      
+      <CommentsSection
+        requestId={request.ID}
+        context={context}
+      />
     </>
   );
 };

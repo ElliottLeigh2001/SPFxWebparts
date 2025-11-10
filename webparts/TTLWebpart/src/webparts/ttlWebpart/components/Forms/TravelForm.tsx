@@ -3,8 +3,9 @@ import { useState } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
+import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 
-const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
+const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void }> = ({ onSave, onCancel, initialData, view, isReturnJourney }) => {
   const [title, setTitle] = useState(initialData?.Title || '');
   const [date, setDate] = useState(formatEditingDate(initialData?.StartDate) || '');
   const [location, setLocation] = useState(initialData?.Location || '');
@@ -18,6 +19,8 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }
   const [linkError, setLinkError] = useState('');
   const [locationError, setLocationError] = useState('');
   const [isLoading, setIsLoading] = useState(false)
+  const [includeAccommodation, setIncludeAccommodation] = useState(false);
+  const [includeReturnJourney, setIncludeReturnJourney] = useState(false);
   
   const validate = (): boolean => {
     let valid = true;
@@ -106,21 +109,43 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }
     if (isLoading) return;
     setIsLoading(true);
 
+    let nextForms: Array<{type: 'travel' | 'accommodation', data?: any}> = [];
+
+    // If return journey is checked, add another travel form first
+    if (includeReturnJourney) {
+      nextForms.push({ type: 'travel', data: { isReturnJourney: true } });
+      setIncludeReturnJourney(false);
+    }
+
+    // If accommodation is checked, add accommodation form
+    if (includeAccommodation) {
+        nextForms.push({ type: 'accommodation' });
+    }
+
     if (view === 'HR') {
       if (!validateHR()) {
         setIsLoading(false);
         return;
       }
-      onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' });
+      onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
       setIsLoading(false);
     }
     if (!validate()) {
       setIsLoading(false);
       return;
     }
-    onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' });
+    onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
     setIsLoading(false);
+    setTitle('');
+    setProvider('');
+    setLink('');
+    setDate('');
+    setLocation('');
+    setCost('');
   };
+
+  // Modal title logic
+  const modalTitle = initialData ? 'Edit Item' : 'Add Item'
 
   return (
     <div>
@@ -132,7 +157,7 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }
         </div>
       ) : (
       <>
-        <div className={styles.formRow}>
+         <div className={styles.formRow}>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>Title *</label>
             <input value={title} onChange={e => setTitle(e.target.value)} className={titleError ? styles.invalid : ''} />
@@ -168,13 +193,36 @@ const TravelForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }
               {linkError && <div className={styles.validationError}>{linkError}</div>}
             </div>
           </div>
+
+          {!isReturnJourney && (
+            <div style={{ marginTop: '20px', padding: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={includeReturnJourney} 
+                    onChange={e => setIncludeReturnJourney(e.target.checked)} 
+                  />
+                  I want to add a return journey
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={includeAccommodation} 
+                    onChange={e => setIncludeAccommodation(e.target.checked)} 
+                  />
+                  I want to add an accommodation for this travel
+                </label>
+              </div>
+            </div>
+          )}
         </>
       )}
 
-      <div className={styles.formActions}>
-        <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit Item' : 'Add Item'}</button>
-        <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
-      </div>
+        <div className={styles.formActions}>
+          <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{modalTitle}</button>
+          <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
+        </div>
     </div>
   );
 };

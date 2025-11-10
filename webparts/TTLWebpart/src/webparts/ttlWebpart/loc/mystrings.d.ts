@@ -1,3 +1,5 @@
+declare module "*.jpg";
+
 declare interface ITtlWebpartWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
@@ -17,3 +19,5 @@ declare module 'TtlWebpartWebPartStrings' {
   const strings: ITtlWebpartWebPartStrings;
   export = strings;
 }
+
+

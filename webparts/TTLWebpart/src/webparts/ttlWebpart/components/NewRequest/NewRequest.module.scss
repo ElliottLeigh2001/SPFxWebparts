@@ -30,6 +30,91 @@
   }
 }
 
+.formHeader {
+  display: flex;
+    border-bottom: 2px solid #f3f2f1;
+    margin-bottom: 20px;
+    padding-bottom: 6px;
+    justify-content: center;
+    align-items: center;
+}
+
+.chooseRequestButton {
+  width: 45%;
+  padding: 50px;
+  font-size: 30px;
+}
+
+.chooseContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.chooseGrid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  width: 100%;
+  max-width: 900px;
+  margin-top: 40px;
+}
+
+.chooseRequestButton {
+  position: relative;
+  width: 400px;
+  height: 220px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  overflow: hidden;
+  color: white;
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+
+  h3 {
+    color: white !important;
+    font-size: 28px;
+    margin: 0;
+  }
+
+}
+
+.addButtons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+
+  button {
+    width: 32%;
+  }
+}
+
 .newRequestActions {
   display: flex;
   justify-content: center;
@@ -132,5 +217,16 @@
     &:hover {
       color: rgb(47, 129, 131);
     }
+  }
+}
+
+@media (max-width: 1020px) {
+    .addButtons {
+      flex-direction: column;
+      align-items: center;
+
+      button {
+        width: 50%
+      }
   }
 }

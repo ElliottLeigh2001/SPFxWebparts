@@ -3,12 +3,12 @@ import { Modal } from '@fluentui/react';
 import SoftwareForm from '../Forms/SoftwareForm';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
-import AccomodationForm from '../Forms/AccomodationForm';
-import requestDetailsStyles from './RequestDetails.module.scss';
+import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useState, useEffect } from 'react';
 import newRequestStyles from '../NewRequest/NewRequest.module.scss'
+import AccommodationForm from '../Forms/AccomodationForm';
 
 interface Props {
   context: WebPartContext;
@@ -19,7 +19,7 @@ interface Props {
 }
 
 const AddItemModal: React.FC<Props> = ({ context, isOpen, isUpdating, onSave, onCancel }) => {
-  const [activeForm, setActiveForm] = useState<'software' | 'training' | 'travel' | 'accomodation' | null>(null);
+  const [activeForm, setActiveForm] = useState<'software' | 'training' | 'travel' | 'accommodation' | null>(null);
 
   // Reset form selection when modal opens/closes
   useEffect(() => {
@@ -61,7 +61,7 @@ const AddItemModal: React.FC<Props> = ({ context, isOpen, isUpdating, onSave, on
         </button>
         <button 
           className={requestDetailsStyles.formSelectionButton} 
-          onClick={() => setActiveForm('accomodation')}
+          onClick={() => setActiveForm('accommodation')}
         >
           Add Accommodation
         </button>
@@ -104,10 +104,10 @@ const AddItemModal: React.FC<Props> = ({ context, isOpen, isUpdating, onSave, on
             />
           </div>
         );
-      case 'accomodation':
+      case 'accommodation':
         return (
           <div className={newRequestStyles.modalBody}>
-            <AccomodationForm
+            <AccommodationForm
                 context={context}
                 onSave={handleFormSave}
                 onCancel={handleFormCancel}

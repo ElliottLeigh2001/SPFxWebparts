@@ -3,8 +3,9 @@ import { useState } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
+import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 
-const TrainingForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
+const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void }> = ({ onSave, onCancel, initialData, view }) => {
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
@@ -21,6 +22,7 @@ const TrainingForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view
   const [endDateError, setEndDateError] = useState('');
   const [locationError, setLocationError] = useState('');
   const [isLoading, setIsLoading] = useState(false)
+  const [includeTravel, setIncludeTravel] = useState(false);
 
   const validate = (): boolean => {
     let valid = true;
@@ -110,19 +112,25 @@ const TrainingForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view
     if (isLoading) return;
     setIsLoading(true);
 
+    let nextForms: Array<{type: 'travel' | 'accommodation', data?: any}> = [];
+
+    if (includeTravel) {
+        nextForms.push({ type: 'travel' });
+    }
+
     if (view === 'HR') {
       if (!validateHR()) {
         setIsLoading(false);
         return;
       }
-      onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Training' });
+      onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Training' }, nextForms);
       setIsLoading(false);
     }
     if (!validate()) {
       setIsLoading(false);
       return;
     }
-    onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Training' });
+    onSave({ Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Training' }, nextForms);
     setIsLoading(false)
   };
 
@@ -177,6 +185,16 @@ const TrainingForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view
             <label className={styles.formRowLabel}>Link *</label>
             <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px' }} className={linkError ? styles.invalid : ''}/>
             {linkError && <div className={styles.validationError}>{linkError}</div>}
+          </div>
+          <div style={{ marginTop: '20px', padding: '10px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input 
+                type="checkbox" 
+                checked={includeTravel} 
+                onChange={e => setIncludeTravel(e.target.checked)} 
+              />
+              I want to add a travel for this training
+            </label>
           </div>
         </>
       )}

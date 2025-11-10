@@ -261,6 +261,7 @@
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   max-width: 720px;
+  min-height: 60vh;
   margin: 20px auto;
   font-family: "Segoe UI", Roboto, sans-serif;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -480,15 +481,19 @@ input:focus {
   position: absolute;
   top: 0;
   left: 0;
-  width: 50%;
+  width: 33.33%;
   height: 100%;
   background-color: rgb(47, 129, 131);
   transition: transform 0.3s ease;
   z-index: 0;
 }
 
-.slideRight {
+.slideCenter {
   transform: translateX(100%);
+}
+
+.slideRight {
+  transform: translateX(200%);
 }
 
 .slideLeft {
@@ -496,7 +501,8 @@ input:focus {
 }
 
 .tabButtonToApprove,
-.tabButtonApproved {
+.tabButtonApproved,
+.tabButtonAwaiting {
   border: none;
   padding: 10px 20px;
   background: transparent;
@@ -505,14 +511,20 @@ input:focus {
   z-index: 1;
   color: rgb(47, 129, 131);
   transition: color 0.2s ease;
+  width: 155px;
+  border: 1px solid gray;
 }
 
-.tabButtonToApprove {
+.tabButtonAwaiting {
   border-radius: 8px 0px 0px 8px;
 }
 
 .tabButtonApproved {
   border-radius: 0px 8px 8px 0px;
+}
+
+.tabButtonToApprove {
+  border-radius: 0;
 }
 
 .activeTabText {

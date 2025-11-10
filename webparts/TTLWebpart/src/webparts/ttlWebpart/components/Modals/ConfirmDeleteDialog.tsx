@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Modal } from '@fluentui/react';
-import requestDetailsStyles from './RequestDetails.module.scss';
+import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 
 interface Props {
   isOpen: boolean;

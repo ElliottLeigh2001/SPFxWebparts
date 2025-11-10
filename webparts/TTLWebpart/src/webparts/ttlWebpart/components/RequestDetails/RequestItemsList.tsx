@@ -32,7 +32,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
       'Software': 'fa-solid fa-computer fa-lg',
       'Training': 'fa-solid fa-user-graduate fa-lg',
       'Travel': 'fa-solid fa-plane-departure fa-lg',
-      'Accomodation': 'fa-solid fa-bed fa-lg'
+      'Accommodation': 'fa-solid fa-bed fa-lg'
     };
   
     return typeMap[type]|| 'fa-solid fa-question';
