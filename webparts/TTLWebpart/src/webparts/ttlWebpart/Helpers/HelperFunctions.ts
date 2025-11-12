@@ -83,3 +83,33 @@ export const getRequestStatusStyling = (status: string): string => {
 
     return statusMap[status] || styles.inProcessByHR;
 };
+
+export const calculateSoftwareLicenseCost = (data: any) => {
+  let cost;
+  const users = data.UsersLicense[0].split(',')
+
+  switch (`${data.LicenseType}_${data.Licensing}`) {
+    case 'Group_Monthly':
+      cost = data.Cost * 12;
+      break;
+    case 'Individual_Monthly':
+      cost = users.length * data.Cost * 12;
+      break;
+    case 'Group_Yearly':
+      cost = data.Cost;
+      break;
+    case 'Individual_Yearly':
+      cost = users.length * data.Cost;
+      break;
+    case 'Group_One-time':
+      cost = data.Cost;
+      break;
+    case 'Individual_One-time':
+      cost = users.length * data.Cost;
+      break;
+    default:
+      cost = 0;
+  }
+
+  return cost;
+}

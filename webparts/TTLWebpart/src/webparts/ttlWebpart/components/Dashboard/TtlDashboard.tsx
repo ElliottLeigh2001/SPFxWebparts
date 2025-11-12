@@ -34,7 +34,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       setError(null);
 
       const [requestData, user, approvers, HR] = await Promise.all([
-        getRequestsData(context),
+        getRequestsData(context, "Id desc"),
         getLoggedInUser(context),
         getApprovers(context),
         checkHR(context)

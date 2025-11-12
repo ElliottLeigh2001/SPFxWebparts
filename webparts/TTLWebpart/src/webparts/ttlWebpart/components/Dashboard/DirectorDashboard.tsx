@@ -26,7 +26,7 @@ const DirectorDashboard: React.FC<directorProps> = ({ context, onBack, loggedInU
       setIsLoading(true);
       setError(null);
 
-      const requestData = await getRequestsData(context, "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval' or RequestStatus eq 'Awaiting CEO approval')")
+      const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval' or RequestStatus eq 'Awaiting CEO approval')")
 
       const filteredCEORequests = requestData
         .filter((req) => Number(req.TotalCost) > 5000 && !req.ApprovedByCEO)

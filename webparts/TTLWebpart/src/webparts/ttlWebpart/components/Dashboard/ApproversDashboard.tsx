@@ -26,8 +26,9 @@ const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedI
     try {
       setIsLoading(true);
       setError(null);
+
       // Only get requests with the correct statuses for approver
-      const requestData = await getRequestsData(context, "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval')");
+      const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval')");
 
       // Filter on requests meant for the approver
       const filteredRequests = requestData

@@ -17,7 +17,7 @@ interface Props {
 
 const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, showActions, request, view }) => {
 
-  // Helper function to get display string for UsersLicense
+  // Get display string for UsersLicense
   const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {
     if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
         return '/';
@@ -26,7 +26,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
     return usersLicense.length > 0 ? usersLicense.join(', ') : '/';
   };
   
-  // Helper function to get icon class based on request type
+  // Get icon class based on request type
   const getTypeIcon = (type: string): string => {
     const typeMap: { [key: string]: string } = {
       'Software': 'fa-solid fa-computer fa-lg',
@@ -39,7 +39,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
   
   }
   
-  // Helper function to get background color based on request type
+  // Get background color based on request type
   const getRequestTypeColor = (type: string): string => {
     const colorMap: { [key: string]: string } = {
       'Software': '#e3f2fd',
@@ -54,7 +54,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
     return (
       <div 
         key={item.ID} 
-        className={requestDetailsStyles.requestCard}
+        className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareRequestCard : requestDetailsStyles.requestCard}
         style={{ backgroundColor: getRequestTypeColor(item.RequestType!) }}
       >
         <div className={requestDetailsStyles.cardHeader}>
@@ -158,7 +158,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>        
       <div className={requestDetailsStyles.requestCardsContainer}>
         <h2 style={{ textAlign: 'center' }}>Request Items ({items.length})</h2>
-        <div className={requestDetailsStyles.cardsGrid}>
+        <div className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareItem : requestDetailsStyles.cardsGrid}>
           {items.length > 0 ? (
             items.map(renderItemCard)
           ) : (
@@ -166,7 +166,7 @@ const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, sho
               No request items found for this request
             </div>
           )}
-          {view === 'myView' && request.RequestStatus === 'Saved' && (
+          {view === 'myView' && request.RequestStatus === 'Saved' && items[0].RequestType !== "Software" &&(
             <div className={requestDetailsStyles.addButtonContainer}>
               <button onClick={onAdd} className={requestDetailsStyles.addButton} title="Add new request item">
                 <i className="fa-solid fa-plus"></i>

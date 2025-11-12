@@ -354,7 +354,18 @@
   margin-top: 20px;
 }
 
-.requestCard {
+.softwareItem {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.softwareRequestCard {
+  width: 50%;
+}
+
+.requestCard,
+.softwareRequestCard {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 16px;

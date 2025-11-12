@@ -5,7 +5,7 @@ import styles from '../Dashboard/TtlWebpart.module.scss';
 import newRequestStyles from './NewRequest.module.scss';
 import { createRequestWithItems, getApproverById, getTeams } from '../../service/TTLService';
 import { sendEmail } from '../../service/AutomateService';
-import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
+import { calculateSoftwareLicenseCost, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 import { Approver, Team } from '../../Interfaces/TTLInterfaces';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import * as React from 'react';
@@ -158,6 +158,8 @@ const NewRequestSoftware: React.FC<{
   const handleSave = async (type: string) => {
     if (!validate()) return;
 
+    const calculatedCost = calculateSoftwareLicenseCost({Cost: Number(cost), Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense})
+
     let totalCost = Number(cost);
 
     setIsSaving(true);
@@ -172,7 +174,7 @@ const NewRequestSoftware: React.FC<{
           Project: project,
           TeamID: team,
           ApproverID: approver,
-          TotalCost: totalCost
+          TotalCost: calculatedCost,
         },
         [
           {

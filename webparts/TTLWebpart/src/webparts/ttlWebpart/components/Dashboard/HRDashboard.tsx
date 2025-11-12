@@ -25,7 +25,14 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack, isHR }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const requestData = await getRequestsData(context);
+
+      // Only get requests from the past 2 years
+      const today = new Date();
+      const pastDate = new Date(today);
+      pastDate.setDate(pastDate.getDate() - 730);
+      const isoDate = pastDate.toISOString();
+
+      const requestData = await getRequestsData(context, "SubmissionDate desc", `(SubmissionDate ge datetime'${isoDate}')`);
 
 
       setRequests(requestData as UserRequest[]);
@@ -174,7 +181,7 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack, isHR }) => {
     );
   }
 
-  const filteredRequests = requests.filter(req => {
+  let filteredRequests = requests.filter(req => {
     if (activeTab === 'toApprove') {
       return req.RequestStatus === 'In process by HR';
     } else if (activeTab === 'awaitingApproval') {
@@ -187,6 +194,17 @@ const HRDashboard: React.FC<HRProps> = ({ context, onBack, isHR }) => {
       return req.RequestStatus === 'Booking' || req.RequestStatus === 'Completed';
     }
   });
+
+  if (activeTab === 'approved') {
+    filteredRequests = filteredRequests.sort((a, b) => {
+      const order: Record<string, number>  = {
+        'Booking': 1,
+        'Completed': 2,
+      };
+      return order[a.RequestStatus] - order[b.RequestStatus];
+    });
+  }
+
 
   return (
     <div className={styles.ttlDashboard}>

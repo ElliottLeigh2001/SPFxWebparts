@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Modal } from '@fluentui/react';
-import SoftwareForm from '../Forms/SoftwareForm';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
@@ -19,7 +18,7 @@ interface Props {
 }
 
 const AddItemModal: React.FC<Props> = ({ context, isOpen, isUpdating, onSave, onCancel }) => {
-  const [activeForm, setActiveForm] = useState<'software' | 'training' | 'travel' | 'accommodation' | null>(null);
+  const [activeForm, setActiveForm] = useState<'training' | 'travel' | 'accommodation' | null>(null);
 
   // Reset form selection when modal opens/closes
   useEffect(() => {
@@ -41,12 +40,6 @@ const AddItemModal: React.FC<Props> = ({ context, isOpen, isUpdating, onSave, on
   const renderFormSelection = (): JSX.Element => (
     <div className={requestDetailsStyles.modalBody}>
       <div className={requestDetailsStyles.formSelection}>
-        <button 
-          className={requestDetailsStyles.formSelectionButton} 
-          onClick={() => setActiveForm('software')}
-        >
-          Add Software
-        </button>
         <button 
           className={requestDetailsStyles.formSelectionButton} 
           onClick={() => setActiveForm('training')}
@@ -71,17 +64,6 @@ const AddItemModal: React.FC<Props> = ({ context, isOpen, isUpdating, onSave, on
 
   const renderForm = (): JSX.Element => {
     switch (activeForm) {
-      case 'software':
-        return (
-          <div className={newRequestStyles.modalBody}>
-            <SoftwareForm
-                context={context}
-                onSave={handleFormSave}
-                onCancel={handleFormCancel}
-                initialData={undefined}
-            />
-          </div>
-        );
       case 'training':
         return (
           <div className={newRequestStyles.modalBody}>

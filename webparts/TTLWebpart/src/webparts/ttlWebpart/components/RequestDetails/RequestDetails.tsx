@@ -42,6 +42,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
   const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
+  const [activeFormName, setActiveFormName] = useState<'training'|'travel'|'accommodation'|null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -72,6 +73,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   const handleEditItem = (item: UserRequestItem): void => {
     setEditingItem(item);
     setActiveForm(item.RequestType?.toLowerCase() as any);
+    setActiveFormName(item.RequestType?.toLowerCase() as any);
   };
 
   const handleAddItem = async (newItem: UserRequestItem): Promise<void> => {
@@ -283,10 +285,14 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   }
 
   const closeModal = (): void => {
-    setActiveForm(null);
-    setEditingItem(undefined);
-    setEditingRequest(false);
     setShowAddModal(false);
+    setActiveForm(null);
+
+    setTimeout(() => {
+      setActiveFormName(null);
+      setEditingItem(undefined);
+      setEditingRequest(false);
+    }, 1000)
   };
 
   return (
@@ -373,6 +379,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
       <EditItemModal
         context={context}
         activeForm={activeForm}
+        activeFormName={activeFormName}
         editingItem={editingItem}
         isUpdating={isUpdating}
         onSave={handleUpdateItem}

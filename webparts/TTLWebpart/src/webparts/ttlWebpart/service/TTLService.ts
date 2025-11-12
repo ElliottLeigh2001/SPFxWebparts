@@ -3,6 +3,7 @@ import { spfi, SPFI } from "@pnp/sp";
 import { SPFx } from "@pnp/sp/presets/all";
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { Approver, Team, UserRequest, UserRequestItem } from "../Interfaces/TTLInterfaces";
+import { calculateSoftwareLicenseCost } from "../Helpers/HelperFunctions";
 
 // Define spfi for CRUD operations to lists
 let sp: SPFI;
@@ -47,12 +48,17 @@ export const checkHR = async (context: WebPartContext): Promise<boolean> => {
 // Get data of requests (including data from lookups)
 export const getRequestsData = async (
   context: WebPartContext,
+  orderBy?: string,
   filter?: string
 ): Promise<UserRequest[]> => {
   try {
     // Base query
-  let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID&$orderby=Id desc`;
+  let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`;
 
+    // Add optional $orderby if provided
+    if (orderBy) {
+      apiUrl += `&$orderby=${encodeURIComponent(orderBy)}`;
+    }
     // Add optional $filter if provided
     if (filter) {
       apiUrl += `&$filter=${encodeURIComponent(filter)}`;
@@ -391,12 +397,7 @@ export const recalcAndUpdateRequestTotal = async (
     // Calculate total cost
     let totalCost = 0;
     for (const item of items) {
-      const costValue = typeof item.Cost === 'string' 
-        ? parseFloat(item.Cost.replace(/[^0-9.-]+/g, '')) 
-        : Number(item.Cost);
-      if (!isNaN(costValue)) {
-        totalCost += costValue;
-      }
+      totalCost += calculateSoftwareLicenseCost({Cost: Number(item.Cost), Licensing: item.Licensing, LicenseType: item.LicenseType, UsersLicense: item.UsersLicense})
     }
     
     // Update the request with the new total

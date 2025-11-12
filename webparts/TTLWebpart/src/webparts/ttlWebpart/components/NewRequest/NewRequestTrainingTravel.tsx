@@ -127,9 +127,7 @@ const NewRequestTrainingTravel: React.FC<{ context: WebPartContext; onCancel: ()
         setTitleError('');
         setGoalError('');
         
-        for (const it of items) {
-            totalCost += Number(it.Cost);
-        }
+        totalCost = costSum();
         
         try {
             const requestId = await createRequestWithItems(context, { 
@@ -161,6 +159,7 @@ const NewRequestTrainingTravel: React.FC<{ context: WebPartContext; onCancel: ()
 
     const closeModal = (): void => {
         setEditingItem(undefined);
+        setActiveFormName(null);
         setActiveForm(null);
         setIsReturnJourney(false);
     };
@@ -216,6 +215,15 @@ const NewRequestTrainingTravel: React.FC<{ context: WebPartContext; onCancel: ()
         }
         return `Add ${activeFormName}`;
     };
+
+    const costSum = (): number => {
+        let totalCost = 0;
+
+        for (const it of items) {
+            totalCost += Number(it.Cost);
+        }
+        return totalCost;
+    }
 
     const disabled = isSaving || items.length === 0
     return (
@@ -385,7 +393,7 @@ const NewRequestTrainingTravel: React.FC<{ context: WebPartContext; onCancel: ()
 
                 {items.length > 0 && (
                   <>
-                    <h3>Shopping Basket ({items.length})</h3><table className={newRequestStyles.itemsTable}>
+                    <h3>Shopping Basket (€{costSum()})</h3><table className={newRequestStyles.itemsTable}>
                         <thead>
                             <tr>
                                 <th>Title</th>

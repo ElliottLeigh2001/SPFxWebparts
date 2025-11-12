@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { useEffect, useState, useImperativeHandle } from 'react';
+import { useEffect, useState } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
+import { FormProps } from './FormProps';
 import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
-const SoftwareForm = React.forwardRef(({ context, onSave, onCancel, initialData, view }: any, ref: any) => {
+const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialData, view }) => {
   const [title, setTitle] = useState(initialData?.Title || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
@@ -18,20 +19,14 @@ const SoftwareForm = React.forwardRef(({ context, onSave, onCancel, initialData,
   const [linkError, setLinkError] = useState('');
   const [costError, setCostError] = useState('');
   const [usersLicenseError, setUsersLicenseError] = useState('');
+  const [isLoading, setIsLoading] = useState(false)
+  
 
   const peoplePickerContext: IPeoplePickerContext = {
     absoluteUrl: context.pageContext.web.absoluteUrl,
     msGraphClientFactory: context.msGraphClientFactory,
     spHttpClient: context.spHttpClient
   };
-
-  const getItem = () => ({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
-
-  useImperativeHandle(ref, () => ({
-    validate,
-    validateHR,
-    getItem
-  }));
 
   useEffect(() => {
     if (initialData?.UsersLicense && initialData.UsersLicense.length > 0) {
@@ -113,11 +108,32 @@ const SoftwareForm = React.forwardRef(({ context, onSave, onCancel, initialData,
     setUsersLicense(users);
   };
 
+  const handleSave = (): void => {
+    if (isLoading) return;
+    setIsLoading(true);
+    
+
+    if (view === 'HR') {
+      if (!validateHR()) {
+        setIsLoading(false);
+        return;
+      }
+      onSave({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
+      setIsLoading(false);
+    }
+    if (!validate()) {
+      setIsLoading(false);
+      return;
+    }
+    onSave({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
+    setIsLoading(false);
+  };
+
   return (
     <div>
       {view === 'HR' ? (
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
-          <label className={styles.formRowLabel}>Cost</label>
+          <label className={styles.formRowLabel}>Cost per license (€)*</label>
           <input style={{width: '50%'}} value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
@@ -135,7 +151,7 @@ const SoftwareForm = React.forwardRef(({ context, onSave, onCancel, initialData,
               {providerError && <div className={styles.validationError}>{providerError}</div>}
             </div>
             <div className={styles.formItemShort}>
-              <label className={styles.formRowLabel}>Cost per license (€)*</label>
+              <label className={styles.formRowLabel}>Cost (€)*</label>
               <input value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''} />
               {costError && <div className={styles.validationError}>{costError}</div>}
             </div>
@@ -182,8 +198,13 @@ const SoftwareForm = React.forwardRef(({ context, onSave, onCancel, initialData,
             </div>
           </>
       )}
+
+      <div className={styles.formActions}>
+        <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit Item' : 'Add Item'}</button>
+        <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
+      </div>
     </div>
   );
-});
+};
 
 export default SoftwareForm;

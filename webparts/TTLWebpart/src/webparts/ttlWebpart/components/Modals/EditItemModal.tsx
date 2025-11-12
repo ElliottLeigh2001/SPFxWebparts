@@ -12,6 +12,7 @@ import AccommodationForm from '../Forms/AccomodationForm';
 interface Props {
   context: WebPartContext;
   activeForm: 'software'|'training'|'travel'|'accommodation'|null;
+  activeFormName: 'software'|'training'|'travel'|'accommodation'|null;
   editingItem?: UserRequestItem | undefined;
   isUpdating: boolean;
   view: string;
@@ -19,8 +20,8 @@ interface Props {
   onCancel: () => void;
 }
 
-const EditItemModal: React.FC<Props> = ({ context, activeForm, editingItem, isUpdating, view, onSave, onCancel }) => {
-  const getModalTitle = () => editingItem ? `Edit ${activeForm}` : `Add ${activeForm}`;
+const EditItemModal: React.FC<Props> = ({ context, activeForm, activeFormName, editingItem, isUpdating, view, onSave, onCancel }) => {
+  const getModalTitle = () => editingItem ? `Edit ${activeFormName}` : `Add ${activeFormName}`;
 
   return (
     <>

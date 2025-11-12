@@ -95,7 +95,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({ onClick, requests, view 
     <div>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
       <div className={styles.filterContainer}>
-        <label style={{marginRight: '10px', fontSize: 'large'}}>Filter: </label>
+        <label style={{marginRight: '10px', fontSize: 'large'}}>Search: </label>
           <input
             className={styles.filterInput}
             type="text"
@@ -165,11 +165,11 @@ const DashboardComponent: React.FC<DashboardProps> = ({ onClick, requests, view 
                       onClick={() => onClick(request, true)}
                     >
                       <td>{request.Title}</td>
-                      {view !== "myView" && <td>{request.Author?.Title || "/"}</td>}
-                      {view === "HR" && <td>{request.ApproverID?.Title || "/"}</td>}
-                      <td>€ {request.TotalCost || "0"}</td>
-                      <td>{request.Project || "/"}</td>
-                      <td>{request.TeamID?.Title || "No team found"}</td>
+                      {view !== "myView" && <td>{request.Author?.Title || "-"}</td>}
+                      {view === "HR" && <td>{request.ApproverID?.Title || "-"}</td>}
+                      <td>€ {request.TotalCost || "-"}</td>
+                      <td>{request.Project || "-"}</td>
+                      <td>{request.TeamID?.Title || "-"}</td>
                       <td>{formatDate(request.SubmissionDate)}</td>
                       <td>
                         <span

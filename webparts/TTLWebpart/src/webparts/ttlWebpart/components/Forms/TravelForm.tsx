@@ -151,7 +151,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
     <div>
       {view === 'HR' ? (
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
-          <label className={styles.formRowLabel}>Cost</label>
+          <label className={styles.formRowLabel}>Cost (€)*</label>
           <input style={{width: '50%'}} value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? styles.invalid : ''} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
@@ -194,7 +194,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
             </div>
           </div>
 
-          {!isReturnJourney && (
+          {!isReturnJourney && !initialData && (
             <div style={{ marginTop: '20px', padding: '10px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

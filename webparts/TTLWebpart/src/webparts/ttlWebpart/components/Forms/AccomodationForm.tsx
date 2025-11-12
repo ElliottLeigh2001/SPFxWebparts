@@ -131,7 +131,7 @@ const validateHR = (): boolean => {
     <div>
       {view === 'HR' ? (
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
-          <label className={styles.formRowLabel}>Cost</label>
+          <label className={styles.formRowLabel}>Cost (€)*</label>
           <input style={{width: '50%'}} value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? 'invalid' : ''} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
