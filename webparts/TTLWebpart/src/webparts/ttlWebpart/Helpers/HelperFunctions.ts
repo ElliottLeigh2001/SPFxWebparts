@@ -86,26 +86,44 @@ export const getRequestStatusStyling = (status: string): string => {
 
 export const calculateSoftwareLicenseCost = (data: any) => {
   let cost;
-  const users = data.UsersLicense[0].split(',')
+  let usersCount = 0;
+  const u = data.UsersLicense;
+
+  if (Array.isArray(u)) {
+    if (u.length === 1 && typeof u[0] === 'string' && u[0].includes(',')) {
+      // old format: single string with commas
+      usersCount = u[0].split(',').map(s => s.trim()).filter(Boolean).length;
+    } else {
+      // new format: array of individual names
+      usersCount = u.length;
+    }
+  } else if (typeof u === 'string') {
+    usersCount = u.split(',').map(s => s.trim()).filter(Boolean).length;
+  } else if (u && typeof u === 'object' && Array.isArray(u.results)) {
+    // SharePoint People Picker format
+    usersCount = u.results.length;
+  } else {
+    usersCount = 0;
+  }
 
   switch (`${data.LicenseType}_${data.Licensing}`) {
     case 'Group_Monthly':
       cost = data.Cost * 12;
       break;
     case 'Individual_Monthly':
-      cost = users.length * data.Cost * 12;
+      cost = usersCount * data.Cost * 12;
       break;
     case 'Group_Yearly':
       cost = data.Cost;
       break;
     case 'Individual_Yearly':
-      cost = users.length * data.Cost;
+      cost = usersCount * data.Cost;
       break;
     case 'Group_One-time':
       cost = data.Cost;
       break;
     case 'Individual_One-time':
-      cost = users.length * data.Cost;
+      cost = usersCount * data.Cost;
       break;
     default:
       cost = 0;

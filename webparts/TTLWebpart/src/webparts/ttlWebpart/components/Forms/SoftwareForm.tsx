@@ -141,7 +141,7 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
         <>
         <div className={styles.formRow}>
             <div className={styles.formItemShort}>
-              <label className={styles.formRowLabel}>Name *</label>
+              <label className={styles.formRowLabel}>Name of license *</label>
               <input value={title} onChange={e => setTitle(e.target.value)} className={titleError ? styles.invalid : ''} />
               {titleError && <div className={styles.validationError}>{titleError}</div>}
             </div>

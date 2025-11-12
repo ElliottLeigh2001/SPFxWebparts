@@ -302,7 +302,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
 
       <div className={styles.formRow}>
         <div className={styles.formItemShort}>
-          <label className={styles.formRowLabel}>Name *</label>
+          <label className={styles.formRowLabel}>Name of license *</label>
           <input value={name} onChange={e => setName(e.target.value)} className={nameError ? styles.invalid : ''} />
           {nameError && <div className={styles.validationError}>{nameError}</div>}
         </div>
