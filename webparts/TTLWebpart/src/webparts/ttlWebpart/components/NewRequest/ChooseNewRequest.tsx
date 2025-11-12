@@ -43,8 +43,9 @@ const ChooseNewRequest: React.FC<NewRequestProps> = ({ context, onSave, onCancel
   }
 
   return (
-    <div className={`${styles.ttlForm} ${newRequestStyles.chooseContainer}`}>
+    <div style={{position: 'relative'}} className={`${styles.ttlForm} ${newRequestStyles.chooseContainer}`}>
       <div className={newRequestStyles.formHeader}>
+        <button style={{position: 'absolute', top:'10px', left: '10px'}} onClick={onCancel} className={styles.stdButton}>Back</button>
         <h2>Which type of request would you like to make?</h2>
       </div>
 
