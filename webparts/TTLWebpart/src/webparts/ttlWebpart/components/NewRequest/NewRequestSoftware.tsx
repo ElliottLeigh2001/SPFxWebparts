@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import newRequestStyles from './NewRequest.module.scss';
@@ -9,14 +8,9 @@ import { calculateSoftwareLicenseCost, validateCost, validateLink } from '../../
 import { Approver, Team } from '../../Interfaces/TTLInterfaces';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import * as React from 'react';
+import { NewRequestProps } from './NewRequestProps';
 
-const NewRequestSoftware: React.FC<{
-  context: WebPartContext;
-  approvers: Approver[];
-  loggedInUser: any;
-  onCancel: () => void;
-  onSave: () => void;
-}> = ({ context, approvers, loggedInUser, onCancel, onSave }) => {
+const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, loggedInUser, onCancel, onSave }) => {
   const [title, setTitle] = useState('');
   const [goal, setGoal] = useState('');
   const [project, setProject] = useState('');

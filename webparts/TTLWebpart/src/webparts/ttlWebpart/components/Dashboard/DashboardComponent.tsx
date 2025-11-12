@@ -2,16 +2,11 @@ import * as React from "react"
 import { useState, useMemo } from "react"
 import styles from "./TtlWebpart.module.scss"
 import { formatDate, getRequestStatusStyling } from "../../Helpers/HelperFunctions"
-
-interface DashboardProps {
-  onClick: (request: any, pushState: any) => void;
-  requests: any[];
-  view: "approvers" | "myView" | "HR" | "director";
-}
+import { DashboardComponentProps } from "./DashboardProps"
 
 const ITEMS_PER_PAGE = 10
 
-const DashboardComponent: React.FC<DashboardProps> = ({ onClick, requests, view }) => {
+const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, requests, view }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchFilter, setSearchfilter] = useState('');
   const [sortBy, setSortBy] = useState<null | 'totalCost' | 'submissionDate'>(null)

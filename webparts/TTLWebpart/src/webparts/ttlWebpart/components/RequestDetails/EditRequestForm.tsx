@@ -1,16 +1,10 @@
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { useState, useEffect } from 'react';
 import * as React from 'react';
 import { UserRequest, Team, Approver } from '../../Interfaces/TTLInterfaces';
 import { getTeams, getApprovers } from '../../service/TTLService';
 import styles from '../Dashboard/TtlWebpart.module.scss';
+import { EditRequestFormProps } from './RequestDetailsProps';
 
-interface EditRequestFormProps {
-  context: WebPartContext;
-  request: UserRequest;
-  onSave: (updatedRequest: UserRequest) => void;
-  onCancel: () => void;
-}
 
 const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onSave, onCancel }) => {
   const [title, setTitle] = useState(request.Title || '');

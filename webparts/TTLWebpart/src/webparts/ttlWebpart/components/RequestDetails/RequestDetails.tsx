@@ -1,4 +1,3 @@
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { useState, useEffect } from 'react';
 import EditRequestForm from './EditRequestForm';
 import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById } from '../../service/TTLService';
@@ -17,28 +16,9 @@ import ConfirmDeleteDialog from '../Modals/ConfirmDeleteDialog';
 import EditItemModal from '../Modals/EditItemModal';
 import { createComment } from '../../service/CommentService';
 import { TTLComment } from '../../Interfaces/TTLCommentInterface';
+import { RequestDetailsProps } from './RequestDetailsProps';
 
-interface RequestDetailsProps {
-  request: UserRequest;
-  items: UserRequestItem[];
-  view: 'myView' | 'approvers' | 'HR' | 'director';
-  onBack: () => void;
-  onUpdate: () => void;
-  error?: string | null;
-  context: WebPartContext;
-  isCEO?: boolean;
-}
-
-const RequestDetails: React.FC<RequestDetailsProps> = ({ 
-  request, 
-  items, 
-  view,
-  onBack, 
-  onUpdate, 
-  error, 
-  context,
-  isCEO
-}) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view,onBack, onUpdate, error, context, isCEO }) => {
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
   const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
@@ -58,7 +38,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({
   const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
-
 
   useEffect(() => {
     setDisplayedItems(items || []);

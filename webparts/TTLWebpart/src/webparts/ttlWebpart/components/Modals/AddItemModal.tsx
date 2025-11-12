@@ -3,21 +3,13 @@ import { Modal } from '@fluentui/react';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useState, useEffect } from 'react';
 import newRequestStyles from '../NewRequest/NewRequest.module.scss'
 import AccommodationForm from '../Forms/AccomodationForm';
+import { AddItemModalProps } from './ModalsProps';
 
-interface Props {
-  context: WebPartContext;
-  isOpen: boolean;
-  isUpdating: boolean;
-  onSave: (item: UserRequestItem) => Promise<void>;
-  onCancel: () => void;
-}
-
-const AddItemModal: React.FC<Props> = ({ context, isOpen, isUpdating, onSave, onCancel }) => {
+const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating, onSave, onCancel }) => {
   const [activeForm, setActiveForm] = useState<'training' | 'travel' | 'accommodation' | null>(null);
 
   // Reset form selection when modal opens/closes

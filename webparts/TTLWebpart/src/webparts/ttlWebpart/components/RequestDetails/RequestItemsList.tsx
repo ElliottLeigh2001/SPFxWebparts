@@ -1,21 +1,12 @@
 import * as React from 'react';
-import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import requestDetailsStyles from './RequestDetails.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { formatDate } from '../../Helpers/HelperFunctions';
-
-interface Props {
-  items: UserRequestItem[];
-  onEdit: (item: UserRequestItem) => void;
-  onDelete: (item: UserRequestItem) => void;
-  onAdd: () => void;
-  showActions: boolean;
-  request: UserRequest;
-  view: "approvers" | "myView" | "HR" | "director"
-}
+import { RequestItemsListProps } from './RequestDetailsProps';
 
 
-const RequestItemsList: React.FC<Props> = ({ items, onEdit, onDelete, onAdd, showActions, request, view }) => {
+const RequestItemsList: React.FC<RequestItemsListProps> = ({ items, onEdit, onDelete, onAdd, showActions, request, view }) => {
 
   // Get display string for UsersLicense
   const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {

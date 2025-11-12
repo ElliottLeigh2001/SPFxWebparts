@@ -4,23 +4,10 @@ import SoftwareForm from '../Forms/SoftwareForm';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import AccommodationForm from '../Forms/AccomodationForm';
+import { EditItemModalProps } from './ModalsProps';
 
-
-interface Props {
-  context: WebPartContext;
-  activeForm: 'software'|'training'|'travel'|'accommodation'|null;
-  activeFormName: 'software'|'training'|'travel'|'accommodation'|null;
-  editingItem?: UserRequestItem | undefined;
-  isUpdating: boolean;
-  view: string;
-  onSave: (item: UserRequestItem) => Promise<void>;
-  onCancel: () => void;
-}
-
-const EditItemModal: React.FC<Props> = ({ context, activeForm, activeFormName, editingItem, isUpdating, view, onSave, onCancel }) => {
+const EditItemModal: React.FC<EditItemModalProps> = ({ context, activeForm, activeFormName, editingItem, isUpdating, view, onSave, onCancel }) => {
   const getModalTitle = () => editingItem ? `Edit ${activeFormName}` : `Add ${activeFormName}`;
 
   return (

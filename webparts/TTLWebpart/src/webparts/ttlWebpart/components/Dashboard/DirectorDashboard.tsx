@@ -4,17 +4,10 @@ import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import DashboardComponent from './DashboardComponent';
+import { DirectorDashboardProps } from './DashboardProps';
 
-interface directorProps {
-  context: WebPartContext;
-  onBack: () => void;
-  loggedInUser: any;
-  isCEO: boolean;
-}
-
-const DirectorDashboard: React.FC<directorProps> = ({ context, onBack, loggedInUser, isCEO }) => {
+const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, isCEO }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);

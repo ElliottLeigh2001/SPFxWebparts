@@ -1,14 +1,9 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { TTLComment } from '../../Interfaces/TTLCommentInterface';
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { getCommentsForRequest } from '../../service/CommentService';
 import styles from './CommentsSection.module.scss';
-
-interface CommentsSectionProps {
-  requestId: number;
-  context: WebPartContext;
-}
+import { CommentsSectionProps } from './RequestDetailsProps';
 
 const CommentsSection: React.FC<CommentsSectionProps> = ({ requestId, context }) => {
   const [comments, setComments] = useState<TTLComment[]>([]);

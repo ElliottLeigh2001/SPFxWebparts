@@ -2,28 +2,13 @@ import * as React from "react";
 import { useState } from "react";
 import NewRequestTrainingTravel from "./NewRequestTrainingTravel";
 import NewRequestSoftware from "./NewRequestSoftware";
-import { WebPartContext } from "@microsoft/sp-webpart-base";
-import { Approver } from "../../Interfaces/TTLInterfaces";
 import styles from "../Dashboard/TtlWebpart.module.scss";
 import newRequestStyles from "./NewRequest.module.scss";
 import softwareImg from "../../assets/softwarePhoto.jpg";
 import trainingImg from "../../assets/trainingPhoto.jpg";
+import { NewRequestProps } from "./NewRequestProps";
 
-export interface ChooseNewRequestProps {
-  context: WebPartContext;
-  onSave: () => void;
-  onCancel: () => void;
-  approvers: Approver[];
-  loggedInUser: any;
-}
-
-const ChooseNewRequest: React.FC<ChooseNewRequestProps> = ({
-  context,
-  onSave,
-  onCancel,
-  approvers,
-  loggedInUser,
-}) => {
+const ChooseNewRequest: React.FC<NewRequestProps> = ({ context, onSave, onCancel, approvers, loggedInUser }) => {
   const [showSoftware, setShowSoftware] = useState(false);
   const [showTrainingTravel, setShowTrainingTravel] = useState(false);
 

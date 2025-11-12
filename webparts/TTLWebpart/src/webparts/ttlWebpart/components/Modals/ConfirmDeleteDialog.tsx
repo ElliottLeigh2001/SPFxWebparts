@@ -1,17 +1,9 @@
 import * as React from 'react';
 import { Modal } from '@fluentui/react';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
+import { ConfirmDeleteDialogProps } from './ModalsProps';
 
-interface Props {
-  isOpen: boolean;
-  isDeleting: boolean;
-  itemName?: string | null;
-  onCancel: () => void;
-  onConfirmItemDelete: () => void;
-  onConfirmRequestDelete: () => void;
-}
-
-const ConfirmDeleteDialog: React.FC<Props> = ({ isOpen, isDeleting, itemName, onCancel, onConfirmItemDelete, onConfirmRequestDelete }) => {
+const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({ isOpen, isDeleting, itemName, onCancel, onConfirmItemDelete, onConfirmRequestDelete }) => {
   return (
     <Modal
       isOpen={isOpen}

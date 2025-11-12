@@ -4,16 +4,10 @@ import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import DashboardComponent from './DashboardComponent';
+import { HRDashboardProps } from './DashboardProps';
 
-interface HRProps {
-  context: WebPartContext;
-  onBack: () => void;
-  isHR: boolean;
-}
-
-const HRDashboard: React.FC<HRProps> = ({ context, onBack, isHR }) => {
+const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);

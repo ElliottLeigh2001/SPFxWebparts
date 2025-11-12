@@ -1,4 +1,3 @@
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import * as React from 'react';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
@@ -11,14 +10,9 @@ import newRequestStyles from './NewRequest.module.scss'
 import { Modal } from '@fluentui/react';
 import { sendEmail } from '../../service/AutomateService';
 import AccommodationForm from '../Forms/AccomodationForm';
+import { NewRequestProps } from './NewRequestProps';
 
-const NewRequestTrainingTravel: React.FC<{ context: WebPartContext; onCancel: () => void; onSave: () => void; approvers: Approver[]; loggedInUser: any}> = ({ 
-    context, 
-    onCancel, 
-    onSave, 
-    approvers, 
-    loggedInUser 
-}) => {
+const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave, approvers, loggedInUser }) => {
     const [title, setTitle] = useState('');
     const [goal, setGoal] = useState('');
     const [project, setProject] = useState('');

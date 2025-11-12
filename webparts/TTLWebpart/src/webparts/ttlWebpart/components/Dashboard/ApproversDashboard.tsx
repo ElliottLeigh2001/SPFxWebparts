@@ -4,17 +4,10 @@ import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import DashboardComponent from './DashboardComponent';
+import { ApproversDashboardProps } from './DashboardProps';
 
-interface ApproversProps {
-  context: WebPartContext;
-  onBack: () => void;
-  loggedInUser: any;
-  isApprover: boolean;
-}
-
-const ApproversDashboard: React.FC<ApproversProps> = ({ context, onBack, loggedInUser, isApprover }) => {
+const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import type { ITtlWebpartProps } from './ITtlWebpartProps';
 import { useEffect, useState } from 'react';
 import { getRequestsData, getLoggedInUser, getRequestItemsByRequestId, getApprovers, checkHR } from '../../service/TTLService';
 import styles from './TtlWebpart.module.scss';
@@ -10,6 +9,7 @@ import HRDashboard from './HRDashboard';
 import DashboardComponent from './DashboardComponent';
 import DirectorDashboard from './DirectorDashboard';
 import ChooseNewRequest from '../NewRequest/ChooseNewRequest';
+import { ITtlWebpartProps } from './DashboardProps';
 
 const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
