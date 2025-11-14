@@ -80,14 +80,15 @@ export const getRequestsData = async (
 
 // Map SharePoint item to UserRequestItem interface
 const mapSharePointItemToUserRequestItem = (sharePointItem: any): UserRequestItem => {
-    let usersLicenseValue = '/';
+    let usersLicense: any[] = [];
 
     if (sharePointItem.UsersLicense) {
-        usersLicenseValue = sharePointItem.UsersLicense
-            .map((user: any) => user.Title || user.Name || `User ${user.Id}`)
-            .filter(Boolean)
-            .join(', ');
-    } 
+        usersLicense = sharePointItem.UsersLicense.map((user: any) => ({
+            Id: user.Id,
+            Title: user.Title,
+            EMail: user.EMail,
+        }));
+    }
 
     return {
         ID: sharePointItem.Id,
@@ -101,9 +102,11 @@ const mapSharePointItemToUserRequestItem = (sharePointItem: any): UserRequestIte
         Cost: sharePointItem.Cost || '',
         Licensing: sharePointItem.Licensing || '',
         LicenseType: sharePointItem.LicenseType || '',
-        UsersLicense: [usersLicenseValue],
+        UsersLicense: usersLicense,
+        DocumentID: sharePointItem.DocumentID ? { Id: sharePointItem.DocumentID.Id, url: sharePointItem.DocumentID.url } : undefined,
         Processed: sharePointItem.Processed || false,
-        ChangedByHR: sharePointItem.ChangedByHR || false
+        ChangedByHR: sharePointItem.ChangedByHR || false,
+        ReasonForTravel: sharePointItem.ReasonForTravel || ''
     };
 };
 
@@ -131,7 +134,7 @@ export const getRequestItemsByRequestId = async (context: WebPartContext, reques
     const filter = requestItemIds.map((id: any) => `Id eq ${id}`).join(' or ');
     
     // Get all items with user expansion in one call. Include UsersLicense expanded fields
-    const requestUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_RequestItem')/items?$filter=${encodeURIComponent(filter)}&$select=*,UsersLicense/Id,UsersLicense/Title&$expand=UsersLicense`;
+    const requestUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_RequestItem')/items?$filter=${encodeURIComponent(filter)}&$select=*,UsersLicense/Id,UsersLicense/Title,UsersLicense/EMail,DocumentID/Id,DocumentID/Title&$expand=UsersLicense,DocumentID`;
     const response = await context.spHttpClient.get(requestUrl, SPHttpClient.configurations.v1);
     
     if (!response.ok) {
@@ -143,6 +146,32 @@ export const getRequestItemsByRequestId = async (context: WebPartContext, reques
     
     return items;
 };
+
+export const getDocumentUrlForRequestItem = async (
+  context: WebPartContext, 
+  requestItemId: number
+): Promise<string | null> => {
+  const sp = getSP(context);
+
+  // Get the lookup id from the request item
+  const reqItem: any = await sp.web.lists
+    .getByTitle('TTL_RequestItem')
+    .items.getById(requestItemId)
+    .select('DocumentID/Id')
+    .expand('DocumentID')();
+
+  const docId = reqItem?.DocumentID?.Id;
+  if (!docId) return null;
+
+  // Get the actual document's URL from TTL_Documents
+  const docItem: any = await sp.web.lists
+    .getByTitle('TTL_Documents')
+    .items.getById(docId)
+    .select('url')();
+
+  return docItem?.url || null;
+};
+
 
 // Create a request item in the TTL_RequestItem list
 export const createRequestItem = async (context: WebPartContext, item: UserRequestItem): Promise<number> => {
@@ -163,6 +192,7 @@ export const createRequestItem = async (context: WebPartContext, item: UserReque
         Cost: item.Cost || '',
         Licensing: item.Licensing || '',
         LicenseType: item.LicenseType || '',
+        ReasonForTravel: item.ReasonForTravel || '',
     };
 
     if (userIds.length > 0) {
@@ -244,6 +274,7 @@ export const createRequestItemForExistingRequest = async (
     Licensing: item.Licensing || '',
     LicenseType: item.LicenseType || '',
     RequestIDId: requestId,
+    ReasonForTravel: item.ReasonForTravel || ''
   };
 
   if (userIds.length > 0) {
@@ -335,6 +366,7 @@ export const updateRequestItem = async (context: WebPartContext, itemId: number,
         Cost: item.Cost || '',
         Licensing: item.Licensing || '',
         LicenseType: item.LicenseType || '',
+        ReasonForTravel: item.ReasonForTravel || ''
     };
 
     if (userIds.length > 0) {
@@ -379,7 +411,8 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
             id: user.Id,
             title: user.Title,
             loginName: user.LoginName
-        })) : []
+        })) : [],
+        ReasonForTravel: item.ReasonForTravel,
     };
 };
 

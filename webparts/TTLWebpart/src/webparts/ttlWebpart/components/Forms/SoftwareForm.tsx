@@ -28,14 +28,17 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
     spHttpClient: context.spHttpClient
   };
 
-  useEffect(() => {
-    if (initialData?.UsersLicense && initialData.UsersLicense.length > 0) {
-      const defaultUsers = initialData.UsersLicense.map(
-        (u: any) => u.loginName || u.text || u.id
-      );
-      setInitialUsers(defaultUsers);
-    }
-  }, [initialData]);
+useEffect(() => {
+  if (initialData?.UsersLicense?.length! > 0) {
+    const parsedUsers = initialData?.UsersLicense!.map((u: any) => ({
+      id: u.Id,
+      loginName: u.EMail,
+      text: u.Title
+    }));
+    setInitialUsers(parsedUsers!.map(u => u.loginName));
+    setUsersLicense(parsedUsers!);
+  }
+}, [initialData]);
 
   const validate = (): boolean => {
     let valid = true;
@@ -168,8 +171,8 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>License Type *</label>
                 <select name="LicenseType" id="LicenseType" value={licenseType} onChange={e => setLicenseType(e.target.value)}>
-                  <option value="Group">Group</option>
-                  <option value="Individual">Individual</option>
+                  <option value="Group">One grouped bill</option>
+                  <option value="Individual">One bill per individual</option>
                 </select>
               </div>
             </div>

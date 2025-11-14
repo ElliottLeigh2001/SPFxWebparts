@@ -53,6 +53,17 @@ export interface UserRequestItem {
     Attachments?: any
     Processed?: boolean;
     ChangedByHR?: boolean;
+    ReasonForTravel?: string;
+    DocumentID?: {
+        Id?: number;
+        url?: string;
+    }
+}
+
+export interface TTLDocument {
+    ID?: number;
+    Title?: string;
+    FileUrl?: string;
 }
 
 export interface Approver {

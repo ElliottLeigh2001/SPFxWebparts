@@ -333,8 +333,8 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
         <div className={styles.formItem}>
           <label className={styles.formRowLabel}>License Type *</label>
           <select value={licenseType} onChange={e => setLicenseType(e.target.value)}>
-            <option value="Group">Group</option>
-            <option value="Individual">Individual</option>
+            <option value="Group">One grouped bill</option>
+            <option value="Individual">One bill per individual</option>
           </select>
         </div>
       </div>

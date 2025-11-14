@@ -139,7 +139,6 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
   // Handle status update and refresh the list
   const handleStatusUpdate = async (): Promise<void> => {
     await fetchRequests();
-    setActiveTab('approved')
   };
 
   if (isLoading) {
@@ -167,6 +166,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
         request={selectedRequest}
         items={requestItems}
         view='HR'
+        HRTab={activeTab}
         onBack={() => handleBackClick(true)}
         onUpdate={handleStatusUpdate}
         context={context}

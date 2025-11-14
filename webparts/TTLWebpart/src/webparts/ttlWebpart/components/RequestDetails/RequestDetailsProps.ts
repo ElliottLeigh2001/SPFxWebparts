@@ -8,13 +8,16 @@ export interface RequestItemsListProps {
   onAdd: () => void;
   showActions: boolean;
   request: UserRequest;
-  view: "approvers" | "myView" | "HR" | "director"
+  view: "approvers" | "myView" | "HR" | "director";
+  context?: WebPartContext;
+  onDocumentUploaded?: () => void;
 }
 
 export interface RequestDetailsProps {
   request: UserRequest;
   items: UserRequestItem[];
   view: 'myView' | 'approvers' | 'HR' | 'director';
+  HRTab?: string;
   onBack: () => void;
   onUpdate: () => void;
   error?: string | null;

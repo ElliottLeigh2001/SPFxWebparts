@@ -18,7 +18,7 @@ import { createComment } from '../../service/CommentService';
 import { TTLComment } from '../../Interfaces/TTLCommentInterface';
 import { RequestDetailsProps } from './RequestDetailsProps';
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view,onBack, onUpdate, error, context, isCEO }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO }) => {
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
   const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
@@ -40,6 +40,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view,on
   const [changedByHR, setChangedByHR] = useState(false);
 
   useEffect(() => {
+    console.log(items)
     setDisplayedItems(items || []);
   }, [items]);
 
@@ -321,7 +322,18 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view,on
             <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
           )}
           <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
-          <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
+          {displayedItems[0].RequestType !== 'Software' ? (
+            <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
+          ) : (
+            <>
+              {displayedItems[0].Licensing === 'One-time' ? (
+                <span><strong>Total Cost (one-time):</strong> € {displayedRequest.TotalCost}</span>
+              ) : (
+
+                <span><strong>Total Cost (yearly):</strong> € {displayedRequest.TotalCost}</span>
+              )}
+            </>
+          )}
           <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
           <span><strong>Team:</strong> {displayedRequest.TeamID?.Title || '/'}</span>
           <span><strong>Status:</strong> <span style={{padding: '4px 12px'}} className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
@@ -392,6 +404,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view,on
                       (view === 'HR' && displayedRequest.RequestStatus === 'In process by HR'))}
         view={view}
         request={displayedRequest}
+        context={context}
+        onDocumentUploaded={() => onUpdate()}
       />
 
 
@@ -465,7 +479,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view,on
       />
     </div>
       <div className={styles.newRequestButtonContainer}>
-        {view !== 'myView' && (request.RequestStatus !== 'Completed' && request.RequestStatus !== 'Booking') && (
+        {view !== 'myView' && (request.RequestStatus !== 'Completed' && request.RequestStatus !== 'Booking') && HRTab !== 'awaitingApproval' && (
           
           <div style={{display: 'flex', gap: '20px'}}>
           <button

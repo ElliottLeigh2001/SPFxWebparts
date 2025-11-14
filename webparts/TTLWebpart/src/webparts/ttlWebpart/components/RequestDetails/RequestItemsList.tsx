@@ -4,170 +4,276 @@ import requestDetailsStyles from './RequestDetails.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { formatDate } from '../../Helpers/HelperFunctions';
 import { RequestItemsListProps } from './RequestDetailsProps';
+import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
+import { SPFI, spfi, SPFx } from "@pnp/sp";
+import { useEffect } from 'react';
+import "@pnp/sp/webs";
+import "@pnp/sp/lists";
+import "@pnp/sp/items";
+import "@pnp/sp/files";
+import { getDocumentUrlForRequestItem } from '../../service/TTLService';
 
+const RequestItemsList: React.FC<RequestItemsListProps> = ({
+    items,
+    onEdit,
+    onDelete,
+    onAdd,
+    showActions,
+    request,
+    view,
+    context,
+}) => {
 
-const RequestItemsList: React.FC<RequestItemsListProps> = ({ items, onEdit, onDelete, onAdd, showActions, request, view }) => {
-
-  // Get display string for UsersLicense
-  const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {
-    if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
-        return '/';
-    }
-  
-    return usersLicense.length > 0 ? usersLicense.join(', ') : '/';
-  };
-  
-  // Get icon class based on request type
-  const getTypeIcon = (type: string): string => {
-    const typeMap: { [key: string]: string } = {
-      'Software': 'fa-solid fa-computer fa-lg',
-      'Training': 'fa-solid fa-user-graduate fa-lg',
-      'Travel': 'fa-solid fa-plane-departure fa-lg',
-      'Accommodation': 'fa-solid fa-bed fa-lg'
+    const getSP = (context: any): SPFI => {
+        return spfi(context.pageContext.web.absoluteUrl).using(SPFx(context));
     };
-  
-    return typeMap[type]|| 'fa-solid fa-question';
-  
-  }
-  
-  // Get background color based on request type
-  const getRequestTypeColor = (type: string): string => {
-    const colorMap: { [key: string]: string } = {
-      'Software': '#e3f2fd',
-      'Training': '#f3e5f5',
-      'Travel': '#e8f5e8',
-      'Accommodation': '#ffc0c0ff'
-    };
-    return colorMap[type] || '#f5f5f5';
-  };
 
-  const renderItemCard = (item: UserRequestItem) => {
+    const getTypeIcon = (type: string): string => {
+        const typeMap: { [key: string]: string } = {
+            'Software': 'fa-solid fa-computer fa-lg',
+            'Training': 'fa-solid fa-user-graduate fa-lg',
+            'Travel': 'fa-solid fa-plane-departure fa-lg',
+            'Accommodation': 'fa-solid fa-bed fa-lg'
+        };
+        return typeMap[type] || 'fa-solid fa-question';
+    };
+
+    const getRequestTypeColor = (type: string): string => {
+        const colorMap: { [key: string]: string } = {
+            'Software': '#e3f2fd',
+            'Training': '#f3e5f5',
+            'Travel': '#e8f5e8',
+            'Accommodation': '#ffc0c0ff'
+        };
+        return colorMap[type] || '#f5f5f5';
+    };
+
+    useEffect(() => {
+      console.log(items)
+    }, [items])
+
+    // Upload and associate document with request item 
+    const onFilePickerSave = async (filePickerResult: IFilePickerResult[], requestItemId: number) => {
+      if (!filePickerResult?.length || !context) return;
+
+      const sp = getSP(context);
+
+      for (const pickerItem of filePickerResult) {
+        try {
+          const fileContent = await pickerItem.downloadFileContent();
+          const fileName = pickerItem.fileName;
+
+          // Upload file to library (folder path is relative to the current web)
+          const uploadResult: any = await sp.web
+            .getFolderByServerRelativePath("TTL_Documents")
+            .files.addUsingPath(fileName, fileContent, { Overwrite: true });
+
+          console.log(uploadResult)
+
+          // uploadResult *contains* file metadata (see your console log),
+          // but it may not contain PnPjs methods. Get server relative url from it:
+          const serverRelativeUrl: string = uploadResult?.ServerRelativeUrl || null;
+
+          // Now ask PnPjs for a file object that has the helper methods
+          const fileObj = sp.web.getFileByServerRelativePath(serverRelativeUrl);
+
+          // Try to get the list item for the file. Sometimes the list item is not immediately available,
+          // so we attempt a few retries with small delays.
+          const maxAttempts = 6;
+          let fileListItem: any = null;
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+              fileListItem = await fileObj.listItemAllFields();
+              if (fileListItem && fileListItem.Id) break;
+            } catch (err) {
+              console.warn(`[Upload] attempt ${attempt} to get list item failed`, err);
+            }
+            // wait before next attempt
+            await new Promise((r) => setTimeout(r, 500 * attempt));
+          }
+
+          if (!fileListItem || !fileListItem.Id) {
+            console.error("[Upload] could not get the uploaded file's list item after retries. uploadResult:", uploadResult);
+            continue;
+          }
+
+          const documentItemId = fileListItem.Id;
+
+          // Update both sides of the lookup relationship
+          const reqList = sp.web.lists.getByTitle("TTL_RequestItem");
+          const docList = sp.web.lists.getByTitle("TTL_Documents");
+
+          await Promise.all([
+            reqList.items.getById(requestItemId).update({
+              DocumentIDId: documentItemId,
+            }),
+            docList.items.getById(documentItemId).update({
+              RequestItemIDId: requestItemId,
+              url: `${context?.pageContext.web.absoluteUrl}/_layouts/15/Doc.aspx?sourcedoc={${uploadResult.UniqueId}}&file=${encodeURIComponent(uploadResult.Name)}&action=default&mobileredirect=true`
+            }),
+          ]);
+
+        } catch (error) {
+          console.error("Error uploading or linking document:", error);
+        }
+      }
+    };
+
+    const renderItemCard = (item: UserRequestItem) => {
+        return (
+            <div
+                key={item.ID}
+                className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareRequestCard : requestDetailsStyles.requestCard}
+                style={{ backgroundColor: getRequestTypeColor(item.RequestType!) }}
+            >
+                <div className={requestDetailsStyles.cardHeader}>
+                    <div className={requestDetailsStyles.cardTitle}>
+                        <i className={`${getTypeIcon(item.RequestType!)} ${requestDetailsStyles.typeIcon}`}></i>
+                        <h3>{item.Title}</h3>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        {showActions && (
+                            <div className={requestDetailsStyles.cardActions}>
+                                <i className="fa fa-pencil" onClick={() => onEdit(item)} />
+                                {(request.RequestStatus === 'Saved' || request.RequestStatus === 'Declined') && (
+                                    <i className="fa fa-trash-o" onClick={() => onDelete(item)} />
+                                )}
+                            </div>
+                        )}
+
+                        {request.RequestStatus === 'Completed' && (
+                            <>
+                                <FilePicker
+                                    context={context as any}
+                                    buttonLabel="Upload Document"
+                                    accepts={[".pdf", ".docx", ".xlsx", ".msg"]}
+                                    onSave={(files) => onFilePickerSave(files, item.ID!)}
+                                    hideSiteFilesTab={true}
+                                    hideStockImages={true}
+                                    hideOneDriveTab={true}
+                                    hideOrganisationalAssetTab={true}
+                                    hideWebSearchTab={true}
+                                    hideLocalUploadTab={false}
+                                    hideLocalMultipleUploadTab={true}
+                                    hideLinkUploadTab={true}
+                                    hideRecentTab={true}
+                                    buttonIcon="FileAdd"
+                                />
+                            </>
+                        )}
+
+                        {item.DocumentID?.Id && (
+                          <button
+                            title="Preview Document"
+                            onClick={async () => {
+                              try {
+                                const url = await getDocumentUrlForRequestItem(context!, item.ID!)
+
+                                window.open(url!);
+                              } catch (err) {
+                                console.error("Error fetching document metadata:", err);
+                                alert("Could not open document preview.");
+                              }
+                            }}
+                          >
+                            <i className="fa-solid fa-eye"></i>
+                          </button>
+                        )}
+
+                    </div>
+                </div>
+
+                {/* Card content */}
+                <div className={requestDetailsStyles.cardContent}>
+                    <div className={requestDetailsStyles.fieldGroup}>
+                        <span className={requestDetailsStyles.fieldLabel}>Cost:</span>
+                        <span className={requestDetailsStyles.fieldValue}>€ {item.Cost || '0'}</span>
+                    </div>
+
+                    {item.Provider && (
+                        <div className={requestDetailsStyles.fieldGroup}>
+                            <span className={requestDetailsStyles.fieldLabel}>Provider:</span>
+                            <span className={requestDetailsStyles.fieldValue}>{item.Provider}</span>
+                        </div>
+                    )}
+
+                    {item.RequestType === 'Software' && (
+                        <>
+                            {item.Licensing && (
+                                <div className={requestDetailsStyles.fieldGroup}>
+                                    <span className={requestDetailsStyles.fieldLabel}>Licensing:</span>
+                                    <span className={requestDetailsStyles.fieldValue}>{item.Licensing}</span>
+                                </div>
+                            )}
+                            {item.LicenseType && (
+                                <div className={requestDetailsStyles.fieldGroup}>
+                                    <span className={requestDetailsStyles.fieldLabel}>License Type:</span>
+                                    <span className={requestDetailsStyles.fieldValue}>{item.LicenseType}</span>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {item.RequestType !== 'Software' && (
+                        <>
+                            {item.Location && (
+                                <div className={requestDetailsStyles.fieldGroup}>
+                                    <span className={requestDetailsStyles.fieldLabel}>Location:</span>
+                                    <span className={requestDetailsStyles.fieldValue}>{item.Location}</span>
+                                </div>
+                            )}
+                            {item.StartDate && (
+                                <div className={requestDetailsStyles.fieldGroup}>
+                                    <span className={requestDetailsStyles.fieldLabel}>Start Date:</span>
+                                    <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.StartDate))}</span>
+                                </div>
+                            )}
+                            {item.OData__EndDate && (
+                                <div className={requestDetailsStyles.fieldGroup}>
+                                    <span className={requestDetailsStyles.fieldLabel}>End Date:</span>
+                                    <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.OData__EndDate))}</span>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {item.Link && (
+                        <div className={requestDetailsStyles.fieldGroup}>
+                            <span className={requestDetailsStyles.fieldLabel}>Link:</span>
+                            <a href={item.Link} target="_blank" rel="noopener noreferrer" className={requestDetailsStyles.link}>
+                                {item.Link.length > 40 ? `${item.Link.substring(0, 40)}...` : item.Link}
+                            </a>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     return (
-      <div 
-        key={item.ID} 
-        className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareRequestCard : requestDetailsStyles.requestCard}
-        style={{ backgroundColor: getRequestTypeColor(item.RequestType!) }}
-      >
-        <div className={requestDetailsStyles.cardHeader}>
-          <div className={requestDetailsStyles.cardTitle}>
-            <i className={`${getTypeIcon(item.RequestType!)} ${requestDetailsStyles.typeIcon}`}></i>
-            <h3>{item.Title}</h3>
-          </div>
-          {showActions && (
-            <div className={requestDetailsStyles.cardActions}>
-              <i className="fa fa-pencil" onClick={() => onEdit(item)} />
-              {(request.RequestStatus === 'Saved' || request.RequestStatus === 'Declined') && (
-                <i className="fa fa-trash-o" onClick={() => onDelete(item)} />
-              )}
+        <>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+            <div className={requestDetailsStyles.requestCardsContainer}>
+                <h2 style={{ textAlign: 'center' }}>Request Items ({items.length})</h2>
+                <div className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareItem : requestDetailsStyles.cardsGrid}>
+                    {items.length > 0 ? (
+                        items.map(renderItemCard)
+                    ) : (
+                        <div className={styles.noData}>No request items found for this request</div>
+                    )}
+
+                    {view === 'myView' && request.RequestStatus === 'Saved' && items[0].RequestType !== "Software" && (
+                        <div className={requestDetailsStyles.addButtonContainer}>
+                            <button onClick={onAdd} className={requestDetailsStyles.addButton} title="Add new request item">
+                                <i className="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
-          )}
-        </div>
-
-        <div className={requestDetailsStyles.cardContent}>
-          <div className={requestDetailsStyles.fieldGroup}>
-            <span className={requestDetailsStyles.fieldLabel}>Cost:</span>
-            <span className={requestDetailsStyles.fieldValue}>€ {item.Cost || '0'}</span>
-          </div>
-
-          {item.Provider && (
-            <div className={requestDetailsStyles.fieldGroup}>
-              <span className={requestDetailsStyles.fieldLabel}>Provider:</span>
-              <span className={requestDetailsStyles.fieldValue}>{item.Provider}</span>
-            </div>
-          )}
-
-          {item.RequestType === 'Software' && (
-            <>
-              {item.Licensing && (
-                <div className={requestDetailsStyles.fieldGroup}>
-                  <span className={requestDetailsStyles.fieldLabel}>Licensing:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{item.Licensing}</span>
-                </div>
-              )}
-              {item.LicenseType && (
-                <div className={requestDetailsStyles.fieldGroup}>
-                  <span className={requestDetailsStyles.fieldLabel}>License Type:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{item.LicenseType}</span>
-                </div>
-              )}
-              {item.UsersLicense && item.UsersLicense.length > 0 && (
-                <div className={requestDetailsStyles.fieldGroup}>
-                  <span className={requestDetailsStyles.fieldLabel}>Users:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{getUsersLicenseDisplay(item.UsersLicense)}</span>
-                </div>
-              )}
-            </>
-          )}
-
-          {item.RequestType !== 'Software' && (
-            <>
-              {item.Location && (
-                <div className={requestDetailsStyles.fieldGroup}>
-                  <span className={requestDetailsStyles.fieldLabel}>Location:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{item.Location}</span>
-                </div>
-              )}
-              {item.StartDate === item.OData__EndDate ? (
-                <div className={requestDetailsStyles.fieldGroup}>
-                  <span className={requestDetailsStyles.fieldLabel}>Date:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.StartDate!))}</span>
-                </div>
-              ) : (
-              <>
-              {item.StartDate && (
-                <div className={requestDetailsStyles.fieldGroup}>
-                  <span className={requestDetailsStyles.fieldLabel}>Start Date:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.StartDate))}</span>
-                </div>
-              )}
-              {item.OData__EndDate && (
-                <div className={requestDetailsStyles.fieldGroup}>
-                  <span className={requestDetailsStyles.fieldLabel}>End Date:</span>
-                  <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.OData__EndDate))}</span>
-                </div>
-              )}
-              </>
-              )}
-            </>
-          )}
-
-          {item.Link && (
-            <div className={requestDetailsStyles.fieldGroup}>
-              <span className={requestDetailsStyles.fieldLabel}>Link:</span>
-              <a href={item.Link} target="_blank" rel="noopener noreferrer" className={requestDetailsStyles.link}>
-                {item.Link.length > 40 ? `${item.Link.substring(0, 40)}...` : item.Link}
-              </a>
-            </div>
-          )}
-        </div>
-      </div>
+        </>
     );
-  };
-
-  return (
-    <>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>        
-      <div className={requestDetailsStyles.requestCardsContainer}>
-        <h2 style={{ textAlign: 'center' }}>Request Items ({items.length})</h2>
-        <div className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareItem : requestDetailsStyles.cardsGrid}>
-          {items.length > 0 ? (
-            items.map(renderItemCard)
-          ) : (
-            <div className={styles.noData}>
-              No request items found for this request
-            </div>
-          )}
-          {view === 'myView' && request.RequestStatus === 'Saved' && items[0].RequestType !== "Software" &&(
-            <div className={requestDetailsStyles.addButtonContainer}>
-              <button onClick={onAdd} className={requestDetailsStyles.addButton} title="Add new request item">
-                <i className="fa-solid fa-plus"></i>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
-  );
 };
 
 export default RequestItemsList;

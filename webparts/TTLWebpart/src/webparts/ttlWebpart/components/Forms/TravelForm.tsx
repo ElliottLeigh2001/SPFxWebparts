@@ -12,12 +12,14 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
   const [cost, setCost] = useState(initialData?.Cost || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
   const [link, setLink] = useState(initialData?.Link || '');
+  const [reasonForTravel, setReasonForTravel] = useState(initialData?.ReasonForTravel || '');
   const [titleError, setTitleError] = useState('');
   const [providerError, setProviderError] = useState('');
   const [costError, setCostError] = useState('');
   const [dateError, setDateError] = useState('');
   const [linkError, setLinkError] = useState('');
   const [locationError, setLocationError] = useState('');
+  const [reasonForTravelError, setReasonForTravelError] = useState('');
   const [isLoading, setIsLoading] = useState(false)
   const [includeAccommodation, setIncludeAccommodation] = useState(false);
   const [includeReturnJourney, setIncludeReturnJourney] = useState(false);
@@ -31,6 +33,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
     setDateError('');
     setLocationError('');
     setCostError('');
+    setReasonForTravelError('');
 
     if (!title) {
       setTitleError('Title is required');
@@ -44,6 +47,11 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
 
     if (!location) {
       setLocationError('Location is required');
+      valid = false;
+    }
+
+    if (!reasonForTravel) {
+      setReasonForTravelError('Reason for travel is required');
       valid = false;
     }
 
@@ -127,14 +135,14 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
         setIsLoading(false);
         return;
       }
-      onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
+      onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, ReasonForTravel: reasonForTravel, RequestType: 'Travel' }, nextForms);
       setIsLoading(false);
     }
     if (!validate()) {
       setIsLoading(false);
       return;
     }
-    onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
+    onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, ReasonForTravel: reasonForTravel, RequestType: 'Travel' }, nextForms);
     setIsLoading(false);
     setTitle('');
     setProvider('');
@@ -142,6 +150,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
     setDate('');
     setLocation('');
     setCost('');
+    setReasonForTravel('');
   };
 
   // Modal title logic
@@ -191,6 +200,13 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
               <label className={styles.formRowLabel}>Link *</label>
               <input value={link} onChange={e => setLink(e.target.value)} className={linkError ? styles.invalid : ''}/>
               {linkError && <div className={styles.validationError}>{linkError}</div>}
+            </div>
+          </div>
+          <div className={styles.formRow}>
+            <div style={{width: '100%'}} className={styles.formItem}>
+              <label className={styles.formRowLabel}>Reason for travel *</label>
+              <textarea value={reasonForTravel} onChange={e => setReasonForTravel(e.target.value)} className={reasonForTravelError ? styles.invalid : ''}/>
+              {reasonForTravelError && <div className={styles.validationError}>{reasonForTravelError}</div>}
             </div>
           </div>
 
