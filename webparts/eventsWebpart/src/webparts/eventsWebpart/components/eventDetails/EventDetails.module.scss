@@ -2,71 +2,79 @@
 .detailsContainer {
   position: relative;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  text-align: center;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fafa 100%);
-  padding: 40px 25px;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-  animation: fadeIn 0.6s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  gap: 32px;
+  padding: 24px;
 }
 
 .backButton { 
-  display: flex; 
+  display: inline-flex; 
   background: none; 
   border: none; 
   color: white; 
   background-color: rgb(47, 129, 131); 
   border-radius: 4px; 
-  font-size: 16px; 
+  font-size: 14px; 
   cursor: pointer; 
   margin-bottom: 10px; 
-  padding: 4px 20px 5px 20px; 
-  width: 70px;
+  padding: 6px 14px; 
 }
 
-.detailsImage {
-  width: 100%;
-  max-width: 600px;
-  height: 280px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.4s ease;
+.details, .register {
+  flex: 1 1 45%;
+  max-width: 45%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 500px;
 }
 
-.left {
-  position: absolute;
-  left: 20px;
-  top: 40px;
+.details > div,
+.register > form,
+.register > .attendeesPanel {
+  flex-grow: 1;
 }
 
-.right {
-  position: absolute;
-  right: 20px;
-  top: 40px;
-  cursor: pointer;
-  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.25);
-  border-radius: 12px;
-  height: 60px;
-  width: 70px;
-  align-content: center;
-  transition: color 0.2s ease;
+.submitButton, .signUpButton, .signOutButton {
+  align-self: center;
+}
 
-  i {
-    font-size: 40px;
+.register {
+  grid-column: 2/3;
+  padding: 18px;
+}
 
-    &:hover {
-      color: rgb(47, 129, 131);
-    }
-  }
+.panelHeader {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #055a57;
+  background-color: #eaf5f5;
+  padding: 5px;
+}
+
+.inlineForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.attendeesPanel {
+  margin-top: 18px;
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.attendeesPanel ul {
+  margin: 8px 0 0 0;
+  padding-left: 18px;
 }
 
 .backButton:hover {
@@ -78,9 +86,9 @@
   border: 3px solid rgb(47, 129, 131);
   color: rgb(47, 129, 131);
   font-weight: 600;
-  padding: 4px 20px 6px 20px;
-  border-radius: 4px;
-  font-size: 16px;
+  padding: 10px 14px;
+  width: 90px;
+  border-radius: 3px;
   margin-bottom: 20px;
   cursor: pointer;
 }
@@ -88,7 +96,18 @@
 .signOutButton:hover {
   border: 3px solid rgb(39, 109, 110);
   color: rgb(39, 109, 110);
-  background-color: #cccccc98;
+  background-color: #b1b0b098;
+}
+
+.submitButton {
+  background-color: rgb(47, 129, 131);
+  border: 3px solid rgb(47, 129, 131);
+  width: 90px;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
 }
 
 .signUpButton {
@@ -126,9 +145,8 @@
   font-weight: 600;
   border: 1px solid #f5b5b5;
   border-radius: 6px;
-  padding: 8px 14px;
-  margin: 20px 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 8px 12px;
+  margin: 8px 0 14px 0;
 }
 
 .foodEvent {
@@ -145,13 +163,12 @@
 }
 
 .descriptionContainer { 
-  display: flex; 
-  justify-content: center; 
+  display: block; 
   width: 100%; 
 }
 
 .description {
-  width: 50%;
+  width: 100%;
   color: #333;
 }
 
@@ -194,14 +211,12 @@
 }
 
 @media (max-width: 1000px) {
-  .left, .right {
-    position: initial !important;
+  .detailsContainer {
+    grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 1250px) {
-  .right {
-    position: initial !important;
-    max-width: 100% !important;
+  .register {
+    order: 2;
+    width: 100%;
   }
 }

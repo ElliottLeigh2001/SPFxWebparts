@@ -5,6 +5,7 @@ import styles from "./EventsWebpart.module.scss";
 import EventDetails from "./eventDetails/EventDetails";
 import { EventItem, IEventsWebpartProps } from "../EventsInterfaces";
 import { formatSingleDate } from "../utils/DateUtils";
+import HeaderComponent from "./header/HeaderComponent";
 
 const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [items, setItems] = useState<EventItem[]>([]);
@@ -16,9 +17,28 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [filters, setFilters] = useState<string[]>([]);
   const [startDateFilter, setStartDateFilter] = useState<Date>();
   const [endDateFilter, setEndDateFilter] = useState<Date>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
 
-  // The amount of events to show at one time
-  const ITEMS_PER_PAGE = 4;
+  useEffect(() => {
+    const updateItemsPerPage = () => {
+      const width = window.innerWidth;
+
+      if (width >= 1700) {
+        setItemsPerPage(8); // 4x2 grid
+      } else if (width >= 1400) {
+        setItemsPerPage(6); // 3x2 grid
+      } else if (width >= 1100) {
+        setItemsPerPage(4) // 2x2 grid
+      }
+    };
+
+    updateItemsPerPage(); // run on mount
+
+    window.addEventListener("resize", updateItemsPerPage);
+    return () => window.removeEventListener("resize", updateItemsPerPage);
+  }, []);
 
   // All event types. They could be obtained dynamically through an API call
   // But if any new event types were made, they would be useless until a new
@@ -85,6 +105,12 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       filtered = filtered.filter(item => filters.includes((item.EventTypes || "").toString()));
     }
 
+    if (searchQuery.trim() !== "") {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => item.Title?.toLowerCase().includes(q));
+    }
+
+
     // Date range filtering
     // Compare the event's StartTime to the date range
     // Shows all events that start on/after the startDate and on/before the endDate
@@ -104,7 +130,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     setItems(filtered);
     // Reset pagination index to prevent bugginess
     setCurrentIndex(0);
-  }, [filters, startDateFilter, endDateFilter, allItems]);
+  }, [filters, startDateFilter, endDateFilter, allItems, searchQuery]);
 
   // Get events and user data once on mount
   useEffect(() => {
@@ -187,92 +213,156 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const truncate = (text: string, length: number) => {
     return text.length > length ? text.slice(0, length) + "..." : text;
   }
-
-  const pages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
-  const pageIndex = Math.floor(currentIndex / ITEMS_PER_PAGE);
-
+  
+  const pages = Math.max(1, Math.ceil(items.length / itemsPerPage));
+  const pageIndex = Math.floor(currentIndex / itemsPerPage);
+  
   // Carousel arrows logic
   const handlePrev = (): void => {
-    setCurrentIndex((prev) => Math.max(prev - ITEMS_PER_PAGE, 0));
+    setCurrentIndex((prev) => Math.max(prev - itemsPerPage, 0));
   };
   const handleNext = (): void => {
-    const maxStart = Math.max(0, (pages - 1) * ITEMS_PER_PAGE);
-    setCurrentIndex((prev) => Math.min(prev + ITEMS_PER_PAGE, maxStart));
+    const maxStart = Math.max(0, (pages - 1) * itemsPerPage);
+    setCurrentIndex((prev) => Math.min(prev + itemsPerPage, maxStart));
   };
 
   return (
     <>
-    <div className={styles.pageHeader}>
-      
-      {isAdminOrMember && (
-        <p onClick={goToAddPage} className={styles.addButton}>
-          + Add event
-        </p>
-      )}
+    <div className={styles.headerContainer}>
+      <HeaderComponent/>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=search" />
+      <div className={styles.pageHeader}>
     </div>
 
       <div className={styles.layout}>
-        <div className={styles.sidebarContainer}>
-          <aside className={styles.sidebar}>
-            <h2 style={{margin: '0px 0px 20px 0px'}}>Filters</h2>
-            <div className={styles.filterGroup}>
-              <h3>Event Types</h3>
-              {Object.entries(eventTypes).map(([key, label]) => (
-                <div className={styles.filterCheckbox} key={key}>
-                  <label className={styles.checkboxLabel}>
-                    <input
-                      type="checkbox"
-                      checked={filters.includes(key)}
-                      onChange={() => addFilter(key)}
-                    />
-                    {label}
-                  </label>
-                </div>
-              ))}
-            </div>
+        <div className={styles.filtersContainer}>
+          <aside className={styles.filters}>
+            <div className={styles.leftFilters}>
+              <div className={styles.dropdown}>
+                <button
+                  className={styles.dropdownToggle}
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
+                  <span>Event Types</span>
+                  <svg
+                    className={styles.arrow}
+                    fill="#b1b0b0"
+                    viewBox="0 0 30.727 30.727"
+                  >
+                    <path d="M29.994,10.183L15.363,24.812L0.733,10.184c-0.977-0.978-0.977-2.561,0-3.536
+                      c0.977-0.977,2.559-0.976,3.536,0l11.095,11.093L26.461,6.647
+                      c0.977-0.976,2.559-0.976,3.535,0C30.971,7.624,30.971,9.206,29.994,10.183z" />
+                  </svg>
+                </button>
 
-            <div className={styles.filterGroup}>
-              <h3>Date Range</h3>
-              <div className={styles.dateInputRow}>
-                <label className={styles.dateLabel}>From:</label>
+                {dropdownOpen && (
+                  <div className={styles.dropdownMenu}>
+                    {Object.entries(eventTypes).map(([key, label]) => (
+                      <label key={key} className={styles.dropdownItem}>
+                        <input
+                          type="checkbox"
+                          checked={filters.includes(key)}
+                          onChange={() => addFilter(key)}
+                          />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.dateInputs}>
                 <input
                   type="date"
-                  value={startDateFilter ? `${startDateFilter.getFullYear()}-${String(startDateFilter.getMonth()+1).padStart(2,'0')}-${String(startDateFilter.getDate()).padStart(2,'0')}` : ""}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setStartDateFilter(v ? new Date(v + 'T00:00:00') : undefined);
-                  }}
+                  value={
+                    startDateFilter
+                    ? `${startDateFilter.getFullYear()}-${String(
+                          startDateFilter.getMonth() + 1
+                        ).padStart(2, "0")}-${String(startDateFilter.getDate()).padStart(
+                          2,
+                          "0"
+                          )}`
+                      : ""
+                  }
+                  onChange={(e) =>
+                    setStartDateFilter(
+                      e.target.value ? new Date(e.target.value + "T00:00:00") : undefined
+                    )
+                  }
+                  className={styles.dateInput}
+                />
+                <input
+                  type="date"
+                  value={
+                    endDateFilter
+                    ? `${endDateFilter.getFullYear()}-${String(
+                      endDateFilter.getMonth() + 1
+                    ).padStart(2, "0")}-${String(endDateFilter.getDate()).padStart(
+                      2,
+                      "0"
+                      )}`
+                      : ""
+                  }
+                  onChange={(e) =>
+                    setEndDateFilter(
+                      e.target.value ? new Date(e.target.value + "T00:00:00") : undefined
+                    )
+                  }
                   className={styles.dateInput}
                 />
               </div>
-              <div className={styles.dateInputRow}>
-                <label className={styles.dateLabel}>To:</label>
-                <input
-                  type="date"
-                  value={endDateFilter ? `${endDateFilter.getFullYear()}-${String(endDateFilter.getMonth()+1).padStart(2,'0')}-${String(endDateFilter.getDate()).padStart(2,'0')}` : ""}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setEndDateFilter(v ? new Date(v + 'T00:00:00') : undefined);
-                  }}
-                  className={styles.dateInput}
-                />
-              </div>
             </div>
 
-            <button
-              className={styles.clearFilters}
-              onClick={() => {
-                setFilters([]);
-                setStartDateFilter(undefined);
-                setEndDateFilter(undefined);
-              }}
-            >
-              Clear All
-            </button>
+            <div className={styles.rightFilters}>
+              <div className={styles.searchBar}>
+                <svg
+                  className={styles.searchIcon}
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="#b1b0b0"
+                >
+                <path d="M21.707 20.293l-4.823-4.823A7.931 7.931 0 0018 10a8 8 0 10-8 8 7.931 7.931 0 005.47-1.116l4.823 4.823a1 1 0 001.414-1.414zM4 10a6 6 0 1112 0 6 6 0 01-12 0z"/>
+              </svg>
+                <input
+                  type="text"
+                  placeholder="Search event..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={styles.searchInput}
+                />
+              </div>
+
+              <button
+                className={styles.clearFilters}
+                onClick={() => {
+                  setFilters([]);
+                  setStartDateFilter(undefined);
+                  setEndDateFilter(undefined);
+                }}
+              >
+                Clear All
+              </button>
+            </div>
           </aside>
         </div>
+      </div>
 
+        {isAdminOrMember && (
+          <p onClick={goToAddPage} className={styles.addButton}>
+            + Add event
+          </p>
+        )}
+        
         <main className={styles.mainContent}>
+          {items.length > itemsPerPage && (
+            <div className={styles.carouselControls}>
+              <div>
+                <button onClick={handlePrev} disabled={pageIndex === 0}>
+                  <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M12.35 15.85a.5.5 0 0 1-.7 0L6.16 10.4a.55.55 0 0 1 0-.78l5.49-5.46a.5.5 0 1 1 .7.7L7.2 10l5.16 5.15c.2.2.2.5 0 .7Z"></path></svg>
+                </button>
+              </div>
+            </div>
+          )}
 
           {items.length > 0 ? (
             <div className={styles.eventViewport}>
@@ -282,19 +372,19 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
               >
                 {Array.from({ length: pages }).map((_, p) => {
                   const pageItems = items.slice(
-                    p * ITEMS_PER_PAGE,
-                    p * ITEMS_PER_PAGE + ITEMS_PER_PAGE
+                    p * itemsPerPage,
+                    p * itemsPerPage + itemsPerPage
                   );
 
                   return (
                     <div className={styles.page} key={p}>
                       {pageItems.map((item) => {
-                const imageData = item.Image0
-                  ? JSON.parse(item.Image0)
-                  : null;
-                const imageUrl = imageData
-                  ? `${context.pageContext.web.absoluteUrl}/Lists/HR_Events/Attachments/${item.Id}/${imageData.fileName}`
-                  : undefined;
+                        const imageData = item.Image0
+                          ? JSON.parse(item.Image0)
+                          : null;
+                        const imageUrl = imageData
+                          ? `${context.pageContext.web.absoluteUrl}/Lists/HR_Events/Attachments/${item.Id}/${imageData.fileName}`
+                          : undefined;
                       return (
                         <div
                           key={item.Id}
@@ -315,11 +405,11 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                               className={styles.eventImg}
                             />
                           )}
-                          <div>
-                            <h4 style={{display: 'flex', width: '90%', justifySelf: 'center', justifyContent: 'center'}}>{truncate(item.Title, 50)}</h4>
-                            <div style={{display: 'flex', width: '90%', justifySelf: 'center', justifyContent: 'center'}}>📍{truncate(item.Location, 30)}</div>
-                            <p>{formatSingleDate(item.StartTime)}</p>
-                          </div>
+                        <div className={styles.eventContent}>
+                          <p className={styles.eventTitle}><strong>{truncate(item.Title, 50)}</strong></p>
+                          <p className={styles.eventDate}>{formatSingleDate(item.StartTime)}</p>
+                          <p className={styles.eventLocation}>{truncate(item.Location, 30)}</p>
+                        </div>
                         </div>
                       );
                     })}
@@ -338,20 +428,32 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
             </div>
           )}
 
-          {items.length > ITEMS_PER_PAGE && (
+          {items.length > itemsPerPage && (
             <div className={styles.carouselControls}>
-              <button onClick={handlePrev} disabled={pageIndex === 0}>
-                <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M12.35 15.85a.5.5 0 0 1-.7 0L6.16 10.4a.55.55 0 0 1 0-.78l5.49-5.46a.5.5 0 1 1 .7.7L7.2 10l5.16 5.15c.2.2.2.5 0 .7Z"></path></svg>
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={pageIndex >= pages - 1}
-              >
-                <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7.65 4.15c.2-.2.5-.2.7 0l5.49 5.46c.21.22.21.57 0 .78l-5.49 5.46a.5.5 0 0 1-.7-.7L12.8 10 7.65 4.85a.5.5 0 0 1 0-.7Z"></path></svg>
-              </button>
+              <div>
+                <button
+                  onClick={handleNext}
+                  disabled={pageIndex >= pages - 1}
+                >
+                  <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7.65 4.15c.2-.2.5-.2.7 0l5.49 5.46c.21.22.21.57 0 .78l-5.49 5.46a.5.5 0 0 1-.7-.7L12.8 10 7.65 4.85a.5.5 0 0 1 0-.7Z"></path></svg>
+                </button>
+              </div>
             </div>
           )}
         </main>
+        {pages > 1 && (
+          <div className={styles.pageDots}>
+            {Array.from({ length: pages }).map((_, i) => (
+              <span
+                key={i}
+                className={`${styles.dotWrapper} ${i === pageIndex ? styles.active : ""}`}
+                onClick={() => setCurrentIndex(i * itemsPerPage)}
+              >
+                <span className={`${styles.dot} ${i === pageIndex ? styles.active : ""}`}></span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

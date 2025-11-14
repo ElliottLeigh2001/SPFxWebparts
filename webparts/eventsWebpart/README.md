@@ -7,7 +7,7 @@ A React based SPFx webpart designed to streamline the process of signing in and 
 ## Versions used
 
 ![version](https://img.shields.io/badge/SPFx-1.21.1-green.svg)
-![version](https://img.shields.io/badge/node-1.21.1-green.svg)
+![version](https://img.shields.io/badge/node-22.19.0-green.svg)
 ![version](https://img.shields.io/badge/react-17.0.1-green.svg)
 
 ## Extra packages

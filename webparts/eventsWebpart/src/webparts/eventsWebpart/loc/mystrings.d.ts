@@ -1,3 +1,5 @@
+declare module '*.jpg'
+
 declare interface IEventsWebpartWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;

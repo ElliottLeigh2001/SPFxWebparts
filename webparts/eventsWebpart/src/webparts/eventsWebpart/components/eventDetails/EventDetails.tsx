@@ -4,11 +4,18 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { spfi, SPFI } from "@pnp/sp";
 import { SPFx } from "@pnp/sp/presets/all";
 import { EventItem } from '../../EventsInterfaces';
-import { SignupModal } from '../modals/signupModal/SignupModal';
-import { formatDate, formatSingleDate } from '../../utils/DateUtils';
+// Inline signup form (previously in SignupModal)
+import { SportFormFields } from '../form-fields/Sport/SportFormField';
+import { FoodFormFields } from '../form-fields/Food/FoodFormFields';
+import { CarpoolingFormFields } from '../form-fields/Carpooling/CarpoolingFormFields';
+import { FamilyFormFields } from '../form-fields/Family/FamilyFormFields';
+import { SinterklaasFormFields } from '../form-fields/Sinterklaas/SinterklaasFormFields';
+import { PlusOneFormFields } from '../form-fields/PlusOne/PlusOneFormFields';
+import { formatSingleDate } from '../../utils/DateUtils';
 import { useEventSignup } from '../../hooks/UseEventSignup';
 import detailsStyles from './EventDetails.module.scss'
-import { AttendeesModal } from '../modals/attendeesModal/AttendeesModal';
+// Attendees modal removed - attendees are shown inline in side panel
+import HeaderComponent from '../header/HeaderComponent';
 
 let sp: SPFI;
 export const getSP = (context: WebPartContext): SPFI => {
@@ -19,9 +26,23 @@ export const getSP = (context: WebPartContext): SPFI => {
 };
 
 const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack: () => void; }> = ({ context, event, onBack }) => {
-  const [showModal, setShowModal] = useState(false);
   const [allAttendees, setAllAttendees] = useState<any[]>([]);
-  const [showAttendeesModal, setShowAttendeesModal] = useState(false);
+  const [formData, setFormData] = useState<any>({
+    extraInfo: '',
+    dietaryPrefs: '',
+    plusOne: false,
+    dietaryPrefsPlusOne: '',
+    food: '',
+    foodPlusOne: '',
+    shirtSize: '',
+    carpooling: '',
+    departureFrom: '',
+    amountOfKids: 0,
+    kidsData: [],
+    ageChild1: '',
+    ageChild2: '',
+    ageChild3: '',
+  });
   const {
     isSignedUp,
     loading,
@@ -30,12 +51,6 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     handleSignOut,
     handleSubmit,
   } = useEventSignup(context, event);
-
-  // Extract image from object
-  const imageData = event.Image0 ? JSON.parse(event.Image0) : null;
-  const imageUrl = imageData
-    ? `${context.pageContext.web.absoluteUrl}/Lists/HR_Events/Attachments/${event.Id}/${imageData.fileName}`
-    : undefined;
 
   // Sign up deadline logic
   const today = new Date();
@@ -77,50 +92,16 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
   }, [context, event]);
 
   // Sign up, sign out and deadline logic
-  const renderSignupButton = () => {
-    if (!showSignupButtons) return null;
-
-    if (!canSignUp) {
-      return <p className={detailsStyles.cantSignUp}>Signup deadline has passed</p>;
-    }
-
-    if (isSignedUp) {
-      return (
-        <button 
-          className={detailsStyles.signOutButton} 
-          onClick={handleSignOut}
-          disabled={loading}
-          style={!event.SignupDeadline ? {marginTop: '40px'} : {}}
-        >
-          {loading ? 'Signing Out...' : 'Sign Out'}
-        </button>
-      );
-    } else {
-      return (
-        <button 
-          className={detailsStyles.signUpButton} 
-          onClick={() => setShowModal(true)}
-          disabled={loading}
-          style={!event.SignupDeadline ? {marginTop: '40px'} : {}}
-        >
-          Sign Up
-        </button>
-      );
-    }
-  };
+  // Signup button logic is incorporated into the side panel form; keep sign-out button rendered in main content when needed
 
   // If the event is of type 'custom', a link is provided and the sign up button 
   // will take the user to the url. This can either be a website where you sign up
   // or it takes you to a hand-made list to sign up the old way.
   const renderCustomSignup = () => {
-    
-    const signInUrl =
-    typeof event.Signinlink === "string"
-    ? event.Signinlink
-    : event.Signinlink
-    
+    const signInUrl = typeof event.Signinlink === 'string' ? event.Signinlink : event.Signinlink;
+
     if (!signInUrl) {
-      return <p className={detailsStyles.cantSignUp}>Someone tell HR they forgot to add a sign up link</p>
+      return <p className={detailsStyles.cantSignUp}>Someone tell HR they forgot to add a sign up link</p>;
     }
 
     if (!canSignUp) {
@@ -138,88 +119,189 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       </button>
     );
   };
+
+  // Handlers for the inline form
+  const updateFormData = (field: string, value: any) => {
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleLocalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const submissionData = {
+      ...formData,
+      ageChild1: formData.ageChild1 ? parseInt(formData.ageChild1) || 0 : 0,
+      ageChild2: formData.ageChild2 ? parseInt(formData.ageChild2) || 0 : 0,
+      ageChild3: formData.ageChild3 ? parseInt(formData.ageChild3) || 0 : 0,
+    };
+
+    await handleSubmit(submissionData);
+
+    // reset
+    setFormData({
+      extraInfo: '',
+      dietaryPrefs: '',
+      plusOne: false,
+      dietaryPrefsPlusOne: '',
+      food: '',
+      foodPlusOne: '',
+      shirtSize: '',
+      carpooling: '',
+      departureFrom: '',
+      amountOfKids: 0,
+      kidsData: [],
+      ageChild1: '',
+      ageChild2: '',
+      ageChild3: '',
+    });
+  };
   
   return (
-<div className={detailsStyles.detailsContainer}>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
-    <div className={detailsStyles.left}>
-      <button onClick={onBack} className={detailsStyles.backButton}>Back</button>
-    </div>
+  <>
+    <HeaderComponent/>
+      <div className={detailsStyles.detailsContainer}>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
+      <div className={detailsStyles.details}>
+        <h3 className={detailsStyles.panelHeader}>Details</h3>
 
-      {imageUrl && (
-        <img
-          src={imageUrl}
-          alt={event.Title}
-          className={detailsStyles.detailsImage}
-        />
-      )}
-
-      {(event.EventTypes !== "No signup" && event.EventTypes !== "Custom") && (
-        <div onClick={() => setShowAttendeesModal(true)} className={detailsStyles.right}>
-          <i className="fa fa-user" aria-hidden="true"></i>
+        <div style={{margin: '20px'}} className={detailsStyles.descriptionContainer}>
+          {event.Beschrijving && (
+            <div
+            className={detailsStyles.description}
+            dangerouslySetInnerHTML={{ __html: event.Beschrijving }}
+            />
+          )}
         </div>
-      )}
-      <div style={{display: 'flex', justifyContent: 'center', width: "60%", margin: '20px'}}>
-        <h2>{event.Title}</h2>
-      </div>
-      <div>📍{event.Location}</div>
-      <div style={{margin: '20px'}}>
-        <svg style={{marginRight: '4px', transform: 'translateY(2px)'}} xmlns="http://www.w3.org/2000/svg" height="14px" viewBox="0 -960 960 960" width="14px" fill="#000"> 
-        <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/>
-        </svg>{formatDate(event.StartTime, event.EndTime)}
-      </div>
-      
-      {event.FoodEvent && <div className={detailsStyles.foodEvent}>Food Included</div>}
-      
-      {event.SignupDeadline && (
-        <div style={{margin: '20px'}} className={detailsStyles.signupDeadline}>
-           Sign up deadline: {formatSingleDate(event.SignupDeadline)} at 23:59
-        </div>
-      )}
 
-      {checkingStatus ? (
-        <div className={detailsStyles.loading}>Checking signup status...</div>
-      ) : (
-        event.EventTypes === 'Custom' || event.EventTypes === 'Online signup' ? (
+        {notification && (
+          <div className={`${detailsStyles.notification} ${notification.type === 'success' ? detailsStyles.success : detailsStyles.error}`}>
+            {notification.message}
+          </div>
+        )}
+
+      </div>
+
+      <aside className={detailsStyles.register}>
+        <h3 className={detailsStyles.panelHeader}>Register Now</h3>
+
+        {event.SignupDeadline && (
+          <div className={detailsStyles.signupDeadline}>
+            <div><strong>Registration Deadline: </strong>{formatSingleDate(event.SignupDeadline)} at 23:59</div>
+          </div>
+        )}
+
+        {event.EventTypes === 'Custom' || event.EventTypes === 'Online signup' ? (
           renderCustomSignup()
         ) : (
+          showSignupButtons && canSignUp && (
+            <form onSubmit={handleLocalSubmit} className={detailsStyles.inlineForm}>
+              {event.EventTypes === 'Sport' && (
+                <SportFormFields
+                  shirtSize={formData.shirtSize}
+                  setShirtSize={(value: any) => updateFormData('shirtSize', value)}
+                  disabled={loading}
+                />
+              )}
 
-          renderSignupButton()
-        )
-      )}
+              {event.EventTypes === 'Sinterklaas' && (
+                <SinterklaasFormFields
+                  amountOfKids={formData.amountOfKids || 0}
+                  setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
+                  kidsData={formData.kidsData || []}
+                  setKidsData={(kidsData: any) => updateFormData('kidsData', kidsData)}
+                  disabled={loading}
+                />
+              )}
 
-      <div style={{margin: '20px'}} className={detailsStyles.descriptionContainer}>
-        {event.Beschrijving && (
-          <div
-          className={detailsStyles.description}
-          dangerouslySetInnerHTML={{ __html: event.Beschrijving }}
-          />
+              {event.EventTypes === 'Family' && (
+                <FamilyFormFields
+                  amountOfKids={formData.amountOfKids || 0}
+                  setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
+                  ageChild1={formData.ageChild1}
+                  setAgeChild1={(value: any) => updateFormData('ageChild1', value)}
+                  ageChild2={formData.ageChild2}
+                  setAgeChild2={(value: any) => updateFormData('ageChild2', value)}
+                  ageChild3={formData.ageChild3}
+                  setAgeChild3={(value: any) => updateFormData('ageChild3', value)}
+                  disabled={loading}
+                />
+              )}
+
+              {event.FoodEvent && (
+                <FoodFormFields
+                  food={formData.food}
+                  setFood={(value: any) => updateFormData('food', value)}
+                  dietaryPrefs={formData.dietaryPrefs}
+                  setDietaryPrefs={(value: any) => updateFormData('dietaryPrefs', value)}
+                  disabled={loading}
+                />
+              )}
+
+              {event.PlusOne && (
+                <PlusOneFormFields
+                  plusOne={formData.plusOne}
+                  setPlusOne={(value: any) => updateFormData('plusOne', value)}
+                  dietaryPrefsPlusOne={formData.dietaryPrefsPlusOne}
+                  setDietaryPrefsPlusOne={(value: any) => updateFormData('dietaryPrefsPlusOne', value)}
+                  foodPlusOne={formData.foodPlusOne}
+                  setFoodPlusOne={(value: any) => updateFormData('foodPlusOne', value)}
+                  disabled={loading}
+                  showFoodFields={event.FoodEvent}
+                />
+              )}
+
+              {event.Carpooling && (
+                <CarpoolingFormFields
+                  carpooling={formData.carpooling}
+                  setCarpooling={(value: any) => updateFormData('carpooling', value)}
+                  departureFrom={formData.departureFrom}
+                  setDepartureFrom={(value: any) => updateFormData('departureFrom', value)}
+                  disabled={loading}
+                />
+              )}
+
+              <label>
+                Extra information
+                <textarea
+                  value={formData.extraInfo}
+                  onChange={(e) => updateFormData('extraInfo', e.target.value)}
+                  disabled={loading}
+                />
+              </label>
+
+              <div className={detailsStyles.modalActions}>
+                  {checkingStatus && <div className={detailsStyles.loading}>Checking signup status...</div>}
+                  {!checkingStatus && isSignedUp ? (
+                    <button
+                      className={detailsStyles.signOutButton}
+                      onClick={handleSignOut}
+                      disabled={loading}
+                      style={!event.SignupDeadline ? { marginTop: '20px' } : {}}
+                    >
+                      {loading ? 'Signing Out...' : 'Sign Out'}
+                    </button>
+                  ) : (
+                    <button type="submit" className={detailsStyles.submitButton} disabled={loading}>
+                      {loading ? 'Signing up...' : 'Sign up'}
+                    </button>
+                  )}
+              </div>
+            </form>
+          )
         )}
+
+        {allAttendees.length > 0 && (
+          <div className={detailsStyles.attendeesPanel}>
+            <h4>Attendees ({allAttendees.length})</h4>
+            <ul>
+              {allAttendees.map(att => (
+                <li key={att.Id}>{att.Attendee?.Title}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </aside>
       </div>
-
-      {notification && (
-        <div className={`${detailsStyles.notification} ${notification.type === 'success' ? detailsStyles.success : detailsStyles.error}`}>
-          {notification.message}
-        </div>
-      )}
-
-      {showModal && (
-        <SignupModal
-          event={event}
-          onSubmit={handleSubmit}
-          onClose={() => setShowModal(false)}
-          loading={loading}
-        />
-      )}
-      
-      {showAttendeesModal && (
-        <AttendeesModal
-          onClose={() => setShowAttendeesModal(false)}
-          attendees={allAttendees}
-          event={event}
-        />
-      )}
-    </div>
+    </>
   );
 };
 
