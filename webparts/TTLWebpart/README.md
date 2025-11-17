@@ -3,7 +3,7 @@
 ## Summary
 
 This SPFx webpart is an extensive "application" to manage requests concerning trainings, travels, accommodations and software licenses. Each user has their own
-dashboard where thye can visualise, add, update and delete requests. Once a request is created, the user can either 'save' their request so they can edit it later, or they can
+dashboard where they can visualise, add, update and delete requests. Once a request is created, the user can either 'save' their request so they can edit it later, or they can
 send it for approval. At this point, the request isn't editable and it goes to the dashboard of the approver that was selected during the process of making the request.
 The approver can either approve or deny any requests in their dashboard (and provide a comment on denial). If approved, HR members can in their turn approve or deny requests in their
 dashboard. They can also provide a comment and edit the cost of an item. If any cost was changed, they need to be sent for reapproval (and once again need to be approved by the approver). Only when both the approver and HR have approved the request, will the appropriate costs be paid. 
@@ -29,6 +29,7 @@ Request is approved by all required approvers: requester is informed that their 
 ## Files explanation
 
 - TTLService.ts: service file for maintaining CRUD operations to SharePoint lists
+- CommentService.ts: service file for CRUD operations concerning comments
 - AutomateService.ts: service file for sending data to the Power Automate flow
 - TTLInterfaces.ts: interface file for maintaining types
 - HelperFunctions.ts: file with functions that are used in multiple components
@@ -39,7 +40,9 @@ Request is approved by all required approvers: requester is informed that their 
 - DirectorDashboard.tsx: Dashboard that shows requests that are 'sent for approval' and exceed 5000 EUR
 - DashboardComponent.tsx: Component that contains the table with requests, tailored for each type of dashboard
 
-- NewRequest.tsx: Component for adding new requests and managing request items to that request (trainings, tavels, accommodations and software licenses)
+- ChooseNewRequest.tsx: Component where the user is prompted to choose the kind of request they want to make
+- NewRequestSoftware.tsx: Component for adding new requests and managing request items to that request (software licenses)
+- NewRequestTrainingTravel.tsx: Component for adding new requests and managing request items to that request (trainings, tavels, accommodations)
 - AccommodationForm.tsx: Form to add an accommodation to a request
 - Software.tsx: Form to add a software license to a request
 - TrainingForm.tsx: Form to add a training to a request
