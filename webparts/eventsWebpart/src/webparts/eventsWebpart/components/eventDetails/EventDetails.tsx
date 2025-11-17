@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-// pnp imports moved to shared util
 import { EventItem } from '../../EventsInterfaces';
 import { SportFormFields } from '../form-fields/Sport/SportFormField';
 import { FoodFormFields } from '../form-fields/Food/FoodFormFields';
@@ -12,9 +11,8 @@ import { PlusOneFormFields } from '../form-fields/PlusOne/PlusOneFormFields';
 import { formatSingleDate } from '../../utils/DateUtils';
 import { useEventSignup } from '../../hooks/UseEventSignup';
 import detailsStyles from './EventDetails.module.scss'
-import HeaderComponent from '../header/HeaderComponent';
-
 import { getSP } from '../../utils/getSP';
+import headerImg from "../../assets/headerImg.jpg";
 
 const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack: () => void; }> = ({ context, event, onBack }) => {
   const [allAttendees, setAllAttendees] = useState<any[]>([]);
@@ -127,14 +125,15 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     }
 
     return (
-      <button
-        className={detailsStyles.signUpButton}
-        onClick={() => (window.location.href = signInUrl)}
-        disabled={loading}
-        style={!event.SignupDeadline ? {marginTop: '40px'} : {}}
-      >
-        Sign Up
-      </button>
+      <div className={detailsStyles.modalActions}>
+        <button
+          className={detailsStyles.submitButton}
+          onClick={() => (window.location.href = signInUrl)}
+          disabled={loading}
+        >
+          Sign Up
+        </button>
+      </div>
     );
   };
 
@@ -174,170 +173,181 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
   };
   
   return (
-  <>
-    <HeaderComponent
-      event={event}/>
-      <div className={detailsStyles.detailsContainer}>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
-      <div className={detailsStyles.details}>
-        <div className={detailsStyles.tabsContainer}>
-          {(["details", "attendees", "carpooling"] as const).map(tab => (
-            <p
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`${detailsStyles.panelHeader} ${activeTab === tab ? detailsStyles.activeTab : ""}`}
-              ref={activeTab === tab ? activeTabRef : null}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </p>
-          ))}
-          <span className={detailsStyles.activeUnderline} style={underlineStyle}></span>
-        </div>
-
-        <div className={detailsStyles.descriptionContainer}>
-          {activeTab === 'details' && (
-            <div
-              className={detailsStyles.description}
-              dangerouslySetInnerHTML={{ __html: event.Beschrijving }}
-            />
-          )}
-
-          {activeTab === 'attendees' && (
-            allAttendees.length > 0 ? (
-              <div className={detailsStyles.attendeesPanel}>
-                <ul>
-                  {allAttendees.map(att => (
-                    <li key={att.Id}>{att.Attendee?.Title}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : <h2>No attendees yet</h2>
-          )}
-
-          {activeTab === 'carpooling' && (
+    <>
+    <img src={headerImg} alt="Header" className={detailsStyles.headerImg} />
+    <div className={detailsStyles.pageWrapper}>
+      <div className={detailsStyles.headerTitleWrapper}>
+        <div className={detailsStyles.headerTitleContainer}>
+          {event ? (
             <>
-              {Object.entries(carpoolOptions).map(([key, label]) => {
-                const group = groupedAttendees[key];
-                return (
-                  <details key={key} className={detailsStyles.carpoolSection}>
-                    <summary>{label} ({group.length})</summary>
-                    <ul>
-                      {group.length > 0 ? (
-                        group.map(att => (
-                          <li key={att.Id}>{att.Attendee?.Title}</li>
-                        ))
-                      ) : (
-                        <li>No attendees in this option</li>
-                      )}
-                    </ul>
-                  </details>
-                );
-              })}
+              <h2>{event.Title}</h2>
+              <p>{formatSingleDate(event.StartTime)}</p>
+              <p>{event.Location}</p>
             </>
+          ) : (
+            <h1>Events</h1>
+          )}
+        </div>
+      </div>
+      <div className={detailsStyles.detailsContainer}>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
+        <div className={detailsStyles.details}>
+          <div className={detailsStyles.tabsContainer}>
+            {event.EventTypes !== 'Custom' ? (
+              <>
+                {(["details", "attendees", "carpooling"] as const).map(tab => (
+                  <p
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`${detailsStyles.panelHeader} ${activeTab === tab ? detailsStyles.activeTab : ""}`}
+                    ref={activeTab === tab ? activeTabRef : null}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </p>
+                ))}
+                <span className={detailsStyles.activeUnderline} style={underlineStyle}></span>
+              </>
+            ) : (
+              <h3 className={`${detailsStyles.panelHeader} ${detailsStyles.activeTab}`}>Details</h3>
+            )}
+          </div>
+
+          <div className={detailsStyles.descriptionContainer}>
+            {activeTab === 'details' && (
+              <div
+                className={detailsStyles.description}
+                dangerouslySetInnerHTML={{ __html: event.Beschrijving }} />
+            )}
+
+            {activeTab === 'attendees' && (
+              allAttendees.length > 0 ? (
+                <div className={detailsStyles.attendeesPanel}>
+                  <ul>
+                    {allAttendees.map(att => (
+                      <li key={att.Id}>{att.Attendee?.Title}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : <h2>No attendees yet</h2>
+            )}
+
+            {activeTab === 'carpooling' && (
+              <>
+                {Object.entries(carpoolOptions).map(([key, label]) => {
+                  const group = groupedAttendees[key];
+                  return (
+                    <details key={key} className={detailsStyles.carpoolSection}>
+                      <summary>{label} ({group.length})</summary>
+                      <ul>
+                        {group.length > 0 ? (
+                          group.map(att => (
+                            <li key={att.Id}>{att.Attendee?.Title} ({att.DepartureFrom})</li>
+                          ))
+                        ) : (
+                          <li>No attendees in this option</li>
+                        )}
+                      </ul>
+                    </details>
+                  );
+                })}
+              </>
+            )}
+
+          </div>
+
+          {notification && (
+            <div className={`${detailsStyles.notification} ${notification.type === 'success' ? detailsStyles.success : detailsStyles.error}`}>
+              {notification.message}
+            </div>
           )}
 
         </div>
 
-        {notification && (
-          <div className={`${detailsStyles.notification} ${notification.type === 'success' ? detailsStyles.success : detailsStyles.error}`}>
-            {notification.message}
+        <aside className={detailsStyles.register}>
+          <div className={detailsStyles.tabsContainer}>
+            <h3 className={detailsStyles.panelHeader}>Register Now</h3>
           </div>
-        )}
 
-      </div>
+          {event.SignupDeadline && (
+            <div className={detailsStyles.signupDeadline}>
+              <div><strong>Registration Deadline: </strong>{formatSingleDate(event.SignupDeadline)}</div>
+            </div>
+          )}
 
-      <aside className={detailsStyles.register}>
-        <div className={detailsStyles.tabsContainer}>
-          <h3 className={detailsStyles.panelHeader}>Register Now</h3>
-        </div>
+          {event.EventTypes === 'Custom' || event.EventTypes === 'Online signup' ? (
+            renderCustomSignup()
+          ) : (
+            showSignupButtons && canSignUp && (
+              <form onSubmit={handleLocalSubmit} className={detailsStyles.inlineForm}>
+                {event.EventTypes === 'Sport' && (
+                  <SportFormFields
+                    shirtSize={formData.shirtSize}
+                    setShirtSize={(value: any) => updateFormData('shirtSize', value)}
+                    disabled={loading} />
+                )}
 
-        {event.SignupDeadline && (
-          <div className={detailsStyles.signupDeadline}>
-            <div><strong>Registration Deadline: </strong>{formatSingleDate(event.SignupDeadline)}</div>
-          </div>
-        )}
+                {event.EventTypes === 'Sinterklaas' && (
+                  <SinterklaasFormFields
+                    amountOfKids={formData.amountOfKids || 0}
+                    setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
+                    kidsData={formData.kidsData || []}
+                    setKidsData={(kidsData: any) => updateFormData('kidsData', kidsData)}
+                    disabled={loading} />
+                )}
 
-        {event.EventTypes === 'Custom' || event.EventTypes === 'Online signup' ? (
-          renderCustomSignup()
-        ) : (
-          showSignupButtons && canSignUp && (
-            <form onSubmit={handleLocalSubmit} className={detailsStyles.inlineForm}>
-              {event.EventTypes === 'Sport' && (
-                <SportFormFields
-                  shirtSize={formData.shirtSize}
-                  setShirtSize={(value: any) => updateFormData('shirtSize', value)}
-                  disabled={loading}
-                />
-              )}
+                {event.EventTypes === 'Family' && (
+                  <FamilyFormFields
+                    amountOfKids={formData.amountOfKids || 0}
+                    setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
+                    ageChild1={formData.ageChild1}
+                    setAgeChild1={(value: any) => updateFormData('ageChild1', value)}
+                    ageChild2={formData.ageChild2}
+                    setAgeChild2={(value: any) => updateFormData('ageChild2', value)}
+                    ageChild3={formData.ageChild3}
+                    setAgeChild3={(value: any) => updateFormData('ageChild3', value)}
+                    disabled={loading} />
+                )}
 
-              {event.EventTypes === 'Sinterklaas' && (
-                <SinterklaasFormFields
-                  amountOfKids={formData.amountOfKids || 0}
-                  setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
-                  kidsData={formData.kidsData || []}
-                  setKidsData={(kidsData: any) => updateFormData('kidsData', kidsData)}
-                  disabled={loading}
-                />
-              )}
+                {event.FoodEvent && (
+                  <FoodFormFields
+                    food={formData.food}
+                    setFood={(value: any) => updateFormData('food', value)}
+                    dietaryPrefs={formData.dietaryPrefs}
+                    setDietaryPrefs={(value: any) => updateFormData('dietaryPrefs', value)}
+                    disabled={loading} />
+                )}
 
-              {event.EventTypes === 'Family' && (
-                <FamilyFormFields
-                  amountOfKids={formData.amountOfKids || 0}
-                  setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
-                  ageChild1={formData.ageChild1}
-                  setAgeChild1={(value: any) => updateFormData('ageChild1', value)}
-                  ageChild2={formData.ageChild2}
-                  setAgeChild2={(value: any) => updateFormData('ageChild2', value)}
-                  ageChild3={formData.ageChild3}
-                  setAgeChild3={(value: any) => updateFormData('ageChild3', value)}
-                  disabled={loading}
-                />
-              )}
+                {event.PlusOne && (
+                  <PlusOneFormFields
+                    plusOne={formData.plusOne}
+                    setPlusOne={(value: any) => updateFormData('plusOne', value)}
+                    dietaryPrefsPlusOne={formData.dietaryPrefsPlusOne}
+                    setDietaryPrefsPlusOne={(value: any) => updateFormData('dietaryPrefsPlusOne', value)}
+                    foodPlusOne={formData.foodPlusOne}
+                    setFoodPlusOne={(value: any) => updateFormData('foodPlusOne', value)}
+                    disabled={loading}
+                    showFoodFields={event.FoodEvent} />
+                )}
 
-              {event.FoodEvent && (
-                <FoodFormFields
-                  food={formData.food}
-                  setFood={(value: any) => updateFormData('food', value)}
-                  dietaryPrefs={formData.dietaryPrefs}
-                  setDietaryPrefs={(value: any) => updateFormData('dietaryPrefs', value)}
-                  disabled={loading}
-                />
-              )}
+                {event.Carpooling && (
+                  <CarpoolingFormFields
+                    carpooling={formData.carpooling}
+                    setCarpooling={(value: any) => updateFormData('carpooling', value)}
+                    departureFrom={formData.departureFrom}
+                    setDepartureFrom={(value: any) => updateFormData('departureFrom', value)}
+                    disabled={loading} />
+                )}
 
-              {event.PlusOne && (
-                <PlusOneFormFields
-                  plusOne={formData.plusOne}
-                  setPlusOne={(value: any) => updateFormData('plusOne', value)}
-                  dietaryPrefsPlusOne={formData.dietaryPrefsPlusOne}
-                  setDietaryPrefsPlusOne={(value: any) => updateFormData('dietaryPrefsPlusOne', value)}
-                  foodPlusOne={formData.foodPlusOne}
-                  setFoodPlusOne={(value: any) => updateFormData('foodPlusOne', value)}
-                  disabled={loading}
-                  showFoodFields={event.FoodEvent}
-                />
-              )}
+                <label>
+                  Extra information
+                  <br />
+                  <textarea
+                    value={formData.extraInfo}
+                    onChange={(e) => updateFormData('extraInfo', e.target.value)}
+                    disabled={loading} />
+                </label>
 
-              {event.Carpooling && (
-                <CarpoolingFormFields
-                  carpooling={formData.carpooling}
-                  setCarpooling={(value: any) => updateFormData('carpooling', value)}
-                  departureFrom={formData.departureFrom}
-                  setDepartureFrom={(value: any) => updateFormData('departureFrom', value)}
-                  disabled={loading}
-                />
-              )}
-
-              <label>
-                Extra information
-                <br/>
-                <textarea
-                  value={formData.extraInfo}
-                  onChange={(e) => updateFormData('extraInfo', e.target.value)}
-                  disabled={loading}
-                />
-              </label>
-
-              <div className={detailsStyles.modalActions}>
+                <div className={detailsStyles.modalActions}>
                   {checkingStatus && <div className={detailsStyles.loading}>Checking signup status...</div>}
                   {!checkingStatus && isSignedUp ? (
                     <button
@@ -353,13 +363,14 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       {loading ? 'Signing up...' : 'Sign up'}
                     </button>
                   )}
-              </div>
-            </form>
-          )
-        )}
-      </aside>
+                </div>
+              </form>
+            )
+          )}
+        </aside>
       </div>
-    </>
+    </div>
+  </>
   );
 };
 
