@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { EventItem } from '../EventsInterfaces';
-import { getSP } from '../components/eventDetails/EventDetails';
+import { getSP } from '../utils/getSP';
 import { KidData } from '../components/form-fields/Sinterklaas/SinterklaasFormInterface';
 
 interface SignupFormData {

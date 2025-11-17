@@ -1,10 +1,8 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { spfi, SPFI } from "@pnp/sp";
-import { SPFx } from "@pnp/sp/presets/all";
+// pnp imports moved to shared util
 import { EventItem } from '../../EventsInterfaces';
-// Inline signup form (previously in SignupModal)
 import { SportFormFields } from '../form-fields/Sport/SportFormField';
 import { FoodFormFields } from '../form-fields/Food/FoodFormFields';
 import { CarpoolingFormFields } from '../form-fields/Carpooling/CarpoolingFormFields';
@@ -14,19 +12,15 @@ import { PlusOneFormFields } from '../form-fields/PlusOne/PlusOneFormFields';
 import { formatSingleDate } from '../../utils/DateUtils';
 import { useEventSignup } from '../../hooks/UseEventSignup';
 import detailsStyles from './EventDetails.module.scss'
-// Attendees modal removed - attendees are shown inline in side panel
 import HeaderComponent from '../header/HeaderComponent';
 
-let sp: SPFI;
-export const getSP = (context: WebPartContext): SPFI => {
-  if (!sp) {
-    sp = spfi(context.pageContext.web.absoluteUrl).using(SPFx(context));
-  }
-  return sp;
-};
+import { getSP } from '../../utils/getSP';
 
 const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack: () => void; }> = ({ context, event, onBack }) => {
   const [allAttendees, setAllAttendees] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'details' | 'attendees' | 'carpooling'>('details');
+  const activeTabRef = useRef<HTMLParagraphElement | null>(null);
+  const [underlineStyle, setUnderlineStyle] = useState<React.CSSProperties>({});
   const [formData, setFormData] = useState<any>({
     extraInfo: '',
     dietaryPrefs: '',
@@ -51,6 +45,18 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     handleSignOut,
     handleSubmit,
   } = useEventSignup(context, event);
+
+  const carpoolOptions = {
+  lift: "I would like someone to give me a lift",
+  drive: "I will drive for my colleagues",
+  none: "Not interested in carpooling",
+  };
+
+  const groupedAttendees: Record<string, any[]> = {
+    lift: allAttendees.filter(a => a.Carpooling === carpoolOptions.lift),
+    drive: allAttendees.filter(a => a.Carpooling === carpoolOptions.drive),
+    none: allAttendees.filter(a => a.Carpooling === carpoolOptions.none),
+  };
 
   // Sign up deadline logic
   const today = new Date();
@@ -90,6 +96,18 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
 
     fetchAttendees();
   }, [context, event]);
+
+  useEffect(() => {
+    if (activeTabRef.current && activeTabRef.current.parentElement) {
+      const rect = activeTabRef.current.getBoundingClientRect();
+      const containerRect = activeTabRef.current.parentElement.getBoundingClientRect();
+
+      setUnderlineStyle({
+        width: rect.width + "px",
+        transform: `translateX(${rect.left - containerRect.left}px)`
+      });
+    }
+  }, [activeTab]);
 
   // Sign up, sign out and deadline logic
   // Signup button logic is incorporated into the side panel form; keep sign-out button rendered in main content when needed
@@ -157,19 +175,67 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
   
   return (
   <>
-    <HeaderComponent/>
+    <HeaderComponent
+      event={event}/>
       <div className={detailsStyles.detailsContainer}>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
       <div className={detailsStyles.details}>
-        <h3 className={detailsStyles.panelHeader}>Details</h3>
+        <div className={detailsStyles.tabsContainer}>
+          {(["details", "attendees", "carpooling"] as const).map(tab => (
+            <p
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`${detailsStyles.panelHeader} ${activeTab === tab ? detailsStyles.activeTab : ""}`}
+              ref={activeTab === tab ? activeTabRef : null}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </p>
+          ))}
+          <span className={detailsStyles.activeUnderline} style={underlineStyle}></span>
+        </div>
 
-        <div style={{margin: '20px'}} className={detailsStyles.descriptionContainer}>
-          {event.Beschrijving && (
+        <div className={detailsStyles.descriptionContainer}>
+          {activeTab === 'details' && (
             <div
-            className={detailsStyles.description}
-            dangerouslySetInnerHTML={{ __html: event.Beschrijving }}
+              className={detailsStyles.description}
+              dangerouslySetInnerHTML={{ __html: event.Beschrijving }}
             />
           )}
+
+          {activeTab === 'attendees' && (
+            allAttendees.length > 0 ? (
+              <div className={detailsStyles.attendeesPanel}>
+                <ul>
+                  {allAttendees.map(att => (
+                    <li key={att.Id}>{att.Attendee?.Title}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : <h2>No attendees yet</h2>
+          )}
+
+          {activeTab === 'carpooling' && (
+            <>
+              {Object.entries(carpoolOptions).map(([key, label]) => {
+                const group = groupedAttendees[key];
+                return (
+                  <details key={key} className={detailsStyles.carpoolSection}>
+                    <summary>{label} ({group.length})</summary>
+                    <ul>
+                      {group.length > 0 ? (
+                        group.map(att => (
+                          <li key={att.Id}>{att.Attendee?.Title}</li>
+                        ))
+                      ) : (
+                        <li>No attendees in this option</li>
+                      )}
+                    </ul>
+                  </details>
+                );
+              })}
+            </>
+          )}
+
         </div>
 
         {notification && (
@@ -181,11 +247,13 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       </div>
 
       <aside className={detailsStyles.register}>
-        <h3 className={detailsStyles.panelHeader}>Register Now</h3>
+        <div className={detailsStyles.tabsContainer}>
+          <h3 className={detailsStyles.panelHeader}>Register Now</h3>
+        </div>
 
         {event.SignupDeadline && (
           <div className={detailsStyles.signupDeadline}>
-            <div><strong>Registration Deadline: </strong>{formatSingleDate(event.SignupDeadline)} at 23:59</div>
+            <div><strong>Registration Deadline: </strong>{formatSingleDate(event.SignupDeadline)}</div>
           </div>
         )}
 
@@ -287,17 +355,6 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
               </div>
             </form>
           )
-        )}
-
-        {allAttendees.length > 0 && (
-          <div className={detailsStyles.attendeesPanel}>
-            <h4>Attendees ({allAttendees.length})</h4>
-            <ul>
-              {allAttendees.map(att => (
-                <li key={att.Id}>{att.Attendee?.Title}</li>
-              ))}
-            </ul>
-          </div>
         )}
       </aside>
       </div>

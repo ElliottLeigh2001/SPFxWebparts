@@ -18,7 +18,7 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
     <div>
       <label>
         Amount of kids *
-        <br />
+        
         <select
           value={amountOfKids}
           onChange={(e) => setAmountOfKids(Number(e.target.value))}

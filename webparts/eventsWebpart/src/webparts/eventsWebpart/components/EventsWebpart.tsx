@@ -4,7 +4,7 @@ import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
 import styles from "./EventsWebpart.module.scss";
 import EventDetails from "./eventDetails/EventDetails";
 import { EventItem, IEventsWebpartProps } from "../EventsInterfaces";
-import { formatSingleDate } from "../utils/DateUtils";
+import { formatSingleDate, getDateRange } from "../utils/DateUtils";
 import HeaderComponent from "./header/HeaderComponent";
 
 const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
@@ -15,10 +15,10 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [isAdminOrMember, setIsAdminOrMember] = useState(false);
   const [filters, setFilters] = useState<string[]>([]);
-  const [startDateFilter, setStartDateFilter] = useState<Date>();
-  const [endDateFilter, setEndDateFilter] = useState<Date>();
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(8);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       }
     };
 
-    updateItemsPerPage(); // run on mount
+    updateItemsPerPage();
 
     window.addEventListener("resize", updateItemsPerPage);
     return () => window.removeEventListener("resize", updateItemsPerPage);
@@ -51,6 +51,13 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     "Sport": "Sport",
     "No signup": "No signup",
     "Custom": "Others"
+  };
+
+  const dateRanges: Record<string, string> = {
+    today: "Today",
+    thisWeek: "This week",
+    nextWeek: "Next week",
+    thisMonth: "This month"
   };
 
   // Gets the groups of the logged in user
@@ -110,27 +117,21 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       filtered = filtered.filter(item => item.Title?.toLowerCase().includes(q));
     }
 
-
-    // Date range filtering
-    // Compare the event's StartTime to the date range
-    // Shows all events that start on/after the startDate and on/before the endDate
-    if (startDateFilter || endDateFilter) {
-      const start = startDateFilter ? startDateFilter : new Date(-8640000000000000);
-      // For end date, set to end of day to make it inclusive (hence the 8640000000000000)
-      const end = endDateFilter
-        ? new Date(endDateFilter.getFullYear(), endDateFilter.getMonth(), endDateFilter.getDate(), 23, 59, 59, 999)
-        : new Date(8640000000000000);
-
-      filtered = filtered.filter(item => {
-        const eventStart = new Date(item.StartTime);
-        return eventStart >= start && eventStart <= end;
-      });
+    // Date range dropdown filtering
+    if (dateRangeFilter) {
+      const range = getDateRange(dateRangeFilter);
+      if (range) {
+        filtered = filtered.filter(item => {
+          const eventStart = new Date(item.StartTime);
+          return eventStart >= range.start && eventStart <= range.end;
+        });
+      }
     }
 
     setItems(filtered);
     // Reset pagination index to prevent bugginess
     setCurrentIndex(0);
-  }, [filters, startDateFilter, endDateFilter, allItems, searchQuery]);
+  }, [filters, dateRangeFilter, allItems, searchQuery]);
 
   // Get events and user data once on mount
   useEffect(() => {
@@ -241,9 +242,9 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
               <div className={styles.dropdown}>
                 <button
                   className={styles.dropdownToggle}
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  onClick={() => {setTypeDropdownOpen(!typeDropdownOpen); setDateDropdownOpen(false);}}
                 >
-                  <span>Event Types</span>
+                  <span>Category</span>
                   <svg
                     className={styles.arrow}
                     fill="#b1b0b0"
@@ -255,7 +256,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                   </svg>
                 </button>
 
-                {dropdownOpen && (
+                {typeDropdownOpen && (
                   <div className={styles.dropdownMenu}>
                     {Object.entries(eventTypes).map(([key, label]) => (
                       <label key={key} className={styles.dropdownItem}>
@@ -271,46 +272,49 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                 )}
               </div>
 
-              <div className={styles.dateInputs}>
-                <input
-                  type="date"
-                  value={
-                    startDateFilter
-                    ? `${startDateFilter.getFullYear()}-${String(
-                          startDateFilter.getMonth() + 1
-                        ).padStart(2, "0")}-${String(startDateFilter.getDate()).padStart(
-                          2,
-                          "0"
-                          )}`
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setStartDateFilter(
-                      e.target.value ? new Date(e.target.value + "T00:00:00") : undefined
-                    )
-                  }
-                  className={styles.dateInput}
-                />
-                <input
-                  type="date"
-                  value={
-                    endDateFilter
-                    ? `${endDateFilter.getFullYear()}-${String(
-                      endDateFilter.getMonth() + 1
-                    ).padStart(2, "0")}-${String(endDateFilter.getDate()).padStart(
-                      2,
-                      "0"
-                      )}`
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setEndDateFilter(
-                      e.target.value ? new Date(e.target.value + "T00:00:00") : undefined
-                    )
-                  }
-                  className={styles.dateInput}
-                />
+              <div className={styles.dropdown}>
+                <button
+                  className={styles.dropdownToggle}
+                  onClick={() => {setDateDropdownOpen(!dateDropdownOpen); setTypeDropdownOpen(false);}}
+                >
+                  <span>
+                    {dateRangeFilter ? dateRanges[dateRangeFilter] : "Date range"}
+                  </span>
+                  <svg
+                    className={styles.arrow}
+                    fill="#b1b0b0"
+                    viewBox="0 0 30.727 30.727"
+                  >
+                    <path d="M29.994,10.183L15.363,24.812L0.733,10.184c-0.977-0.978-0.977-2.561,0-3.536
+                    c0.977-0.977,2.559-0.976,3.536,0l11.095,11.093L26.461,6.647
+                    c0.977-0.976,2.559-0.976,3.535,0C30.971,7.624,30.971,9.206,29.994,10.183z" />
+                  </svg>
+                </button>
+
+                {dateDropdownOpen && (
+                  <div className={styles.dropdownMenu}>
+                    {Object.entries(dateRanges).map(([key, label]) => (
+                      <label
+                        key={key}
+                        className={styles.dropdownItem}
+                        onClick={() => {
+                          setDateRangeFilter(key);
+                          setDateDropdownOpen(false);
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="date-range"
+                          checked={dateRangeFilter === key}
+                          readOnly
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
+
             </div>
 
             <div className={styles.rightFilters}>
@@ -336,8 +340,8 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                 className={styles.clearFilters}
                 onClick={() => {
                   setFilters([]);
-                  setStartDateFilter(undefined);
-                  setEndDateFilter(undefined);
+                  setSearchQuery("");
+                  setDateRangeFilter("");
                 }}
               >
                 Clear All

@@ -27,7 +27,7 @@ export const SportFormFields: React.FC<SportFormFieldsProps> = ({
       {hasShirt && (
         <label>
           Shirt size *
-          <br />
+          
           <select
             value={shirtSize}
             onChange={(e) => setShirtSize(e.target.value)}

@@ -2,18 +2,30 @@
 .headerTitleWrapper {
   width: 96%;
   justify-self: center;
-  height: 73px;
   background-color: #eaf5f5;
-  margin-bottom: 5rem;
   transform: translateY(-50px);
 }
 
 .headerTitleContainer {
   padding: 12px 20px;
 
-  p {
+  h1 {
     margin: 0;
     font-size: 32px;
+    font-weight: 600;
+    color: #1c4145;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1c4145;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
     font-weight: 600;
     color: #1c4145;
   }

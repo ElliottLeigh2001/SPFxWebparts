@@ -45,7 +45,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
     <div>
       <label>
         Amount of kids *
-        <br />
+        
         <select
           value={amountOfKids}
           onChange={(e) => setAmountOfKids(Number(e.target.value))}
@@ -73,11 +73,11 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
               required
             />
           </label>
-          <br />
+          
 
           <label>
             Present / Donation *
-            <br />
+            
             <select
               value={kid.presentChoice}
               onChange={(e) => updateKidData(index, 'presentChoice', e.target.value as 'present' | 'donation')}
@@ -89,7 +89,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
               <option value="donation">Donation</option>
             </select>
           </label>
-          <br />
+          
             <label>
             Present option 1 *
             <input
@@ -101,7 +101,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
                 required
             />
             </label>
-            <br />
+            
 
             <label>
             Present option 2
@@ -113,7 +113,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
                 className={styles.textInput}
             />
             </label>
-            <br />
+            
 
             <label>
             Present option 3

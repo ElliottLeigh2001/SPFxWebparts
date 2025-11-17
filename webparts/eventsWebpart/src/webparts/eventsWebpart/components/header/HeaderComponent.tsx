@@ -2,6 +2,7 @@ import React from "react";
 import headerImg from "../../assets/headerImg.jpg";
 import styles from "./HeaderComponent.module.scss"
 import { HeaderProps } from "./HeaderComponentInterface";
+import { formatSingleDate } from "../../utils/DateUtils";
 
 const HeaderComponent: React.FC<HeaderProps> = ({event}) => {
     return (
@@ -11,12 +12,12 @@ const HeaderComponent: React.FC<HeaderProps> = ({event}) => {
             <div className={styles.headerTitleContainer}>
             {event ? (
                 <>
-                    <p>{event.Title}</p>
-                    <p>heigh test</p>
-                    <p>height tststs</p>
+                    <h2>{event.Title}</h2>
+                    <p>{formatSingleDate(event.StartTime)}</p>
+                    <p>{event.Location}</p>
                 </>
             ) : (
-                <p>Events</p>
+                <h1>Events</h1>
             )}
             </div>
         </div>
