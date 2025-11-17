@@ -1,7 +1,6 @@
 import * as React from 'react';
 import styles from '../../EventsWebpart.module.scss';
 import { KidData, SinterklaasFormFieldsProps } from './SinterklaasFormInterface';
-import sinterklaasStyles from './Sinterklaas.module.scss'
 
 export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
   amountOfKids,
@@ -45,7 +44,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
     <div>
       <label>
         Amount of kids *
-        
+        <br/>
         <select
           value={amountOfKids}
           onChange={(e) => setAmountOfKids(Number(e.target.value))}
@@ -59,11 +58,12 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
       </label>
 
       {kidsData.map((kid, index) => (
-        <div key={index} className={sinterklaasStyles.kidContainer}>
+        <div key={index}>
           <h4>Child {index + 1}</h4>
           
           <label>
             Name child *
+            <br/>
             <input
               type="text"
               value={kid.nameChild}
@@ -73,11 +73,11 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
               required
             />
           </label>
-          
+          <br/>
 
           <label>
             Present / Donation *
-            
+            <br/>
             <select
               value={kid.presentChoice}
               onChange={(e) => updateKidData(index, 'presentChoice', e.target.value as 'present' | 'donation')}
@@ -89,42 +89,46 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
               <option value="donation">Donation</option>
             </select>
           </label>
-          
-            <label>
-            Present option 1 *
-            <input
-                type="text"
-                value={kid.presentOption1}
-                onChange={(e) => updateKidData(index, 'presentOption1', e.target.value)}
-                disabled={disabled}
-                className={styles.textInput}
-                required
-            />
-            </label>
-            
+          <br/>
 
-            <label>
-            Present option 2
-            <input
-                type="text"
-                value={kid.presentOption2}
-                onChange={(e) => updateKidData(index, 'presentOption2', e.target.value)}
-                disabled={disabled}
-                className={styles.textInput}
-            />
-            </label>
+          <label>
+          Present option 1 *
+          <br/>
+          <input
+              type="text"
+              value={kid.presentOption1}
+              onChange={(e) => updateKidData(index, 'presentOption1', e.target.value)}
+              disabled={disabled}
+              className={styles.textInput}
+              required
+          />
+          </label>
+          <br/>
             
-
-            <label>
-            Present option 3
-            <input
-                type="text"
-                value={kid.presentOption3}
-                onChange={(e) => updateKidData(index, 'presentOption3', e.target.value)}
-                disabled={disabled}
-                className={styles.textInput}
-            />
-            </label>
+          <label>
+          Present option 2
+          <br/>
+          <input
+              type="text"
+              value={kid.presentOption2}
+              onChange={(e) => updateKidData(index, 'presentOption2', e.target.value)}
+              disabled={disabled}
+              className={styles.textInput}
+          />
+          </label>
+          <br/>
+            
+          <label>
+          Present option 3
+          <br/>
+          <input
+              type="text"
+              value={kid.presentOption3}
+              onChange={(e) => updateKidData(index, 'presentOption3', e.target.value)}
+              disabled={disabled}
+              className={styles.textInput}
+          />
+          </label>
         </div>
       ))}
     </div>

@@ -329,6 +329,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
 
               <label>
                 Extra information
+                <br/>
                 <textarea
                   value={formData.extraInfo}
                   onChange={(e) => updateFormData('extraInfo', e.target.value)}

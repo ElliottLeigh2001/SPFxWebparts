@@ -17,6 +17,7 @@ export const PlusOneFormFields: React.FC<PlusOneFormFieldsProps> = ({
     <div className={styles.checkboxContainer}>
       <label>
         Are you bringing a +1?
+
         <input
           type="checkbox"
           id="plus-one"

@@ -130,6 +130,17 @@
   }
 }
 
+.textInput {
+  margin-bottom: 10px;
+  margin-top: 6px;
+  border-radius: 3px;
+  width: 90%;
+  border: 1px solid #b1b0b0;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 0;
+}
+
 .searchInput {
   background: transparent;
   color: #b1b0b0;
@@ -377,9 +388,6 @@ select, textarea {
   border: 1px solid #b1b0b0;
   font-family: inherit;
   font-size: 14px;
-}
-
-textarea {
   padding: 0;
 }
 
@@ -405,13 +413,6 @@ select {
   transform: translateY(5px);
   accent-color: rgb(47, 129, 131);
   cursor: pointer;
-}
-
-.textInput {
-  width: 100%;
-  border-radius: 3px;
-  margin-top: 4px;
-  border: 1px solid #b1b0b0;
 }
 
 @keyframes fadeInOut {

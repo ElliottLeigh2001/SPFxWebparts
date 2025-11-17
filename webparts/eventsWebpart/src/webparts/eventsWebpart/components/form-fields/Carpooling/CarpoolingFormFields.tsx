@@ -12,7 +12,8 @@ export const CarpoolingFormFields: React.FC<CarpoolingFormFieldsProps> = ({
   <>
     <label>
       Carpooling *
-      
+      <br/>
+    
       <select
         value={carpooling}
         onChange={(e) => setCarpooling(e.target.value)}
@@ -29,6 +30,7 @@ export const CarpoolingFormFields: React.FC<CarpoolingFormFieldsProps> = ({
       <>
         <label>
           Departure from *
+          <br/>
           <input
             type="text"
             value={departureFrom}

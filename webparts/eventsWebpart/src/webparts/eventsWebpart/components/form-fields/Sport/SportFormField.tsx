@@ -14,6 +14,7 @@ export const SportFormFields: React.FC<SportFormFieldsProps> = ({
       <div className={styles.checkboxContainer}>
         <label htmlFor="shirt">
           Do you need an AmeXio sport shirt?
+
           <input
             type="checkbox"
             id="shirt"
@@ -27,7 +28,7 @@ export const SportFormFields: React.FC<SportFormFieldsProps> = ({
       {hasShirt && (
         <label>
           Shirt size *
-          
+          <br/>
           <select
             value={shirtSize}
             onChange={(e) => setShirtSize(e.target.value)}
