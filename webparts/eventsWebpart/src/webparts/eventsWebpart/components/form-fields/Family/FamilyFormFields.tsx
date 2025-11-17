@@ -1,7 +1,6 @@
 import * as React from 'react';
 import styles from '../../EventsWebpart.module.scss';
 import { FamilyFormFieldsProps } from './FamilyFormInterface';
-import familyStyles from './FamilyForm.module.scss'
 
 export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
   amountOfKids,
@@ -32,7 +31,7 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
       </label>
 
       {amountOfKids >= 1 && (
-        <div className={familyStyles.kidAges}>
+        <div>
           <div>
             <label>
               Age child 1 *
@@ -43,8 +42,8 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
                 disabled={disabled}
                 className={styles.textInput}
                 required
-                pattern="[0-9]*" // Optional: only allow numbers
-                inputMode="numeric" // Shows numeric keyboard on mobile
+                pattern="[0-9]*"
+                inputMode="numeric"
               />
             </label>
           </div>

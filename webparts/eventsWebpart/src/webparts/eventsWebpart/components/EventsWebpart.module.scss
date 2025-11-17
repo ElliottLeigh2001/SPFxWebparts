@@ -313,6 +313,7 @@
   cursor: pointer;
   height: 40px;
   width: 80px;
+  background: transparent;
 
   &:hover {
   background-color: #b1b0b098;
@@ -372,7 +373,7 @@ select, textarea {
   margin-bottom: 10px;
   margin-top: 6px;
   border-radius: 3px;
-  width: 100%;
+  width: 90%;
   border: 1px solid #b1b0b0;
   font-family: inherit;
   font-size: 14px;
@@ -409,7 +410,6 @@ select {
 .textInput {
   width: 100%;
   border-radius: 3px;
-  margin-bottom: 10px;
   margin-top: 4px;
   border: 1px solid #b1b0b0;
 }
