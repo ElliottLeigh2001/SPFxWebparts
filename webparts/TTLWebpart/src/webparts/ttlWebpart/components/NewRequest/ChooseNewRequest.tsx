@@ -43,32 +43,34 @@ const ChooseNewRequest: React.FC<NewRequestProps> = ({ context, onSave, onCancel
   }
 
   return (
-    <div style={{position: 'relative'}} className={`${styles.ttlForm} ${newRequestStyles.chooseContainer}`}>
-      <div className={newRequestStyles.formHeader}>
-        <button style={{position: 'absolute', top:'10px', left: '10px'}} onClick={onCancel} className={styles.stdButton}>Back</button>
-        <h2>Which type of request would you like to make?</h2>
-      </div>
+    <div style={{position: 'relative'}} className={styles.ttlForm}>
+      <h2 style={{textAlign: 'center'}}>Which type of request would you like to make?</h2>
+      <div className={newRequestStyles.chooseContainer}>
+        <div className={newRequestStyles.formHeader}>
+          <button style={{position: 'absolute', top:'37px', left: '33px'}} onClick={onCancel} className={styles.stdButton}>Back</button>
+        </div>
 
-      <div className={newRequestStyles.chooseGrid}>
-        <button
-          className={`${newRequestStyles.chooseRequestButton}`}
-          style={{ backgroundImage: `url(${softwareImg})` }}
-          onClick={() => setShowSoftware(true)}
-        >
-          <div className={newRequestStyles.overlay}>
-            <h3>Software License</h3>
-          </div>
-        </button>
+        <div className={newRequestStyles.chooseGrid}>
+          <button
+            className={`${newRequestStyles.chooseRequestButton}`}
+            style={{ backgroundImage: `url(${softwareImg})` }}
+            onClick={() => setShowSoftware(true)}
+          >
+            <div className={newRequestStyles.overlay}>
+              <h3>Software License</h3>
+            </div>
+          </button>
 
-        <button
-          className={`${newRequestStyles.chooseRequestButton}`}
-          style={{ backgroundImage: `url(${trainingImg})` }}
-          onClick={() => setShowTrainingTravel(true)}
-        >
-          <div className={newRequestStyles.overlay}>
-            <h3>Training / Travel</h3>
-          </div>
-        </button>
+          <button
+            className={`${newRequestStyles.chooseRequestButton}`}
+            style={{ backgroundImage: `url(${trainingImg})` }}
+            onClick={() => setShowTrainingTravel(true)}
+          >
+            <div className={newRequestStyles.overlay}>
+              <h3>Training / Travel</h3>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );

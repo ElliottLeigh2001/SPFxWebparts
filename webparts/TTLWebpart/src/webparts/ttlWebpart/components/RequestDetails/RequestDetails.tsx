@@ -267,11 +267,11 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   const closeModal = (): void => {
     setShowAddModal(false);
     setActiveForm(null);
+    setEditingRequest(false);
 
     setTimeout(() => {
       setActiveFormName(null);
       setEditingItem(undefined);
-      setEditingRequest(false);
     }, 1000)
   };
 

@@ -211,7 +211,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
           </div>
 
           {!isReturnJourney && !initialData && (
-            <div style={{ marginTop: '20px', padding: '10px' }}>
+            <div style={{ marginTop: '20px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <input 

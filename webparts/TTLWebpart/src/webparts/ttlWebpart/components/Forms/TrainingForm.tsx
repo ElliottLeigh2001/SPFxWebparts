@@ -186,7 +186,7 @@ const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextF
             <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px' }} className={linkError ? styles.invalid : ''}/>
             {linkError && <div className={styles.validationError}>{linkError}</div>}
           </div>
-          <div style={{ marginTop: '20px', padding: '10px' }}>
+          <div style={{ marginTop: '20px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input 
                 type="checkbox" 

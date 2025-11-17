@@ -5,7 +5,6 @@
 .detailsHeader {
   background-color: white;
   padding: 20px;
-  border-radius: 8px;
   position: relative;
   display: flex;
   align-items: center;
@@ -55,7 +54,6 @@
   padding: 20px;
   gap: 20px;
   background-color: white;
-  border-radius: 8px;
   border: 1px solid #e9ecef;
   margin: 0 20px;
   
@@ -124,7 +122,6 @@
   max-width: 80%;
   max-height: 90vh;
   background: white;
-  border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -135,7 +132,6 @@
   padding: 16px 20px;
   border-bottom: 1px solid #e1e1e1;
   background: #f8f9fa;
-  border-radius: 8px 8px 0 0;
 }
 
 .modalHeader h3 {
@@ -269,7 +265,6 @@
   right: 0;
   background: white;
   border: 1px solid #e1e1e1;
-  border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   padding: 12px 16px;
   z-index: 10;
@@ -367,7 +362,7 @@
 .requestCard,
 .softwareRequestCard {
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -457,7 +452,7 @@
   height: 232px;
   border: 2px dashed #ccc;
   color: #666;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   font-size: 3rem;
   display: flex;
