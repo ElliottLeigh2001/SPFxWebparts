@@ -20,6 +20,8 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [showMyEvents, setShowMyEvents] = useState(false);
+  const [myEventIds, setMyEventIds] = useState<number[]>([]);
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -91,6 +93,29 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     const data = await response.json();
     return data.value as EventItem[];
   };
+  
+    // Fetch subscriptions for current user
+    const getMySubscriptions = async (): Promise<number[]> => {
+      // get current user's ID
+      const currentUserId = context.pageContext.legacyPageContext.userId;
+      // call the Subscriptions list
+      const subsResponse: SPHttpClientResponse = await context.spHttpClient.get(
+        `${context.pageContext.web.absoluteUrl}/_api/web/lists/GetByTitle('Subscriptions')/items?` +
+          `$select=EventId,Attendee/Id&$expand=Attendee&$filter=Attendee/Id eq ${currentUserId}`,
+        SPHttpClient.configurations.v1
+      );
+      const subsData = await subsResponse.json();
+      const subs: any[] = subsData.value;
+  
+      // extract the event IDs
+      const eventIds = subs
+        .map((s) => {
+          // Note: we assume EventId is the lookup id for the Event
+          return s.EventId as number;
+        })
+        .filter((id) => id != null);
+      return eventIds;
+    };
 
   // Add an event type to filter on
   const addFilter = (name: string) => {
@@ -103,25 +128,38 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     );
   };
 
-  // Apply filters whenever they change
+  // Apply filters whenever they change or when myEventIds changes
   useEffect(() => {
     let filtered = [...allItems];
 
-    // Event type filters (if any)
+    // event-type filters
     if (filters.length > 0) {
-      filtered = filtered.filter(item => filters.includes((item.EventTypes || "").toString()));
+      filtered = filtered.filter((item) =>
+        filters.includes((item.EventTypes || "").toString())
+      );
     }
 
+    // search query
     if (searchQuery.trim() !== "") {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => item.Title?.toLowerCase().includes(q));
+      filtered = filtered.filter((item) =>
+        item.Title?.toLowerCase().includes(q) ||
+        item.Beschrijving?.toLowerCase().includes(q) 
+      );
     }
 
-    // Date range dropdown filtering
+    // ** My events filter **
+    if (showMyEvents) {
+      filtered = filtered.filter((item) =>
+        myEventIds.includes(item.Id!)
+      );
+    }
+
+    // Date range filter
     if (dateRangeFilter) {
       const range = getDateRange(dateRangeFilter);
       if (range) {
-        filtered = filtered.filter(item => {
+        filtered = filtered.filter((item) => {
           const eventStart = new Date(item.StartTime);
           return eventStart >= range.start && eventStart <= range.end;
         });
@@ -129,47 +167,38 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     }
 
     setItems(filtered);
-    // Reset pagination index to prevent bugginess
     setCurrentIndex(0);
-  }, [filters, dateRangeFilter, allItems, searchQuery]);
+  }, [filters, dateRangeFilter, allItems, searchQuery, showMyEvents, myEventIds]);
 
-  // Get events and user data once on mount
+  // On mount: fetch events, user groups, and subscriptions
   useEffect(() => {
     (async () => {
       await getUserGroups();
-
       try {
         const listItems = await getListData();
         const now = new Date();
-
-        // Include events that end any time before the END of their EndTime day
         const upcoming = listItems.filter((item) => {
           const end = new Date(item.EndTime);
           const endOfDay = new Date(end);
-          endOfDay.setHours(23, 59, 59, 999); // set to 23:59:59.999
+          endOfDay.setHours(23, 59, 59, 999);
           return endOfDay > now;
         });
-
         setAllItems(upcoming);
+
+        // ** load subscriptions only if showMyEvents is true or anyway, depends on UX -->
+        const eventIds = await getMySubscriptions();
+        setMyEventIds(eventIds);
+
+        // Initially, items = all (unless showMyEvents is true, then the effect above will re-filter)
         setItems(upcoming);
-
-        // If URL contains eventId → open event directly
-        const params = new URLSearchParams(window.location.search);
-        const eventId = params.get("eventId");
-
-        if (eventId) {
-          const selected = upcoming.find(
-            (e) => e.Id === parseInt(eventId)
-          );
-          if (selected) setSelectedEvent(selected);
-        }
       } catch (err) {
-        console.error("Error fetching events:", err);
+        console.error("Error fetching events or subscriptions:", err);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
+
 
   // Handle browser back button
   useEffect(() => {
@@ -229,11 +258,9 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
 
   return (
     <>
-    <div className={styles.headerContainer}>
+    <div className={styles.mainContainer}>
       <HeaderComponent/>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=search" />
-      <div className={styles.pageHeader}>
-    </div>
 
       <div className={styles.layout}>
         <div className={styles.filtersContainer}>
@@ -243,13 +270,13 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                 <button
                   className={styles.dropdownToggle}
                   onClick={() => {setTypeDropdownOpen(!typeDropdownOpen); setDateDropdownOpen(false);}}
-                >
+                  >
                   <span>Category</span>
                   <svg
                     className={styles.arrow}
                     fill="#b1b0b0"
                     viewBox="0 0 30.727 30.727"
-                  >
+                    >
                     <path d="M29.994,10.183L15.363,24.812L0.733,10.184c-0.977-0.978-0.977-2.561,0-3.536
                       c0.977-0.977,2.559-0.976,3.536,0l11.095,11.093L26.461,6.647
                       c0.977-0.976,2.559-0.976,3.535,0C30.971,7.624,30.971,9.206,29.994,10.183z" />
@@ -276,7 +303,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                 <button
                   className={styles.dropdownToggle}
                   onClick={() => {setDateDropdownOpen(!dateDropdownOpen); setTypeDropdownOpen(false);}}
-                >
+                  >
                   <span>
                     {dateRangeFilter ? dateRanges[dateRangeFilter] : "Date range"}
                   </span>
@@ -284,7 +311,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                     className={styles.arrow}
                     fill="#b1b0b0"
                     viewBox="0 0 30.727 30.727"
-                  >
+                    >
                     <path d="M29.994,10.183L15.363,24.812L0.733,10.184c-0.977-0.978-0.977-2.561,0-3.536
                     c0.977-0.977,2.559-0.976,3.536,0l11.095,11.093L26.461,6.647
                     c0.977-0.976,2.559-0.976,3.535,0C30.971,7.624,30.971,9.206,29.994,10.183z" />
@@ -295,24 +322,39 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                   <div className={styles.dropdownMenu}>
                     {Object.entries(dateRanges).map(([key, label]) => (
                       <label
-                        key={key}
-                        className={styles.dropdownItem}
-                        onClick={() => {
-                          setDateRangeFilter(key);
-                          setDateDropdownOpen(false);
-                        }}
+                      key={key}
+                      className={styles.dropdownItem}
+                      onClick={() => {
+                        setDateRangeFilter(key);
+                        setDateDropdownOpen(false);
+                      }}
                       >
                         <input
                           type="radio"
                           name="date-range"
                           checked={dateRangeFilter === key}
                           readOnly
-                        />
+                          />
                         {label}
                       </label>
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className={styles.myEvents}>
+                <label>My Events
+                  <input 
+                    type="checkbox" 
+                    id="myEvents"
+                    style={{transform: 'translateY(4px)'}} 
+                    checked={showMyEvents}
+                    onChange={(e) => {
+                    const checked = e.target.checked;
+                    setShowMyEvents(checked);
+                    }}
+                  />
+                </label>
               </div>
 
             </div>
@@ -324,7 +366,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="#b1b0b0"
-                >
+                  >
                 <path d="M21.707 20.293l-4.823-4.823A7.931 7.931 0 0018 10a8 8 0 10-8 8 7.931 7.931 0 005.47-1.116l4.823 4.823a1 1 0 001.414-1.414zM4 10a6 6 0 1112 0 6 6 0 01-12 0z"/>
               </svg>
                 <input
@@ -333,7 +375,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={styles.searchInput}
-                />
+                  />
               </div>
 
               <button
@@ -342,6 +384,9 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                   setFilters([]);
                   setSearchQuery("");
                   setDateRangeFilter("");
+                  setShowMyEvents(false);
+                  setDateDropdownOpen(false);
+                  setTypeDropdownOpen(false);
                 }}
               >
                 Clear All
@@ -352,11 +397,13 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       </div>
 
         {isAdminOrMember && (
-          <p onClick={goToAddPage} className={styles.addButton}>
-            + Add event
-          </p>
+          <div style={{width: '96%', justifySelf: 'center'}}>
+            <p onClick={goToAddPage} className={styles.addButton}>
+              + Add event
+            </p>
+          </div>
         )}
-        
+
         <main className={styles.mainContent}>
           {items.length > itemsPerPage && (
             <div className={styles.carouselControls}>
@@ -368,6 +415,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
             </div>
           )}
 
+          
           {items.length > 0 ? (
             <div className={styles.eventViewport}>
               <div
@@ -424,7 +472,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
             </div>
           ) : (
             <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-              {filters.length > 0 ? (
+              {(filters.length > 0 || searchQuery !== null) ? (
                 <h3>There are no events that meet the filter criteria</h3>
               ) : (
                 <h3>There are no upcoming events</h3>

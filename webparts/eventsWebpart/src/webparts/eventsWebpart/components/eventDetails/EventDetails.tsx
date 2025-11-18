@@ -273,111 +273,116 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
 
         </div>
 
-        <aside className={detailsStyles.register}>
-          <div className={detailsStyles.tabsContainer}>
-            <h3 className={detailsStyles.panelHeader}>Register Now</h3>
-          </div>
-
-          {event.SignupDeadline && (
-            <div className={detailsStyles.signupDeadline}>
-              <div><strong>Registration Deadline: </strong>{formatSingleDate(event.SignupDeadline)}</div>
+        {event.EventTypes !== 'No signup' && (
+          <aside className={detailsStyles.register}>
+            <div className={detailsStyles.tabsContainer}>
+              <h3 className={detailsStyles.panelHeader}>Register Now</h3>
             </div>
-          )}
 
-          {event.EventTypes === 'Custom' || event.EventTypes === 'Online signup' ? (
-            renderCustomSignup()
-          ) : (
-            showSignupButtons && canSignUp && (
-              <form onSubmit={handleLocalSubmit} className={detailsStyles.inlineForm}>
-                {event.EventTypes === 'Sport' && (
-                  <SportFormFields
-                    shirtSize={formData.shirtSize}
-                    setShirtSize={(value: any) => updateFormData('shirtSize', value)}
-                    disabled={loading} />
-                )}
+            {event.SignupDeadline && (
+              <div className={detailsStyles.signupDeadline}>
+                <div><strong>Registration Deadline: </strong>{formatSingleDate(event.SignupDeadline)}</div>
+              </div>
+            )}
 
-                {event.EventTypes === 'Sinterklaas' && (
-                  <SinterklaasFormFields
-                    amountOfKids={formData.amountOfKids || 0}
-                    setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
-                    kidsData={formData.kidsData || []}
-                    setKidsData={(kidsData: any) => updateFormData('kidsData', kidsData)}
-                    disabled={loading} />
-                )}
-
-                {event.EventTypes === 'Family' && (
-                  <FamilyFormFields
-                    amountOfKids={formData.amountOfKids || 0}
-                    setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
-                    ageChild1={formData.ageChild1}
-                    setAgeChild1={(value: any) => updateFormData('ageChild1', value)}
-                    ageChild2={formData.ageChild2}
-                    setAgeChild2={(value: any) => updateFormData('ageChild2', value)}
-                    ageChild3={formData.ageChild3}
-                    setAgeChild3={(value: any) => updateFormData('ageChild3', value)}
-                    disabled={loading} />
-                )}
-
-                {event.FoodEvent && (
-                  <FoodFormFields
-                    food={formData.food}
-                    setFood={(value: any) => updateFormData('food', value)}
-                    dietaryPrefs={formData.dietaryPrefs}
-                    setDietaryPrefs={(value: any) => updateFormData('dietaryPrefs', value)}
-                    disabled={loading} />
-                )}
-
-                {event.PlusOne && (
-                  <PlusOneFormFields
-                    plusOne={formData.plusOne}
-                    setPlusOne={(value: any) => updateFormData('plusOne', value)}
-                    dietaryPrefsPlusOne={formData.dietaryPrefsPlusOne}
-                    setDietaryPrefsPlusOne={(value: any) => updateFormData('dietaryPrefsPlusOne', value)}
-                    foodPlusOne={formData.foodPlusOne}
-                    setFoodPlusOne={(value: any) => updateFormData('foodPlusOne', value)}
-                    disabled={loading}
-                    showFoodFields={event.FoodEvent} />
-                )}
-
-                {event.Carpooling && (
-                  <CarpoolingFormFields
-                    carpooling={formData.carpooling}
-                    setCarpooling={(value: any) => updateFormData('carpooling', value)}
-                    departureFrom={formData.departureFrom}
-                    setDepartureFrom={(value: any) => updateFormData('departureFrom', value)}
-                    disabled={loading} />
-                )}
-
-                <label>
-                  Extra information
-                  <br />
-                  <textarea
-                    value={formData.extraInfo}
-                    onChange={(e) => updateFormData('extraInfo', e.target.value)}
-                    disabled={loading} />
-                </label>
-
-                <div className={detailsStyles.modalActions}>
-                  {checkingStatus && <div className={detailsStyles.loading}>Checking signup status...</div>}
-                  {!checkingStatus && isSignedUp ? (
-                    <button
-                      className={detailsStyles.signOutButton}
-                      onClick={handleSignOut}
-                      disabled={loading}
-                      style={!event.SignupDeadline ? { marginTop: '20px' } : {}}
-                    >
-                      {loading ? 'Signing Out...' : 'Sign Out'}
-                    </button>
-                  ) : (
-                    <button type="submit" className={detailsStyles.submitButton} disabled={loading}>
-                      {loading ? 'Signing up...' : 'Sign up'}
-                    </button>
+            {event.EventTypes === 'Custom' || event.EventTypes === 'Online signup' ? (
+              renderCustomSignup()
+            ) : (
+              showSignupButtons && canSignUp && (
+                <form onSubmit={handleLocalSubmit} className={detailsStyles.inlineForm}>
+                  {event.EventTypes === 'Sport' && (
+                    <SportFormFields
+                      shirtSize={formData.shirtSize}
+                      setShirtSize={(value: any) => updateFormData('shirtSize', value)}
+                      disabled={loading} />
                   )}
-                </div>
-              </form>
-            )
-          )}
-        </aside>
+
+                  {event.EventTypes === 'Sinterklaas' && (
+                    <SinterklaasFormFields
+                      amountOfKids={formData.amountOfKids || 0}
+                      setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
+                      kidsData={formData.kidsData || []}
+                      setKidsData={(kidsData: any) => updateFormData('kidsData', kidsData)}
+                      disabled={loading} />
+                  )}
+
+                  {event.EventTypes === 'Family' && (
+                    <FamilyFormFields
+                      amountOfKids={formData.amountOfKids || 0}
+                      setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
+                      ageChild1={formData.ageChild1}
+                      setAgeChild1={(value: any) => updateFormData('ageChild1', value)}
+                      ageChild2={formData.ageChild2}
+                      setAgeChild2={(value: any) => updateFormData('ageChild2', value)}
+                      ageChild3={formData.ageChild3}
+                      setAgeChild3={(value: any) => updateFormData('ageChild3', value)}
+                      disabled={loading} />
+                  )}
+
+                  {event.FoodEvent && (
+                    <FoodFormFields
+                      food={formData.food}
+                      setFood={(value: any) => updateFormData('food', value)}
+                      dietaryPrefs={formData.dietaryPrefs}
+                      setDietaryPrefs={(value: any) => updateFormData('dietaryPrefs', value)}
+                      disabled={loading} />
+                  )}
+
+                  {event.PlusOne && (
+                    <PlusOneFormFields
+                      plusOne={formData.plusOne}
+                      setPlusOne={(value: any) => updateFormData('plusOne', value)}
+                      dietaryPrefsPlusOne={formData.dietaryPrefsPlusOne}
+                      setDietaryPrefsPlusOne={(value: any) => updateFormData('dietaryPrefsPlusOne', value)}
+                      foodPlusOne={formData.foodPlusOne}
+                      setFoodPlusOne={(value: any) => updateFormData('foodPlusOne', value)}
+                      disabled={loading}
+                      showFoodFields={event.FoodEvent} />
+                  )}
+
+                  {event.Carpooling && (
+                    <CarpoolingFormFields
+                      carpooling={formData.carpooling}
+                      setCarpooling={(value: any) => updateFormData('carpooling', value)}
+                      departureFrom={formData.departureFrom}
+                      setDepartureFrom={(value: any) => updateFormData('departureFrom', value)}
+                      disabled={loading} />
+                  )}
+
+                  <label>
+                    Extra information
+                    <br />
+                    <textarea
+                      value={formData.extraInfo}
+                      onChange={(e) => updateFormData('extraInfo', e.target.value)}
+                      disabled={loading} />
+                  </label>
+
+                  <div className={detailsStyles.modalActions}>
+                    {!checkingStatus && (
+                    <>
+                      {isSignedUp ? (
+                        <button
+                          className={detailsStyles.signOutButton}
+                          onClick={handleSignOut}
+                          disabled={loading}
+                          style={!event.SignupDeadline ? { marginTop: '20px' } : {}}
+                        >
+                          {loading ? 'Signing Out...' : 'Sign Out'}
+                        </button>
+                      ) : (
+                        <button type="submit" className={detailsStyles.submitButton} disabled={loading}>
+                          {loading ? 'Signing up...' : 'Sign up'}
+                        </button>
+                      )}
+                    </>
+                    )}
+                  </div>
+                </form>
+              )
+            )}
+          </aside>
+        )}
       </div>
     </div>
   </>
