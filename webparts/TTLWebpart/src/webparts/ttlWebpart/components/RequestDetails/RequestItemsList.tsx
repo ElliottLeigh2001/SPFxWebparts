@@ -27,6 +27,16 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
         return spfi(context.pageContext.web.absoluteUrl).using(SPFx(context));
     };
 
+    const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {
+        if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
+            return '/';
+        }
+
+        const people = usersLicense.map(user => user.Title);
+
+        return people.join(', ');
+    };
+
     const getTypeIcon = (type: string): string => {
         const typeMap: { [key: string]: string } = {
             'Software': 'fa-solid fa-computer fa-lg',
@@ -242,6 +252,12 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                                 <div className={requestDetailsStyles.fieldGroup}>
                                     <span className={requestDetailsStyles.fieldLabel}>License Type:</span>
                                     <span className={requestDetailsStyles.fieldValue}>{item.LicenseType}</span>
+                                </div>
+                            )}
+                            {item.UsersLicense && item.UsersLicense.length > 0 && (
+                                <div className={requestDetailsStyles.fieldGroup}>
+                                <span className={requestDetailsStyles.fieldLabel}>Users:</span>
+                                <span className={requestDetailsStyles.fieldValue}>{getUsersLicenseDisplay(item.UsersLicense)}</span>
                                 </div>
                             )}
                         </>
