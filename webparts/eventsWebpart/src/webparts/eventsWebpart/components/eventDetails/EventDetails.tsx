@@ -193,18 +193,28 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
         <div className={detailsStyles.details}>
           <div className={detailsStyles.tabsContainer}>
-            {event.EventTypes !== 'Custom' ? (
+            {(event.EventTypes !== 'Custom' && event.EventTypes !== 'No signup') ? (
               <>
-                {(["details", "attendees", "carpooling"] as const).map(tab => (
+                <p
+                  onClick={() => setActiveTab("details")}
+                  className={`${detailsStyles.panelHeader} ${activeTab === 'details' ? detailsStyles.activeTab : ""}`}
+                  ref={activeTab === 'details' ? activeTabRef : null}
+                >
+                  Details</p>
+                <p
+                  onClick={() => setActiveTab("attendees")}
+                  className={`${detailsStyles.panelHeader} ${activeTab === 'attendees' ? detailsStyles.activeTab : ""}`}
+                  ref={activeTab === 'attendees' ? activeTabRef : null}
+                >
+                  Attendees</p>
+                {event.Carpooling && (
                   <p
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`${detailsStyles.panelHeader} ${activeTab === tab ? detailsStyles.activeTab : ""}`}
-                    ref={activeTab === tab ? activeTabRef : null}
+                    onClick={() => setActiveTab("carpooling")}
+                    className={`${detailsStyles.panelHeader} ${activeTab === 'carpooling' ? detailsStyles.activeTab : ""}`}
+                    ref={activeTab === 'carpooling' ? activeTabRef : null}
                   >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </p>
-                ))}
+                    Carpooling</p>
+                )}
                 <span className={detailsStyles.activeUnderline} style={underlineStyle}></span>
               </>
             ) : (
@@ -241,7 +251,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       <ul>
                         {group.length > 0 ? (
                           group.map(att => (
-                            <li key={att.Id}>{att.Attendee?.Title} ({att.DepartureFrom})</li>
+                            <li key={att.Id}>{att.Attendee?.Title} {att.DepartureFrom ? `(${att.DepartureFrom})` : ''}</li>
                           ))
                         ) : (
                           <li>No attendees in this option</li>
