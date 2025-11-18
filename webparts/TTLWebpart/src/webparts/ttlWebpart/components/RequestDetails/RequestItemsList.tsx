@@ -6,7 +6,6 @@ import { formatDate } from '../../Helpers/HelperFunctions';
 import { RequestItemsListProps } from './RequestDetailsProps';
 import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
 import { SPFI, spfi, SPFx } from "@pnp/sp";
-import { useEffect } from 'react';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
@@ -48,10 +47,6 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
         return colorMap[type] || '#f5f5f5';
     };
 
-    useEffect(() => {
-      console.log(items)
-    }, [items])
-
     // Upload and associate document with request item 
     const onFilePickerSave = async (filePickerResult: IFilePickerResult[], requestItemId: number) => {
       if (!filePickerResult?.length || !context) return;
@@ -67,8 +62,6 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
           const uploadResult: any = await sp.web
             .getFolderByServerRelativePath("TTL_Documents")
             .files.addUsingPath(fileName, fileContent, { Overwrite: true });
-
-          console.log(uploadResult)
 
           // uploadResult *contains* file metadata (see your console log),
           // but it may not contain PnPjs methods. Get server relative url from it:
@@ -109,7 +102,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
             }),
             docList.items.getById(documentItemId).update({
               RequestItemIDId: requestItemId,
-              url: `${context?.pageContext.web.absoluteUrl}/_layouts/15/Doc.aspx?sourcedoc={${uploadResult.UniqueId}}&file=${encodeURIComponent(uploadResult.Name)}&action=default&mobileredirect=true`
+              url: `${uploadResult.UniqueId}`
             }),
           ]);
 
@@ -119,8 +112,43 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
       }
     };
 
+    const downloadFile = async (item: UserRequestItem) => {
+        const sp = getSP(context);
+        
+        // rawUrl = GUID string
+        const fileId = await getDocumentUrlForRequestItem(context!, item.ID!);
+        if (!fileId) {
+            console.error("No file ID found");
+            return;
+        }
+
+        // file metadata (contains Name and ServerRelativeUrl)
+        const file = sp.web.getFileById(fileId);
+        const fileInfo = await file.select("Name")();
+
+        const fileName = fileInfo?.Name || "download";
+
+        // Get file binary
+        const blob = await file.getBlob();
+
+        // Create blob URL
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Trigger download with correct filename
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = fileName;
+        a.click();
+
+        // Cleanup
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+    };
+
+
     const renderItemCard = (item: UserRequestItem) => {
         return (
+            <>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
             <div
                 key={item.ID}
                 className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareRequestCard : requestDetailsStyles.requestCard}
@@ -132,7 +160,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                         <h3>{item.Title}</h3>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '30px' }}>
                         {showActions && (
                             <div className={requestDetailsStyles.cardActions}>
                                 <i className="fa fa-pencil" onClick={() => onEdit(item)} />
@@ -142,12 +170,14 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                             </div>
                         )}
 
+                    <div className={requestDetailsStyles.actionButtons}>
                         {request.RequestStatus === 'Completed' && (
-                            <>
+                            <button className={requestDetailsStyles.iconButtonDocument} title="Upload Document">
+                                <i className="fa fa-upload" aria-hidden="true"></i>
+
                                 <FilePicker
                                     context={context as any}
-                                    buttonLabel="Upload Document"
-                                    accepts={[".pdf", ".docx", ".xlsx", ".msg"]}
+                                    accepts={[".pdf", ".docx", ".xlsx", ".msg", ".eml", ".jpg", "png"]}
                                     onSave={(files) => onFilePickerSave(files, item.ID!)}
                                     hideSiteFilesTab={true}
                                     hideStockImages={true}
@@ -160,26 +190,28 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                                     hideRecentTab={true}
                                     buttonIcon="FileAdd"
                                 />
-                            </>
+                            </button>
                         )}
 
                         {item.DocumentID?.Id && (
-                          <button
-                            title="Preview Document"
-                            onClick={async () => {
-                              try {
-                                const url = await getDocumentUrlForRequestItem(context!, item.ID!)
+                            <button
+                                className={requestDetailsStyles.iconButtonDocument}
+                                title="Download Document"
+                                onClick={async () => {
+                                    try {
+                                        downloadFile(item);
 
-                                window.open(url!);
-                              } catch (err) {
-                                console.error("Error fetching document metadata:", err);
-                                alert("Could not open document preview.");
-                              }
-                            }}
-                          >
-                            <i className="fa-solid fa-eye"></i>
-                          </button>
+                                    } catch (err) {
+                                    console.error('Error downloading document:', err);
+                                    }
+                                }}
+                                >
+                                <i className="fa-solid fa-download"></i>
+                                </button>
+
                         )}
+                    </div>
+
 
                     </div>
                 </div>
@@ -248,6 +280,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                     )}
                 </div>
             </div>
+        </>
         );
     };
 

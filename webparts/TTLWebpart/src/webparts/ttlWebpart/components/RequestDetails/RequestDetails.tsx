@@ -40,7 +40,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   const [changedByHR, setChangedByHR] = useState(false);
 
   useEffect(() => {
-    console.log(items)
     setDisplayedItems(items || []);
   }, [items]);
 

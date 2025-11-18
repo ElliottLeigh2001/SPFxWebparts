@@ -172,7 +172,6 @@ export const getDocumentUrlForRequestItem = async (
   return docItem?.url || null;
 };
 
-
 // Create a request item in the TTL_RequestItem list
 export const createRequestItem = async (context: WebPartContext, item: UserRequestItem): Promise<number> => {
     const sp = getSP(context);

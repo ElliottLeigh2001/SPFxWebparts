@@ -338,6 +338,49 @@
   }
 }
 
+.actionButtons {
+  display: flex;
+  align-items: center;
+}
+
+.iconButtonDocument {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  width: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    color: rgb(47, 129, 131);
+  }
+}
+
+.iconButtonDocument i {
+  pointer-events: none;
+  z-index: 2;
+  font-size: 18px;
+}
+
+:global(button[class*="pnp__file-picker__button"]) {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  opacity: 0 !important;
+  z-index: 9999 !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .requestCardsContainer {
   padding: 20px;
 }
