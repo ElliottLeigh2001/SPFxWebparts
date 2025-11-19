@@ -29,6 +29,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating
     setActiveForm(null);
   };
 
+  // Render a form based on the chosen item 
   const renderFormSelection = (): JSX.Element => (
     <div className={requestDetailsStyles.modalBody}>
       <div className={requestDetailsStyles.formSelection}>

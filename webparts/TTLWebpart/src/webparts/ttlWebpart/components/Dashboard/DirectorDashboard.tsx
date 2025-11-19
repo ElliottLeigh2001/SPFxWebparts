@@ -14,13 +14,16 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Get requests data from SharePoint
   const fetchRequests = async (requestId?: number): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
 
+      // Get requests with certain statusses
       const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval' or RequestStatus eq 'Awaiting CEO approval')")
 
+      // Only show requests where the total cost exceeds 5000 euro
       const filteredCEORequests = requestData
         .filter((req) => Number(req.TotalCost) > 5000 && !req.ApprovedByCEO)
       setRequests(filteredCEORequests as UserRequest[])

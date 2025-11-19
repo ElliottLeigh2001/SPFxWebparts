@@ -147,7 +147,7 @@ export const getRequestItemsByRequestId = async (context: WebPartContext, reques
     return items;
 };
 
-export const getDocumentUrlForRequestItem = async (
+export const getDocumentGuidForRequestItem = async (
   context: WebPartContext, 
   requestItemId: number
 ): Promise<string | null> => {

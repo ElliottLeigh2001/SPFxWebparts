@@ -24,6 +24,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
   const [includeAccommodation, setIncludeAccommodation] = useState(false);
   const [includeReturnJourney, setIncludeReturnJourney] = useState(false);
   
+  // Form validation
   const validate = (): boolean => {
     let valid = true;
 
@@ -102,6 +103,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
     return valid;
   };
 
+  // If HR is editing the item, only the cost can be changed (so only validate the cost)
   const validateHR = (): boolean => {
     let valid = true;
 

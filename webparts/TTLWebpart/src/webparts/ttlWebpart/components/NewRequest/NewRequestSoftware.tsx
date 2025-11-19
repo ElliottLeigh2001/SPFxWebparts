@@ -28,8 +28,6 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'save' | 'send' | 'discard' | null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
-
-  // Software Details State
   const [name, setName] = useState('');
   const [provider, setProvider] = useState('');
   const [cost, setCost] = useState('');
@@ -63,6 +61,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
     loadData();
   }, []);
 
+  // Form validation
   const validate = (): boolean => {
     let valid = true;
 
@@ -149,9 +148,12 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
     return valid;
   };
 
+  // On submit, create new items
   const handleSave = async (type: string) => {
+    // Check validation
     if (!validate()) return;
 
+    // Calculate the yearly cost of a software license based on license type, how many people need the license etc.
     const calculatedCost = calculateSoftwareLicenseCost({Cost: Number(cost), Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense})
 
     let totalCost = Number(cost);
@@ -159,6 +161,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
     setIsSaving(true);
     setError(null);
 
+    // Create the request with the software request item
     try {
       const createdId = await createRequestWithItems(
         context,
@@ -185,6 +188,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
         type
       );
 
+      // If sending for approval, trigger the Automate flow
       if (type === 'Sent for approval') {
         const approverData = await getApproverById(context, Number(approver));
         const approverEmail = approverData?.TeamMember?.EMail;
@@ -196,11 +200,14 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
           title,
           approver: approverEmail,
           approverTitle,
-          author: loggedInUser.Email,
-          totalCost: totalCost.toString()
+          authorEmail: loggedInUser.Email,
+          authorName: loggedInUser.Title,
+          totalCost: totalCost.toString(),
+          typeOfRequest: 'Software License'
         });
       }
 
+      // Clear form and errors
       setTitle('');
       setGoal('');
       setProject('');
@@ -224,6 +231,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
     }
   };
 
+  // Function for adding users to the userslicense based on the peoplepicker
   const handleUsersChange = (items: any[]) => {
     const users = items.map(user => ({
       id: user.id,

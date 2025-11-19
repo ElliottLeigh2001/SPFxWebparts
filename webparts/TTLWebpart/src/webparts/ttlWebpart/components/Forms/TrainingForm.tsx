@@ -24,6 +24,7 @@ const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextF
   const [isLoading, setIsLoading] = useState(false)
   const [includeTravel, setIncludeTravel] = useState(false);
 
+  // Form validation
   const validate = (): boolean => {
     let valid = true;
     
@@ -97,6 +98,7 @@ const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextF
     return valid;
   };
 
+  // If HR is editing the item, only the cost can be changed (so only validate the cost)
   const validateHR = (): boolean => {
     let valid = true;
 

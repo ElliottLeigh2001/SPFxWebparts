@@ -22,6 +22,7 @@ const AccommodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData,
   const [endDateError, setEndDateError] = useState('');
   const [isLoading, setIsLoading] = useState(false)
 
+  // Form validation
   const validate = (): boolean => {
     let valid = true;
     
@@ -95,16 +96,17 @@ const AccommodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData,
     return valid;
   };
 
-const validateHR = (): boolean => {
-  let valid = true;
+  // If HR is editing the item, only the cost can be changed (so only validate the cost)
+  const validateHR = (): boolean => {
+    let valid = true;
 
-  const costValidation = validateCost(cost);
-    if (!costValidation.isValid) {
-      setCostError(costValidation.error);
-      valid = false;
-    }
-    return valid;
-}
+    const costValidation = validateCost(cost);
+      if (!costValidation.isValid) {
+        setCostError(costValidation.error);
+        valid = false;
+      }
+      return valid;
+  }
 
   const handleSave = (): void => {
     if (isLoading) return;

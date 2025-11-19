@@ -37,6 +37,7 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
     const [nextItemId, setNextItemId] = useState(1);
     const [isReturnJourney, setIsReturnJourney] = useState(false);
 
+    // Get approvers and teams from SharePoint
     useEffect(() => {
         const getApproversandTeams = async (): Promise<void> => {
             const approversWithoutCEO = approvers.filter(app => app.TeamMember)
@@ -47,6 +48,7 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
         getApproversandTeams();
     }, [])
 
+    // Form validation (empty fields, max characters)
     const validate = (): boolean => {
         let isValid = true;
 
@@ -85,44 +87,57 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
         return isValid;
     };
 
+    // Function for adding a request item to the request
     const addItem = (item: UserRequestItem): void => {
         const newItem = {
             ...item,
             ID: nextItemId
         };
+        // Reflect change in the UI
         setItems(prev => [...prev, newItem]);
         setNextItemId(prev => prev + 1);
         setActiveForm(null);
     };
 
+    // Function for updating a request item
     const updateItem = (updatedItem: UserRequestItem): void => {
+        // Reflect change in the UI
         setItems(prev => prev.map(item => 
             item.ID === updatedItem.ID ? updatedItem : item
         ));
+        // Close the modal
         setEditingItem(undefined);
         setActiveForm(null);
     };
 
+    // Function for setting a certain request item for editing
     const editItem = async (index: number): Promise<void> => {
+        // Get the item on index
         const item = items[index];
+        // Open the editing modal
         setEditingItem(item);
+        // Set the form based on which type of item it is (training, travel...)
         setActiveForm(item.RequestType?.toLowerCase() as any);
     };
 
+    // Remove a request item from the list
     const removeItem = (index: number): void => {
         setItems(prev => prev.filter((_, i) => i !== index));
     };
 
+    // On submit of the request, save it
     const handleSave = async (type: string): Promise<void> => {
+        // Check validation
         if (!validate()) return;
+        // For calculating the cost
         let totalCost = 0;
         setIsSaving(true);
         setError(null);
         setTitleError('');
         setGoalError('');
-        
+        // Calculate total cost of all items
         totalCost = costSum();
-        
+        // Create the request with its items
         try {
             const requestId = await createRequestWithItems(context, { 
                 Title: title, 
@@ -133,11 +148,12 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
                 TotalCost: totalCost
             }, items, type);
 
+            // If you are sending for approval (not saving), trigger the Automate flow
             if (type === 'Sent for approval') {
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.TeamMember?.EMail;
                 const approverTitle = approverData.TeamMember?.Title;
-                sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, author: loggedInUser.Email, totalCost: totalCost.toString() });
+                sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, authorEmail: loggedInUser.Email, authorName: loggedInUser.Title, totalCost: totalCost.toString(), typeOfRequest: 'Training / Travel'});
             }
             
             // Call the parent's onSave to refresh the dashboard
@@ -151,6 +167,7 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
         }
     };
 
+    // Close all modals
     const closeModal = (): void => {
         setEditingItem(undefined);
         setActiveFormName(null);
@@ -158,7 +175,9 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
         setIsReturnJourney(false);
     };
 
+    // Function for handling different types of form submits
     const handleFormSave = (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>): void => {
+        // Update or add item based on if you are editing
         if (editingItem) {
             updateItem({ ...item, ID: editingItem.ID });
         } else {
@@ -166,6 +185,7 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
         }
 
         // If there are next forms in the sequence, open the first one
+        // This is based on if one or more of the checkboxes are selected in a training or travel form
         if (nextForms && nextForms.length > 0) {
             const nextForm = nextForms[0];
 
@@ -200,6 +220,7 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
         }
     };
 
+    // Set the modal title based on type and edit/add
     const getModalTitle = (): string => {
         if (editingItem) {
             return `Edit ${activeFormName}`;
@@ -210,6 +231,7 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
         return `Add ${activeFormName}`;
     };
 
+    // Function for calculating the total cost of all request items
     const costSum = (): number => {
         let totalCost = 0;
 

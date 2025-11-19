@@ -96,6 +96,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
     fetchData();
   }, [context]);
 
+  // Handle a click on a request
   const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
     try {
       setIsLoading(true);

@@ -38,11 +38,24 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
+  const [typeOfRequest, setTypeOfRequest] = useState('');
 
+  // Set the items to display after an update, deletion, add...
   useEffect(() => {
     setDisplayedItems(items || []);
   }, [items]);
 
+  // Check if the request is of ype software or training/travel
+  // This state is used in the Power Automate flow
+  useEffect(() => {
+    if (items[0].RequestType === 'Software') {
+      setTypeOfRequest('Software License');
+    } else {
+      setTypeOfRequest('Training / Travel')
+    }
+  }, []);
+
+  // If the request was changed by HR, set the state accordingly
   useEffect(() => {
     setDisplayedRequest(request);
     const changed = sessionStorage.getItem(`changedByHR${request.ID}`) === "true";
@@ -55,6 +68,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     setActiveFormName(item.RequestType?.toLowerCase() as any);
   };
 
+  // Function to add a requestitem to a request
   const handleAddItem = async (newItem: UserRequestItem): Promise<void> => {
     setIsAdding(true);
     setActionError(null);
@@ -86,13 +100,14 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     }
   };
 
-  // Approve request function
+  // Function for changing the request status
   const updateRequestApprover = async (type: string, updateApprovedByCEO?: boolean): Promise<void> => {
     if (!request.ID) return;
     
     setIsUpdatingStatus(true);
     setStatusActionError(null);
 
+    // If the request is sent for approval for the first time, set the submissionDate
     let submissionDate: any;
     if (type === "Sent for approval") {
       submissionDate = new Date();
@@ -101,6 +116,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     }
     
     try {
+      // Send the API call so update the status
       await updateRequestStatus(context, request.ID, type, submissionDate, updateApprovedByCEO);
       
       // Show success message or update local state
@@ -136,11 +152,15 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     setActionError(null);
 
     try {
+      // Send the API call to update the request item
       await updateRequestItem(context, editingItem.ID, updatedItem);
 
       // If in HR view and cost was changed, mark as changed by HR
       if (view === 'HR' && updatedItem.Cost !== editingItem.Cost?.toString()) {
         setChangedByHR(true);
+        // Store changedByHR for this request in the sessionStorage
+        // Requests with this can be sent for reapproval by HR
+        // It's stored here so it's maintained between refreshes
         sessionStorage.setItem(`changedByHR${request.ID}`, "true")
       }
 
@@ -169,6 +189,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     }
   };
 
+  // Function to handle updates to the request (not the items in the request)
   const handleUpdateRequest = async (updatedRequest: UserRequest): Promise<void> => {
     if (!request.ID) return;
 
@@ -176,6 +197,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     setActionError(null);
 
     try {
+      // Send the API call to update the request
       await updateRequest(context, request.ID, updatedRequest);
       // Update local displayed request so UI updates immediately
       setDisplayedRequest(prev => ({ ...prev, ...updatedRequest }));
@@ -190,6 +212,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     }
   };
 
+
+  // Function for deleting an entire request with its linked requestitems
   const handleDeleteRequest = async (): Promise<void> => {
     if (!request.ID) return;
 
@@ -197,7 +221,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     setActionError(null);
 
     try {
+      // Get all request items linked to the request
       const itemIds = items.filter(item => item.ID).map(item => item.ID!) as number[];
+      // Send an API call to delete the request with its items
       await deleteRequestWithItems(context, request.ID, itemIds);
       
       // Navigate back after successful deletion and refresh parent component
@@ -210,6 +236,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     }
   };
 
+  // Function for adding comments to a request
+  // commentText is the text that is filled into the texarea in the confirmActionDialog
   const handleAddComment = async (commentText: string) => {
     if (!commentText.trim()) return;
 
@@ -219,6 +247,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         Body: commentText,
       };
 
+      // Send API call to add the comment
       await createComment(context, comment, request.ID);
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -238,10 +267,11 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     setIsDeleting(true);
     setActionError(null);
     try {
+      // Send API call to delete the request item
       await deleteRequestItem(context, selectedItemToDelete.ID!);
       // Remove from list in this component to reflect action in UI
       setDisplayedItems(prev => prev.filter(i => i.ID !== selectedItemToDelete.ID));
-      // Recalculate and persist total cost
+      // Recalculate total cost
       try {
         const rid = (displayedRequest && (displayedRequest.ID || (displayedRequest as any).Id)) || (request && (request.ID || (request as any).Id));
         if (rid) {
@@ -263,6 +293,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     }
   }
 
+  // Close all modals when exiting out of one
   const closeModal = (): void => {
     setShowAddModal(false);
     setActiveForm(null);
@@ -417,56 +448,91 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
               if (!confirmAction) return;
               setConfirmProcessing(true);
               try {
+                  // If a request is approved
                   if (confirmAction === 'approve') {
+                    // Add comment to request if there is one
                     if (comment) {
                       await handleAddComment(comment)
                     }
+                    // If the approver is the director (or CEO)
                     if (isCEO) {
+                      // If the approver has already approved
                       if (request.RequestStatus === 'Awaiting CEO approval') {
+                        // Send to HR
                         await updateRequestApprover('In process by HR', true);
-                        await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
+                        // Send an email to HR to notify them that they need to approve next
+                        await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
+                        // If the approver has not yet approved, don't send to HR yet, but set the approvedByCEO column to true
                       } else if (request.RequestStatus === 'Sent for approval') {
                         await updateRequestApprover('Sent for approval', true);
+                        // Do the same for reapprovals
                       } else if (request.RequestStatus === 'Needs reapproval') {
                         await updateRequestApprover('Needs reapproval', true)
                       }
                     }
+                    // If the approver is a practice lead
                     else if (view === 'approvers') {
+                      // Define nextStatus used to determine the next status 
+                      // based on price or is the director has already approved
                       let nextStatus;
+                      // If the total cost exceeds 5000 euro (so director approval is needed)
                       if (Number(request.TotalCost) > 5000) {
+                        // If the director has already approved, send to HR, otherwise wait for director approval
                         nextStatus = request.ApprovedByCEO ? 'In process by HR' : 'Awaiting CEO approval';
                       } else {
+                        // If no director approval needed, just send straight to HR
                         nextStatus = 'In process by HR'
                       }
+                      // Update status
                       await updateRequestApprover(nextStatus);
                       
+                      // Send an email to HR to notify them that they need to approve next
                       if (nextStatus === 'In process by HR') {
-                        await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
+                        await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest,})
                       } 
                     }
+                    // If the approver is HR and they approve, set status to booking
                     else if (view === 'HR') {
                       await updateRequestApprover('Booking')
                     }
                   } 
+                  // If a request is denied
                   else if (confirmAction === 'deny') {
+                    // Update status
                     await updateRequestApprover('Declined');
+                    // Add comment (it's required upon denial)
                     await handleAddComment(comment!)
-                    await sendEmail({emailType: "deny", title: request.Title, author: request.Author?.EMail, comment: comment})
+                    // Inform requester that their request has been denied
+                    await sendEmail({emailType: "deny", title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, comment: comment, typeOfRequest: typeOfRequest})
                   }
+                  // When the requester sends their request for approval
                   else if (confirmAction === 'send') {
+                    // Update status
                     await updateRequestApprover('Sent for approval')
+                    // Get data from the approver so it can be included in the email
                     const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
                     const approverEmail = approverData?.TeamMember?.EMail;
                     const approverTitle = approverData?.TeamMember?.Title;
-                    await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, author: request.Author?.EMail, approver: approverEmail, approverTitle: approverTitle, });
+                    // Send an email to the approver, HR and director if the price exceeds 5000 euro (handled by Power Automate flow)
+                    await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
                   }
+                  // If the request is sent for reapproval by HR
                   else if (confirmAction === 'reapprove') {
+                    // Add comment (it's required upon reapproval)
                     await handleAddComment(comment!)
+                    // Update status
                     await updateRequestApprover('Needs reapproval', false)
+                    // Get data from the approver so it can be included in the email
+                    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
+                    const approverEmail = approverData?.TeamMember?.EMail;
+                    const approverTitle = approverData?.TeamMember?.Title;
+                    // Send email to approver that they need to reapprove the request
+                    await sendEmail({ emailType: "reapprove", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
                   }
+                  // If HR had booked the request and marked it as completed
                   else if (confirmAction === 'completed') {
+                    // Update status
                     await updateRequestApprover('Completed')
-                    await sendEmail({emailType: 'approved', title: request.Title, author: request.Author?.EMail, approver: request.ApproverID?.Title})
                   }
                 } finally {
                   setConfirmProcessing(false);

@@ -28,11 +28,13 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [isHR, setIsHR] = useState(false);
   const [isApprover, setIsApprover] = useState(false);
 
+  // Get data from SharePoint lists
   const fetchData = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
 
+      // Get user request data, the logged in user, all approvers and check if the user is a member of HR
       const [requestData, user, approvers, HR] = await Promise.all([
         getRequestsData(context, "Id desc"),
         getLoggedInUser(context),
@@ -40,16 +42,22 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         checkHR(context)
       ]);
 
+      // Filter requests to only show requests from the logged in user
       const filteredRequests = requestData.filter(req => req.Author?.Id === user?.Id);
       setRequests(filteredRequests as UserRequest[]);
       setLoggedInUser(user);
 
+      // Filter list on only approvers
       const _approvers = approvers.filter(app => app.TeamMember);
+      // Get the director from the approvers list
       const boss = approvers.filter(app => app.CEO);
 
+      // Check if the user is an approver
       setIsApprover(_approvers.some(app => app.TeamMember.EMail === user?.Email))
       setAllApprovers(_approvers);
+      // Check if the user is the director
       setIsCEO(boss.some(boss => boss.CEO.EMail === user?.Email));
+      // Check if the person is from HR
       setIsHR(HR);
 
     } catch (error) {
@@ -186,15 +194,18 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     }
   }, [requests]);
 
+  // Fetch data again on a trigger
   useEffect(() => {
     fetchData();
   }, [context, refreshTrigger]);
 
+  // Function to handle clicks on a request
   const handleRequestClick = async (request: UserRequest) => {
     try {
       setIsLoading(true);
       setError(null);
 
+      // Get all request items associated with a request and set them as a state
       const items = await getRequestItemsByRequestId(context, request.ID);
       setRequestItems(items);
       setSelectedRequest(request);
@@ -215,6 +226,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     }
   };
 
+  // On back, reset states
   const handleBackClick = () => {
     setSelectedRequest(null);
     setRequestItems([]);
@@ -236,6 +248,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     window.history.pushState({}, "", window.location.pathname);
   };
 
+  // Set states based on which view is clicked (approvers, HR, director, new)
   const handleViewClick = (view: string) => {
     setSelectedRequest(null);
     setRequestItems([]);
@@ -244,6 +257,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     setShowHRDashboard(false);
     setShowDirectorDashboard(false)
     
+    // how the respective screens
     switch(view) {
       case 'new':
         setNewRequest(true);
@@ -258,6 +272,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         setShowDirectorDashboard(true);
         break;
     }
+    // Push the url to include the appropriate view
     window.history.pushState({}, "", `?view=${view}`);
   }
 

@@ -21,6 +21,7 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
   const [projectError, setProjectError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  // Get data 
   useEffect(() => {
     const loadData = async (): Promise<void> => {
       try {
@@ -39,46 +40,48 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
     loadData();
   }, [context]);
 
-    const validate = (): boolean => {
-        let isValid = true;
+  // Form validation (empty fields, max character length)
+  const validate = (): boolean => {
+      let isValid = true;
 
-        setTitleError('');
-        setGoalError('');
-        setProjectError('');
-        setTeamError('');
-        setApproverError('');
+      setTitleError('');
+      setGoalError('');
+      setProjectError('');
+      setTeamError('');
+      setApproverError('');
 
-        if (!title.trim()) {
-            setTitleError('Title is required');
-            isValid = false;
-        } 
-        
-        if (!goal.trim()) {
-            setGoalError('Goal is required');
-            isValid = false;
-        }
-        if (!team) {
-            setTeamError('Please select a team');
-            isValid = false;
-        }
-        if (!approver) {
-            setApproverError('Please select an approver');
-            isValid = false;
-        }
-        
-        if (title.length > 255) {
-            setTitleError('Max length of title is 255 characters')
-            isValid = false;
-        }
+      if (!title.trim()) {
+          setTitleError('Title is required');
+          isValid = false;
+      } 
+      
+      if (!goal.trim()) {
+          setGoalError('Goal is required');
+          isValid = false;
+      }
+      if (!team) {
+          setTeamError('Please select a team');
+          isValid = false;
+      }
+      if (!approver) {
+          setApproverError('Please select an approver');
+          isValid = false;
+      }
+      
+      if (title.length > 255) {
+          setTitleError('Max length of title is 255 characters')
+          isValid = false;
+      }
 
-        if (project.length > 255) {
-            setProjectError('Max length of title is 255 characters')
-            isValid = false;
-        }
-        
-        return isValid;
-    };
+      if (project.length > 255) {
+          setProjectError('Max length of title is 255 characters')
+          isValid = false;
+      }
+      
+      return isValid;
+  };
 
+  // On submit, update the request
   const handleSave = (): void => {
     if (!validate()) return;
 

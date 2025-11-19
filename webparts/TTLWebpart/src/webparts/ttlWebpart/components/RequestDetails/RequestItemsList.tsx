@@ -10,7 +10,7 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/files";
-import { getDocumentUrlForRequestItem } from '../../service/TTLService';
+import { getDocumentGuidForRequestItem } from '../../service/TTLService';
 
 const RequestItemsList: React.FC<RequestItemsListProps> = ({
     items,
@@ -23,10 +23,12 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
     context,
 }) => {
 
+    // Function for making API calls to SharePoint
     const getSP = (context: any): SPFI => {
         return spfi(context.pageContext.web.absoluteUrl).using(SPFx(context));
     };
 
+    // Parse UsersLicense to show all users in a single string
     const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {
         if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
             return '/';
@@ -37,6 +39,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
         return people.join(', ');
     };
 
+    // Based on the type of request item, show a different icon
     const getTypeIcon = (type: string): string => {
         const typeMap: { [key: string]: string } = {
             'Software': 'fa-solid fa-computer fa-lg',
@@ -47,6 +50,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
         return typeMap[type] || 'fa-solid fa-question';
     };
 
+    // Based on the type of request item, give it a different colour
     const getRequestTypeColor = (type: string): string => {
         const colorMap: { [key: string]: string } = {
             'Software': '#e3f2fd',
@@ -73,25 +77,26 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
             .getFolderByServerRelativePath("TTL_Documents")
             .files.addUsingPath(fileName, fileContent, { Overwrite: true });
 
-          // uploadResult *contains* file metadata (see your console log),
+          // uploadResult *contains* file metadatal,
           // but it may not contain PnPjs methods. Get server relative url from it:
           const serverRelativeUrl: string = uploadResult?.ServerRelativeUrl || null;
 
           // Now ask PnPjs for a file object that has the helper methods
           const fileObj = sp.web.getFileByServerRelativePath(serverRelativeUrl);
 
-          // Try to get the list item for the file. Sometimes the list item is not immediately available,
-          // so we attempt a few retries with small delays.
+          // Try to get the list item for the file 
+          // Sometimes the list item is not immediately available, so we attempt a few retries with small delays
           const maxAttempts = 6;
           let fileListItem: any = null;
           for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
+              // Get metadata associated with the file
               fileListItem = await fileObj.listItemAllFields();
               if (fileListItem && fileListItem.Id) break;
             } catch (err) {
               console.warn(`[Upload] attempt ${attempt} to get list item failed`, err);
             }
-            // wait before next attempt
+            // Wait before next attempt
             await new Promise((r) => setTimeout(r, 500 * attempt));
           }
 
@@ -122,18 +127,20 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
       }
     };
 
+    // Download file for a specific requestitem
     const downloadFile = async (item: UserRequestItem) => {
         const sp = getSP(context);
         
-        // rawUrl = GUID string
-        const fileId = await getDocumentUrlForRequestItem(context!, item.ID!);
+        // get the GUID for the document
+        const fileId = await getDocumentGuidForRequestItem(context!, item.ID!);
         if (!fileId) {
             console.error("No file ID found");
             return;
         }
 
-        // file metadata (contains Name and ServerRelativeUrl)
+        // Get file metadata 
         const file = sp.web.getFileById(fileId);
+        // Select the name of the file  
         const fileInfo = await file.select("Name")();
 
         const fileName = fileInfo?.Name || "download";
@@ -154,7 +161,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
         setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
     };
 
-
+    // For each request item in the request, render a card with the appropriate fields
     const renderItemCard = (item: UserRequestItem) => {
         return (
             <>
@@ -226,7 +233,6 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                     </div>
                 </div>
 
-                {/* Card content */}
                 <div className={requestDetailsStyles.cardContent}>
                     <div className={requestDetailsStyles.fieldGroup}>
                         <span className={requestDetailsStyles.fieldLabel}>Cost:</span>

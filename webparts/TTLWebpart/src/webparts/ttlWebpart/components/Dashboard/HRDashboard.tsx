@@ -15,20 +15,18 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'awaitingApproval' | 'toApprove' | 'approved'>('toApprove');
 
+  // Get requests data
   const fetchRequests = async (requestId?: number): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Only get requests from the past 2 years
+      // Only get requests from the past 2 years and set the state
       const today = new Date();
       const pastDate = new Date(today);
       pastDate.setDate(pastDate.getDate() - 730);
       const isoDate = pastDate.toISOString();
-
       const requestData = await getRequestsData(context, "SubmissionDate desc", `(SubmissionDate ge datetime'${isoDate}')`);
-
-
       setRequests(requestData as UserRequest[]);
 
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
@@ -98,6 +96,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
     fetchRequests();
   }, [context]);
 
+  // Handle a click on a request
   const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
     try {
       setIsLoading(true);

@@ -17,12 +17,14 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
     const q = (searchFilter || '').trim().toLowerCase()
     if (!q) return requests.slice()
 
+    // Filter requests based on search query
     return requests.filter((r) => {
       const title = (r.Title || '').toString().toLowerCase()
       const project = (r.Project || '').toString().toLowerCase()
       const requester = (r.Author?.Title || '').toString().toLowerCase()
       const team = (r.TeamID?.Title || '').toString().toLowerCase()
 
+      // Check if any field includes the search query
       return (
         title.includes(q) ||
         project.includes(q) ||
@@ -32,10 +34,13 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
     })
   }, [requests, searchFilter])
 
+  // Sort filtered requests
   const sortedRequests = useMemo(() => {
+    // Create a copy to avoid mutating original array
     const arr = filteredRequests.slice()
     if (!sortBy) return arr
 
+    // Sort based on selected column and direction
     arr.sort((a: any, b: any) => {
       if (sortBy === 'totalCost') {
         const va = Number(a.TotalCost) || 0
@@ -43,12 +48,14 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
         return sortDir === 'asc' ? va - vb : vb - va
       }
 
+      // Sort by submission date
       if (sortBy === 'submissionDate') {
         const da = a.SubmissionDate ? new Date(a.SubmissionDate).getTime() : 0
         const db = b.SubmissionDate ? new Date(b.SubmissionDate).getTime() : 0
         return sortDir === 'asc' ? da - db : db - da
       }
 
+      // Fallback (should not reach here)
       return 0
     })
 
@@ -64,18 +71,22 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
     return sortedRequests.slice(start, start + ITEMS_PER_PAGE)
   }, [sortedRequests, currentPage])
 
+  // Handle page change
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page)
     }
   }
 
+  // Handle sorting toggles
   const toggleSort = (column: 'totalCost' | 'submissionDate') => {
+    // Toggle sorting direction or set new sort column
     if (sortBy === column) {
+      // Cycle through asc -> desc -> no sort
       if (sortDir === 'asc') {
         setSortDir('desc');
       } else if (sortDir === 'desc') {
-        // remove sorting entirely
+        // If direction is desc, the cycle repeats
         setSortBy(null);
         setSortDir('asc');
       }

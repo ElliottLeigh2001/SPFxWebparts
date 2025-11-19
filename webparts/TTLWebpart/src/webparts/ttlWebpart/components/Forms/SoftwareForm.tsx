@@ -21,25 +21,26 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
   const [usersLicenseError, setUsersLicenseError] = useState('');
   const [isLoading, setIsLoading] = useState(false)
   
-
   const peoplePickerContext: IPeoplePickerContext = {
     absoluteUrl: context.pageContext.web.absoluteUrl,
     msGraphClientFactory: context.msGraphClientFactory,
     spHttpClient: context.spHttpClient
   };
 
-useEffect(() => {
-  if (initialData?.UsersLicense?.length! > 0) {
-    const parsedUsers = initialData?.UsersLicense!.map((u: any) => ({
-      id: u.Id,
-      loginName: u.EMail,
-      text: u.Title
-    }));
-    setInitialUsers(parsedUsers!.map(u => u.loginName));
-    setUsersLicense(parsedUsers!);
-  }
-}, [initialData]);
+  // Get and parse users initial data so it can be shown in the field
+  useEffect(() => {
+    if (initialData?.UsersLicense?.length! > 0) {
+      const parsedUsers = initialData?.UsersLicense!.map((u: any) => ({
+        id: u.Id,
+        loginName: u.EMail,
+        text: u.Title
+      }));
+      setInitialUsers(parsedUsers!.map(u => u.loginName));
+      setUsersLicense(parsedUsers!);
+    }
+  }, [initialData]);
 
+  // Form validation
   const validate = (): boolean => {
     let valid = true;
 
@@ -91,6 +92,7 @@ useEffect(() => {
     return valid;
   };
 
+  // If HR is editing the item, only the cost can be changed (so only validate the cost)
   const validateHR = (): boolean => {
     let valid = true;
 
@@ -102,6 +104,7 @@ useEffect(() => {
       return valid;
   }
 
+  // Function for adding users to the userslicense based on the peoplepicker
   const handleUsersChange = (items: any[]) => {
     const users = items.map(user => ({
       id: user.id,

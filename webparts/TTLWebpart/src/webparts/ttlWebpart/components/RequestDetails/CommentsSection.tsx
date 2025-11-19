@@ -9,10 +9,12 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ requestId, context })
   const [comments, setComments] = useState<TTLComment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Load the comments for this request
   useEffect(() => {
     loadComments();
   }, [requestId]);
 
+  // Send API call to retrieve comments linked to this request
   const loadComments = async () => {
     try {
       const requestComments = await getCommentsForRequest(context, requestId);
