@@ -20,7 +20,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, 
       setIsLoading(true);
       setError(null);
 
-      // Get requests with certain statusses
+      // Get requests with certain statuses
       const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval' or RequestStatus eq 'Awaiting CEO approval')")
 
       // Only show requests where the total cost exceeds 5000 euro

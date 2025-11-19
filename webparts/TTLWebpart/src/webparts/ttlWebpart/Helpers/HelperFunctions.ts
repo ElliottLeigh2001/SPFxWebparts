@@ -1,5 +1,6 @@
 import styles from "../components/Dashboard/TtlWebpart.module.scss";
 
+// Function to validate the cost of a request item
 export const validateCost = (cost: any): { isValid: boolean; value: number; error: string } => {
   let costValue: number;
 
@@ -36,7 +37,7 @@ export const validateLink = (link: any): any => {
   return link.match(linkRegex)
 }
 
-// Format dates to something more sane than mm/dd/yyyy
+// Format dates to something more sane than mm/dd/yyyy (dd-mm-yyyy)
 export const formatDate = (dateString: string | Date): string => {
   if (!dateString) return "-";
 
@@ -84,6 +85,7 @@ export const getRequestStatusStyling = (status: string): string => {
     return statusMap[status] || styles.inProcessByHR;
 };
 
+// Function to calculate the yearly cost of a software license
 export const calculateSoftwareLicenseCost = (data: any) => {
   let cost;
   let usersCount = 0;
@@ -91,10 +93,10 @@ export const calculateSoftwareLicenseCost = (data: any) => {
 
   if (Array.isArray(u)) {
     if (u.length === 1 && typeof u[0] === 'string' && u[0].includes(',')) {
-      // old format: single string with commas
+      // Single string with commas
       usersCount = u[0].split(',').map(s => s.trim()).filter(Boolean).length;
     } else {
-      // new format: array of individual names
+      // Array of individual names
       usersCount = u.length;
     }
   } else if (typeof u === 'string') {
@@ -106,6 +108,7 @@ export const calculateSoftwareLicenseCost = (data: any) => {
     usersCount = 0;
   }
 
+  // Different calculations for each combination of license type and amount of users in the license
   switch (`${data.LicenseType}_${data.Licensing}`) {
     case 'Group_Monthly':
       cost = data.Cost * 12;
