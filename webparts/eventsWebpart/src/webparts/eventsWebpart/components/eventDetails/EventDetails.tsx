@@ -238,7 +238,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                     ))}
                   </ul>
                 </div>
-              ) : <h2>No attendees yet</h2>
+              ) : <h4>There are no attendees for this event</h4>
             )}
 
             {activeTab === 'carpooling' && (
@@ -254,7 +254,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                             <li key={att.Id}>{att.Attendee?.Title} {att.DepartureFrom ? `(${att.DepartureFrom})` : ''}</li>
                           ))
                         ) : (
-                          <li>No attendees in this option</li>
+                          <li>No attendees for this option</li>
                         )}
                       </ul>
                     </details>

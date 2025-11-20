@@ -1,11 +1,11 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
 import styles from "./EventsWebpart.module.scss";
 import EventDetails from "./eventDetails/EventDetails";
 import { EventItem, IEventsWebpartProps } from "../EventsInterfaces";
 import { formatSingleDate, getDateRange } from "../utils/DateUtils";
 import HeaderComponent from "./header/HeaderComponent";
+import { getUserGroups, getListData, getMySubscriptions } from "../service/EventsService";
 
 const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [items, setItems] = useState<EventItem[]>([]);
@@ -61,61 +61,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     nextWeek: "Next week",
     thisMonth: "This month"
   };
-
-  // Gets the groups of the logged in user
-  const getUserGroups = async (): Promise<void> => {
-    try {
-      const response = await context.spHttpClient.get(
-        `${context.pageContext.web.absoluteUrl}/_api/web/currentuser?$expand=groups`,
-        SPHttpClient.configurations.v1
-      );
-      const data = await response.json();
-      // If the user is a member or owner of the site, they can make a new event
-      const userGroups =
-        data.Groups?.map((grp: any) => grp.Title.toLowerCase()) || [];
-      const canAddEvents = userGroups.some((group: string) =>
-        ["hr-be members", "hr-be owners"].some((role) =>
-          group.includes(role)
-        )
-      );
-      setIsAdminOrMember(canAddEvents);
-    } catch (err) {
-      console.error("Error checking group membership:", err);
-    }
-  };
-
-  // Fetch events from SharePoint list HR_Events
-  const getListData = async (): Promise<EventItem[]> => {
-    const response: SPHttpClientResponse = await context.spHttpClient.get(
-      `${context.pageContext.web.absoluteUrl}/_api/web/lists/GetByTitle('HR_Events')/items?$select=Id,Title,Image0,StartTime,EndTime,FoodEvent,Beschrijving,Location,Signinlink,EventTypes,SignupDeadline,PlusOne,Carpooling&$orderby=StartTime asc`,
-      SPHttpClient.configurations.v1
-    );
-    const data = await response.json();
-    return data.value as EventItem[];
-  };
-  
-    // Fetch subscriptions for current user
-    const getMySubscriptions = async (): Promise<number[]> => {
-      // get current user's ID
-      const currentUserId = context.pageContext.legacyPageContext.userId;
-      // call the Subscriptions list
-      const subsResponse: SPHttpClientResponse = await context.spHttpClient.get(
-        `${context.pageContext.web.absoluteUrl}/_api/web/lists/GetByTitle('Subscriptions')/items?` +
-          `$select=EventId,Attendee/Id&$expand=Attendee&$filter=Attendee/Id eq ${currentUserId}`,
-        SPHttpClient.configurations.v1
-      );
-      const subsData = await subsResponse.json();
-      const subs: any[] = subsData.value;
-  
-      // extract the event IDs
-      const eventIds = subs
-        .map((s) => {
-          // Note: we assume EventId is the lookup id for the Event
-          return s.EventId as number;
-        })
-        .filter((id) => id != null);
-      return eventIds;
-    };
 
   // Add an event type to filter on
   const addFilter = (name: string) => {
@@ -173,9 +118,10 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   // On mount: fetch events, user groups, and subscriptions
   useEffect(() => {
     (async () => {
-      await getUserGroups();
+      const groups = await getUserGroups(context);
+      setIsAdminOrMember(groups)
       try {
-        const listItems = await getListData();
+        const listItems = await getListData(context);
         const now = new Date();
         const upcoming = listItems.filter((item) => {
           const end = new Date(item.EndTime);
@@ -186,11 +132,22 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
         setAllItems(upcoming);
 
         // ** load subscriptions only if showMyEvents is true or anyway, depends on UX -->
-        const eventIds = await getMySubscriptions();
+        const eventIds = await getMySubscriptions(context);
         setMyEventIds(eventIds);
 
         // Initially, items = all (unless showMyEvents is true, then the effect above will re-filter)
         setItems(upcoming);
+
+        const params = new URLSearchParams(window.location.search);
+        const eventId = params.get("eventId");
+
+        if (eventId) {
+          const selected = upcoming.find(
+            (e) => e.Id === parseInt(eventId)
+          );
+          if (selected) setSelectedEvent(selected);
+        }
+
       } catch (err) {
         console.error("Error fetching events or subscriptions:", err);
       } finally {
@@ -397,8 +354,8 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       </div>
 
         {isAdminOrMember && (
-          <div style={{width: '96%', justifySelf: 'center'}}>
-            <p onClick={goToAddPage} className={styles.addButton}>
+          <div style={{display: 'flex', justifyContent: 'flex-end', width: '96%', justifySelf: 'center'}}>
+            <p style={{margin: '0 0 20px 0'}} onClick={goToAddPage} className={styles.addButton}>
               + Add event
             </p>
           </div>
