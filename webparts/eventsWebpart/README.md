@@ -18,7 +18,8 @@ A React based SPFx webpart designed to streamline the process of signing in and 
 
 - EventWebpart.tsx: main component containing the overview of events, filters and the add event button.
 - EventDetails.tsx: when an event is pressed, this component is used to render extra information about the event and gives the option to sign up / out for events.
-- Form-fields folder containing 5 components (carpooling, family, plusone, sinterklaas and sport): based on which event you want to sign up for, one of these forms will render and contains fields that are relevant for that specific event type.
+- EventService.ts: file containing functions that retrieve data from SharePoint lists.
+- Form-fields folder containing 6 components (carpooling, family, plusone, sinterklaas, food and sport): based on which event you want to sign up for, one of these forms will render and contains fields that are relevant for that specific event type.
 - UseEventSignup.ts: contains logic to sign up / out for events and shows notifications.
 - DateUtils.ts: helper functions for formatting dates.
 
