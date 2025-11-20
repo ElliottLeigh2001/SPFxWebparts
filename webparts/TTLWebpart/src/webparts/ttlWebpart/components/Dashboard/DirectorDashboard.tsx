@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
+import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
 import DashboardComponent from './DashboardComponent';
@@ -47,90 +48,39 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, 
     }
   };
 
-  // Handle URL changes for request selection
+  // Attach URL handlers that sync selection with `?view=director&requestId=...`
   useEffect(() => {
-    const handleUrlChange = () => {
-      const params = new URLSearchParams(window.location.search);
-      const requestId = params.get("requestId");
-      const view = params.get("view");
-
-      // Only handle if we're in director view and have a requestId
-      if (view === "director" && requestId && requests.length > 0) {
-        const request = requests.find(req => req.ID === parseInt(requestId));
-        if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
-          handleRequestClick(request, false); // Don't push state to avoid infinite loop
-        }
-      } else if (view === "director" && !requestId && selectedRequest) {
-        // URL changed to have no requestId, but we have a selected request - go back to director list
-        handleBackClick(false); // Don't push state
-      }
-    };
-
-    // Check URL on initial load
-    handleUrlChange();
-
-    // Listen for URL changes (back/forward buttons)
-    window.addEventListener("popstate", handleUrlChange);
-    
-    return () => window.removeEventListener("popstate", handleUrlChange);
+    return attachUrlHandlers({
+      viewName: 'director',
+      requests,
+      selectedRequest,
+      onRequestClick: handleRequestClick,
+      onBackClick: handleBackClick
+    });
   }, [requests, selectedRequest]);
-
-  // Also check URL when requests change
-  useEffect(() => {
-    if (requests.length > 0) {
-      const params = new URLSearchParams(window.location.search);
-      const requestId = params.get("requestId");
-      const view = params.get("view");
-      
-      if (view === "director" && requestId) {
-        const request = requests.find(req => req.ID === parseInt(requestId));
-        if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
-          handleRequestClick(request, false);
-        }
-      }
-    }
-  }, [requests]);
 
   useEffect(() => {
     fetchRequests();
   }, [context]);
 
+  // Handle request click and load details
   const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const items = await getRequestItemsByRequestId(context, request.ID);
-      setRequestItems(items);
-      setSelectedRequest(request);
-
-      // Update URL for director request details
-      if (pushState) {
-        window.history.pushState({}, "", `?view=director&requestId=${request.ID}`);
-      }
-
-    } catch (error) {
-      console.error('Error loading request details:', error);
-      if (error.status === 404) {
-        setError('This request no longer exists');
-      } else {
-        setError('Failed to load request details');
-      }
-      setRequestItems([]);
-    } finally {
-      setIsLoading(false);
-    }
+    await loadRequestDetails({
+      context,
+      request,
+      getRequestItemsByRequestId,
+      setIsLoading,
+      setError,
+      setRequestItems,
+      setSelectedRequest,
+      pushState,
+      viewName: 'director'
+    });
   };
 
+  // Handle back navigation
   const handleBackClick = (pushState: boolean = true) => {
-    setSelectedRequest(null);
-    setRequestItems([]);
-    setError(null);
-    
-    // Update URL back to director dashboard (without requestId)
-    if (pushState) {
-      window.history.pushState({}, "", `?view=director`);
-    }
+    goBack({ setSelectedRequest, setRequestItems, setError, pushState, viewName: 'director' });
   };
 
   // Handle status update and refresh the list

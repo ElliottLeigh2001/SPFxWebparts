@@ -134,3 +134,100 @@ export const calculateSoftwareLicenseCost = (data: any) => {
 
   return cost;
 }
+
+// Attach URL handlers for dashboards: listens for popstate and checks URL on attach
+export const attachUrlHandlers = (args: {
+  viewName: string;
+  requests: any[];
+  selectedRequest: any;
+  onRequestClick: (request: any, pushState?: boolean) => void;
+  onBackClick?: (pushState?: boolean) => void;
+}) => {
+  const { viewName, requests, selectedRequest, onRequestClick, onBackClick } = args;
+
+  const handleUrlChange = () => {
+    const params = new URLSearchParams(window.location.search);
+    const requestId = params.get("requestId");
+    const view = params.get("view");
+
+    if (view === viewName && requestId && requests.length > 0) {
+      const request = requests.find((req: any) => req.ID === parseInt(requestId));
+      if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
+        onRequestClick(request, false); // don't push state when reacting to a URL change
+      }
+    } else if (view === viewName && !requestId && selectedRequest) {
+      // URL changed to have no requestId, but a request is selected locally
+      if (onBackClick) onBackClick(false);
+    }
+  };
+
+  // Run once immediately to sync UI with URL
+  handleUrlChange();
+
+  // Listen for back/forward navigation
+  window.addEventListener("popstate", handleUrlChange);
+
+  // Return cleanup function so callers can use this in a useEffect
+  return () => window.removeEventListener("popstate", handleUrlChange);
+};
+
+// Centralized loader for request details so dashboards don't duplicate logic
+export const loadRequestDetails = async (args: {
+  context: any;
+  request: any;
+  getRequestItemsByRequestId: (context: any, id: number) => Promise<any[]>;
+  setIsLoading: (v: boolean) => void;
+  setError: (e: any) => void;
+  setRequestItems: (items: any[]) => void;
+  setSelectedRequest: (r: any) => void;
+  pushState?: boolean;
+  viewName?: string;
+}) => {
+  const { context, request, getRequestItemsByRequestId, setIsLoading, setError, setRequestItems, setSelectedRequest, pushState = true, viewName = 'requests' } = args;
+
+  try {
+    setIsLoading(true);
+    setError(null);
+
+    // Load items for the selected request
+    const items = await getRequestItemsByRequestId(context, request.ID);
+    setRequestItems(items);
+    setSelectedRequest(request);
+
+    // Update URL to match selection
+    if (pushState) {
+      window.history.pushState({}, "", `?view=${viewName}&requestId=${request.ID}`);
+    }
+
+  } catch (error: any) {
+    console.error('Error loading request details:', error);
+    if (error && (error as any).status === 404) {
+      setError('This request no longer exists');
+    } else {
+      setError('Failed to load request details');
+    }
+    setRequestItems([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Centralized back handler for dashboards
+export const goBack = (args: {
+  setSelectedRequest: (r: any) => void;
+  setRequestItems: (items: any[]) => void;
+  setError: (e: any) => void;
+  pushState?: boolean;
+  viewName?: string;
+}) => {
+  const { setSelectedRequest, setRequestItems, setError, pushState = true, viewName = 'requests' } = args;
+
+  setSelectedRequest(null);
+  setRequestItems([]);
+  setError(null);
+
+  // Update URL to reflect no selection
+  if (pushState) {
+    window.history.pushState({}, "", `?view=${viewName}`);
+  }
+};

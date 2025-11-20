@@ -445,103 +445,105 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
           isProcessing={confirmProcessing}
           onCancel={() => { setShowConfirmActionDialog(false); setConfirmAction(null); }}
           onConfirm={async (comment) => {
-              if (!confirmAction) return;
-              setConfirmProcessing(true);
-              try {
-                  // If a request is approved
-                  if (confirmAction === 'approve') {
-                    // Add comment to request if there is one
-                    if (comment) {
-                      await handleAddComment(comment)
-                    }
-                    // If the approver is the director (or CEO)
-                    if (isCEO) {
-                      // If the approver has already approved
-                      if (request.RequestStatus === 'Awaiting CEO approval') {
-                        // Send to HR
-                        await updateRequestApprover('In process by HR', true);
-                        // Send an email to HR to notify them that they need to approve next
-                        await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
-                        // If the approver has not yet approved, don't send to HR yet, but set the approvedByCEO column to true
-                      } else if (request.RequestStatus === 'Sent for approval') {
-                        await updateRequestApprover('Sent for approval', true);
-                        // Do the same for reapprovals
-                      } else if (request.RequestStatus === 'Needs reapproval') {
-                        await updateRequestApprover('Needs reapproval', true)
-                      }
-                    }
-                    // If the approver is a practice lead
-                    else if (view === 'approvers') {
-                      // Define nextStatus used to determine the next status 
-                      // based on price or is the director has already approved
-                      let nextStatus;
-                      // If the total cost exceeds 5000 euro (so director approval is needed)
-                      if (Number(request.TotalCost) > 5000) {
-                        // If the director has already approved, send to HR, otherwise wait for director approval
-                        nextStatus = request.ApprovedByCEO ? 'In process by HR' : 'Awaiting CEO approval';
-                      } else {
-                        // If no director approval needed, just send straight to HR
-                        nextStatus = 'In process by HR'
-                      }
-                      // Update status
-                      await updateRequestApprover(nextStatus);
-                      
+            if (!confirmAction) return;
+            setConfirmProcessing(true);
+            try {
+                // If a request is approved
+                if (confirmAction === 'approve') {
+                  // Add comment to request if one was provided
+                  if (comment) {
+                    await handleAddComment(comment)
+                  }
+                  // If the approver is the director (or CEO)
+                  if (isCEO) {
+                    // If the other approver (practice lead) has already approved
+                    if (request.RequestStatus === 'Awaiting CEO approval') {
+                      // Send to HR
+                      await updateRequestApprover('In process by HR', true);
                       // Send an email to HR to notify them that they need to approve next
-                      if (nextStatus === 'In process by HR') {
-                        await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest,})
-                      } 
+                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
+                      // If the other approver (practice lead) has not yet approved,
+                      // don't send to HR yet, but set the approvedByCEO column to true
+                    } else if (request.RequestStatus === 'Sent for approval') {
+                      await updateRequestApprover('Sent for approval', true);
+                      // Do the same for reapprovals
+                    } else if (request.RequestStatus === 'Needs reapproval') {
+                      await updateRequestApprover('Needs reapproval', true)
                     }
-                    // If the approver is HR and they approve, set status to booking
-                    else if (view === 'HR') {
-                      await updateRequestApprover('Booking')
+                  }
+                  // If the approver is a practice lead
+                  else if (view === 'approvers') {
+                    // Define nextStatus used to determine the next status 
+                    // based on price or if the director has already approved
+                    let nextStatus;
+                    // If the total cost exceeds 5000 euro (so director approval is also needed)
+                    if (Number(request.TotalCost) > 5000) {
+                      // If the director has already approved, send to HR, otherwise wait for director approval
+                      nextStatus = request.ApprovedByCEO ? 'In process by HR' : 'Awaiting CEO approval';
+                    } else {
+                      // If total cost is lower than 5000 euro (no director approval needed), just send straight to HR
+                      nextStatus = 'In process by HR'
                     }
-                  } 
-                  // If a request is denied
-                  else if (confirmAction === 'deny') {
                     // Update status
-                    await updateRequestApprover('Declined');
-                    // Add comment (it's required upon denial)
-                    await handleAddComment(comment!)
-                    // Inform requester that their request has been denied
-                    await sendEmail({emailType: "deny", title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, comment: comment, typeOfRequest: typeOfRequest})
+                    await updateRequestApprover(nextStatus);
+                    
+                    // Send an email to HR to notify them that they need to approve next
+                    // This step only happens if all required approvers have approved
+                    if (nextStatus === 'In process by HR') {
+                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest,})
+                    } 
                   }
-                  // When the requester sends their request for approval
-                  else if (confirmAction === 'send') {
-                    // Update status
-                    await updateRequestApprover('Sent for approval')
-                    // Get data from the approver so it can be included in the email
-                    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
-                    const approverEmail = approverData?.TeamMember?.EMail;
-                    const approverTitle = approverData?.TeamMember?.Title;
-                    // Send an email to the approver, HR and director if the price exceeds 5000 euro (handled by Power Automate flow)
-                    await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
+                  // If the approver is HR and they approve, set status to booking
+                  else if (view === 'HR') {
+                    await updateRequestApprover('Booking')
                   }
-                  // If the request is sent for reapproval by HR
-                  else if (confirmAction === 'reapprove') {
-                    // Add comment (it's required upon reapproval)
-                    await handleAddComment(comment!)
-                    // Update status
-                    await updateRequestApprover('Needs reapproval', false)
-                    // Get data from the approver so it can be included in the email
-                    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
-                    const approverEmail = approverData?.TeamMember?.EMail;
-                    const approverTitle = approverData?.TeamMember?.Title;
-                    // Send email to approver that they need to reapprove the request
-                    await sendEmail({ emailType: "reapprove", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
-                  }
-                  // If HR had booked the request and marked it as completed
-                  else if (confirmAction === 'completed') {
-                    // Update status
-                    await updateRequestApprover('Completed')
-                  }
-                } finally {
-                  setConfirmProcessing(false);
-                  setShowConfirmActionDialog(false);
-                  setConfirmAction(null);
-                  sessionStorage.removeItem(`changedByHR${request.ID}`)
+                } 
+                // If a request is denied
+                else if (confirmAction === 'deny') {
+                  // Update status
+                  await updateRequestApprover('Declined');
+                  // Add comment (it's required upon denial)
+                  await handleAddComment(comment!)
+                  // Inform requester that their request has been denied
+                  await sendEmail({emailType: "deny", title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, comment: comment, typeOfRequest: typeOfRequest})
                 }
-              }}
-      />
+                // When the requester sends their request for approval
+                else if (confirmAction === 'send') {
+                  // Update status
+                  await updateRequestApprover('Sent for approval')
+                  // Get data from the approver so it can be included in the email
+                  const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
+                  const approverEmail = approverData?.TeamMember?.EMail;
+                  const approverTitle = approverData?.TeamMember?.Title;
+                  // Send an email to the approver, HR and director if the price exceeds 5000 euro (handled by Power Automate flow)
+                  await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
+                }
+                // If the request is sent for reapproval by HR
+                else if (confirmAction === 'reapprove') {
+                  // Add comment (it's required upon reapproval)
+                  await handleAddComment(comment!)
+                  // Update status
+                  await updateRequestApprover('Needs reapproval', false)
+                  // Get data from the approver so it can be included in the email
+                  const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
+                  const approverEmail = approverData?.TeamMember?.EMail;
+                  const approverTitle = approverData?.TeamMember?.Title;
+                  // Send email to approver that they need to reapprove the request
+                  await sendEmail({ emailType: "reapprove", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
+                }
+                // If HR had booked the request and marked it as completed
+                else if (confirmAction === 'completed') {
+                  // Update status
+                  await updateRequestApprover('Completed')
+                }
+            } finally {
+              setConfirmProcessing(false);
+              setShowConfirmActionDialog(false);
+              setConfirmAction(null);
+              sessionStorage.removeItem(`changedByHR${request.ID}`)
+            }
+          }}
+        />
     </div>
       <div className={styles.newRequestButtonContainer}>
         {view !== 'myView' && (request.RequestStatus !== 'Completed' && request.RequestStatus !== 'Booking') && HRTab !== 'awaitingApproval' && (
