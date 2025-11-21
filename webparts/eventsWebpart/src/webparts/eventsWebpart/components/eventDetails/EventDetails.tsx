@@ -12,7 +12,6 @@ import { formatSingleDate } from '../../utils/DateUtils';
 import { useEventSignup } from '../../hooks/UseEventSignup';
 import detailsStyles from './EventDetails.module.scss'
 import { getSP } from '../../utils/getSP';
-import headerImg from "../../assets/headerImg.jpg";
 
 const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack: () => void; }> = ({ context, event, onBack }) => {
   const [allAttendees, setAllAttendees] = useState<any[]>([]);
@@ -55,6 +54,13 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     drive: allAttendees.filter(a => a.Carpooling === carpoolOptions.drive),
     none: allAttendees.filter(a => a.Carpooling === carpoolOptions.none),
   };
+
+  const imageData = event.Image0
+  ? JSON.parse(event.Image0)
+  : null;
+  const imageUrl = imageData
+    ? `${context.pageContext.web.absoluteUrl}/Lists/HR_Events/Attachments/${event.Id}/${imageData.fileName}`
+    : undefined;
 
   // Sign up deadline logic
   const today = new Date();
@@ -174,7 +180,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
   
   return (
     <>
-    <img src={headerImg} alt="Header" className={detailsStyles.headerImg} />
+    <img src={imageUrl} alt="Header" className={detailsStyles.headerImg} />
     <div className={detailsStyles.pageWrapper}>
       <div className={detailsStyles.headerTitleWrapper}>
         <div className={detailsStyles.headerTitleContainer}>
@@ -206,7 +212,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                   className={`${detailsStyles.panelHeader} ${activeTab === 'attendees' ? detailsStyles.activeTab : ""}`}
                   ref={activeTab === 'attendees' ? activeTabRef : null}
                 >
-                  Attendees</p>
+                  Attendees {`(${allAttendees.length})`}</p>
                 {event.Carpooling && (
                   <p
                     onClick={() => setActiveTab("carpooling")}
@@ -262,7 +268,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                 })}
               </>
             )}
-
+            
           </div>
 
           {notification && (
@@ -273,28 +279,33 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
 
         </div>
 
-        {event.EventTypes !== 'No signup' && (
           <aside className={detailsStyles.register}>
             <div className={detailsStyles.tabsContainer}>
               <h3 className={detailsStyles.panelHeader}>Register Now</h3>
             </div>
-
+        {event.EventTypes !== 'No signup' ? (
+          <>
             {event.SignupDeadline && (
               <div className={detailsStyles.signupDeadline}>
-                <div><strong>Registration Deadline: </strong>{formatSingleDate(event.SignupDeadline)}</div>
+                <div>
+                  <strong>Registration Deadline: </strong>
+                  {formatSingleDate(event.SignupDeadline)}
+                </div>
               </div>
             )}
 
-            {event.EventTypes === 'Custom' || event.EventTypes === 'Online signup' ? (
+            {event.EventTypes === 'Custom' ? (
               renderCustomSignup()
             ) : (
-              showSignupButtons && canSignUp && (
+              showSignupButtons &&
+              canSignUp && (
                 <form onSubmit={handleLocalSubmit} className={detailsStyles.inlineForm}>
                   {event.EventTypes === 'Sport' && (
                     <SportFormFields
                       shirtSize={formData.shirtSize}
                       setShirtSize={(value: any) => updateFormData('shirtSize', value)}
-                      disabled={loading} />
+                      disabled={loading}
+                    />
                   )}
 
                   {event.EventTypes === 'Sinterklaas' && (
@@ -303,7 +314,8 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       setAmountOfKids={(value: any) => updateFormData('amountOfKids', value)}
                       kidsData={formData.kidsData || []}
                       setKidsData={(kidsData: any) => updateFormData('kidsData', kidsData)}
-                      disabled={loading} />
+                      disabled={loading}
+                    />
                   )}
 
                   {event.EventTypes === 'Family' && (
@@ -316,7 +328,8 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       setAgeChild2={(value: any) => updateFormData('ageChild2', value)}
                       ageChild3={formData.ageChild3}
                       setAgeChild3={(value: any) => updateFormData('ageChild3', value)}
-                      disabled={loading} />
+                      disabled={loading}
+                    />
                   )}
 
                   {event.FoodEvent && (
@@ -325,7 +338,8 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       setFood={(value: any) => updateFormData('food', value)}
                       dietaryPrefs={formData.dietaryPrefs}
                       setDietaryPrefs={(value: any) => updateFormData('dietaryPrefs', value)}
-                      disabled={loading} />
+                      disabled={loading}
+                    />
                   )}
 
                   {event.PlusOne && (
@@ -333,11 +347,16 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       plusOne={formData.plusOne}
                       setPlusOne={(value: any) => updateFormData('plusOne', value)}
                       dietaryPrefsPlusOne={formData.dietaryPrefsPlusOne}
-                      setDietaryPrefsPlusOne={(value: any) => updateFormData('dietaryPrefsPlusOne', value)}
+                      setDietaryPrefsPlusOne={(value: any) =>
+                        updateFormData('dietaryPrefsPlusOne', value)
+                      }
                       foodPlusOne={formData.foodPlusOne}
-                      setFoodPlusOne={(value: any) => updateFormData('foodPlusOne', value)}
+                      setFoodPlusOne={(value: any) =>
+                        updateFormData('foodPlusOne', value)
+                      }
                       disabled={loading}
-                      showFoodFields={event.FoodEvent} />
+                      showFoodFields={event.FoodEvent}
+                    />
                   )}
 
                   {event.Carpooling && (
@@ -345,8 +364,11 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       carpooling={formData.carpooling}
                       setCarpooling={(value: any) => updateFormData('carpooling', value)}
                       departureFrom={formData.departureFrom}
-                      setDepartureFrom={(value: any) => updateFormData('departureFrom', value)}
-                      disabled={loading} />
+                      setDepartureFrom={(value: any) =>
+                        updateFormData('departureFrom', value)
+                      }
+                      disabled={loading}
+                    />
                   )}
 
                   <label>
@@ -355,34 +377,42 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                     <textarea
                       value={formData.extraInfo}
                       onChange={(e) => updateFormData('extraInfo', e.target.value)}
-                      disabled={loading} />
+                      disabled={loading}
+                    />
                   </label>
 
                   <div className={detailsStyles.modalActions}>
                     {!checkingStatus && (
-                    <>
-                      {isSignedUp ? (
-                        <button
-                          className={detailsStyles.signOutButton}
-                          onClick={handleSignOut}
-                          disabled={loading}
-                          style={!event.SignupDeadline ? { marginTop: '20px' } : {}}
-                        >
-                          {loading ? 'Signing Out...' : 'Sign Out'}
-                        </button>
-                      ) : (
-                        <button type="submit" className={detailsStyles.submitButton} disabled={loading}>
-                          {loading ? 'Signing up...' : 'Sign up'}
-                        </button>
-                      )}
-                    </>
+                      <>
+                        {isSignedUp ? (
+                          <button
+                            className={detailsStyles.signOutButton}
+                            onClick={handleSignOut}
+                            disabled={loading}
+                            style={!event.SignupDeadline ? { marginTop: '20px' } : {}}
+                          >
+                            {loading ? 'Signing Out...' : 'Sign Out'}
+                          </button>
+                        ) : (
+                          <button
+                            type="submit"
+                            className={detailsStyles.submitButton}
+                            disabled={loading}
+                          >
+                            {loading ? 'Signing up...' : 'Sign up'}
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </form>
               )
             )}
-          </aside>
+          </>
+        ) : (
+          <p style={{fontWeight: '500', fontSize: 'medium'}}>This event does not require you to sign up</p>
         )}
+        </aside>
       </div>
     </div>
   </>

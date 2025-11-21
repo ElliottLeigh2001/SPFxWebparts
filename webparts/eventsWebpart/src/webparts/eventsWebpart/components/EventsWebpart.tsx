@@ -19,17 +19,15 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
   const [showMyEvents, setShowMyEvents] = useState(false);
   const [myEventIds, setMyEventIds] = useState<number[]>([]);
 
   useEffect(() => {
     const updateItemsPerPage = () => {
       const width = window.innerWidth;
-
-      if (width >= 1700) {
-        setItemsPerPage(8); // 4x2 grid
-      } else if (width >= 1400) {
+      
+      if (width >= 1400) {
         setItemsPerPage(6); // 3x2 grid
       } else if (width >= 1100) {
         setItemsPerPage(4) // 2x2 grid
