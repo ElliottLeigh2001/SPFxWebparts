@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import styles from "./EventsWebpart.module.scss";
 import EventDetails from "./eventDetails/EventDetails";
 import { EventItem, IEventsWebpartProps } from "../EventsInterfaces";
@@ -19,6 +19,8 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
+  const typeDropdownRef = useRef<HTMLDivElement | null>(null);
+  const dateDropdownRef = useRef<HTMLDivElement | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const [showMyEvents, setShowMyEvents] = useState(false);
   const [myEventIds, setMyEventIds] = useState<number[]>([]);
@@ -39,6 +41,24 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     window.addEventListener("resize", updateItemsPerPage);
     return () => window.removeEventListener("resize", updateItemsPerPage);
   }, []);
+
+  // Close dropdowns when clicking outside them (but not when clicking inside)
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (typeDropdownOpen && typeDropdownRef.current && !typeDropdownRef.current.contains(target)) {
+        setTypeDropdownOpen(false);
+      }
+
+      if (dateDropdownOpen && dateDropdownRef.current && !dateDropdownRef.current.contains(target)) {
+        setDateDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [typeDropdownOpen, dateDropdownOpen]);
 
   // All event types. They could be obtained dynamically through an API call
   // But if any new event types were made, they would be useless until a new
@@ -154,7 +174,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     })();
   }, []);
 
-
   // Handle browser back button
   useEffect(() => {
     const handlePopState = () => {
@@ -221,7 +240,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
         <div className={styles.filtersContainer}>
           <aside className={styles.filters}>
             <div className={styles.leftFilters}>
-              <div className={styles.dropdown}>
+              <div className={styles.dropdown} ref={typeDropdownRef}>
                 <button
                   className={styles.dropdownToggle}
                   onClick={() => {setTypeDropdownOpen(!typeDropdownOpen); setDateDropdownOpen(false);}}
@@ -254,7 +273,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                 )}
               </div>
 
-              <div className={styles.dropdown}>
+              <div className={styles.dropdown} ref={dateDropdownRef}>
                 <button
                   className={styles.dropdownToggle}
                   onClick={() => {setDateDropdownOpen(!dateDropdownOpen); setTypeDropdownOpen(false);}}
