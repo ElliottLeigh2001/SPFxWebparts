@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { TTLComment } from '../../Interfaces/TTLCommentInterface';
 import { getCommentsForRequest } from '../../service/CommentService';
 import styles from './CommentsSection.module.scss';
+import requestDetailsStyles from './RequestDetails.module.scss'
 import { CommentsSectionProps } from './RequestDetailsProps';
 
 const CommentsSection: React.FC<CommentsSectionProps> = ({ requestId, context }) => {
@@ -28,13 +29,15 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ requestId, context })
 
   return (
     <div className={styles.commentsSection}>
-      <h2>Comments ({comments.length})</h2>
+      <div className={requestDetailsStyles.titleContainer}>
+        <h3 className={requestDetailsStyles.panelHeader}>Comments</h3>
+      </div>
       
       <div className={styles.commentsList}>
         {loading ? (
           <div>Loading comments...</div>
         ) : comments.length === 0 ? (
-          <div>No comments yet</div>
+          <div style={{marginLeft: '10px'}}>No comments yet</div>
         ) : (
           comments.map(comment => (
             <div key={comment.ID} className={styles.commentItem}>

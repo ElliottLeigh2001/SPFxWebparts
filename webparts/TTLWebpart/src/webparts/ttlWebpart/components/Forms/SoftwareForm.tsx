@@ -1,11 +1,16 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { FormProps } from './FormProps';
 import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
+import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 
-const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialData, view }) => {
+export interface SoftwareFormHandle {
+  getFormData: () => { isValid: boolean; item?: UserRequestItem };
+}
+
+const SoftwareForm = forwardRef<SoftwareFormHandle, FormProps>(({ context, onSave, onCancel, initialData, view }, ref) => {
   const [title, setTitle] = useState(initialData?.Title || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
@@ -20,14 +25,13 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
   const [costError, setCostError] = useState('');
   const [usersLicenseError, setUsersLicenseError] = useState('');
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const peoplePickerContext: IPeoplePickerContext = {
     absoluteUrl: context.pageContext.web.absoluteUrl,
     msGraphClientFactory: context.msGraphClientFactory,
     spHttpClient: context.spHttpClient
   };
 
-  // Get and parse users initial data so it can be shown in the field
   useEffect(() => {
     if (initialData?.UsersLicense?.length! > 0) {
       const parsedUsers = initialData?.UsersLicense!.map((u: any) => ({
@@ -40,7 +44,6 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
     }
   }, [initialData]);
 
-  // Form validation
   const validate = (): boolean => {
     let valid = true;
 
@@ -92,7 +95,6 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
     return valid;
   };
 
-  // If HR is editing the item, only the cost can be changed (so only validate the cost)
   const validateHR = (): boolean => {
     let valid = true;
 
@@ -104,7 +106,6 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
       return valid;
   }
 
-  // Function for adding users to the userslicense based on the peoplepicker
   const handleUsersChange = (items: any[]) => {
     const users = items.map(user => ({
       id: user.id,
@@ -114,24 +115,35 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
     setUsersLicense(users);
   };
 
+  const getFormData = () => {
+    if (view === 'HR') {
+      if (!validateHR()) return { isValid: false };
+      return { isValid: true, item: { Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' } };
+    }
+    if (!validate()) return { isValid: false };
+    return { isValid: true, item: { Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' } };
+  }
+
+  useImperativeHandle(ref, () => ({ getFormData }));
+
   const handleSave = (): void => {
     if (isLoading) return;
     setIsLoading(true);
-    
 
     if (view === 'HR') {
       if (!validateHR()) {
         setIsLoading(false);
         return;
       }
-      onSave({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
+      onSave && onSave({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
       setIsLoading(false);
+      return;
     }
     if (!validate()) {
       setIsLoading(false);
       return;
     }
-    onSave({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
+    onSave && onSave({ Title: title, Provider: provider, Cost: cost, Licensing: licensing, LicenseType: licenseType, UsersLicense: usersLicense, Link: link, RequestType: 'Software' });
     setIsLoading(false);
   };
 
@@ -192,6 +204,7 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
                     resolveDelay={500}
                     defaultSelectedUsers={initialUsers}
                     onChange={handleUsersChange}
+                    styles={{input: styles.peoplePicker}}
                   />
                 </div>
                 {usersLicenseError && <div className={styles.validationError}>{usersLicenseError}</div>}
@@ -205,12 +218,14 @@ const SoftwareForm: React.FC<FormProps> = ({ context, onSave, onCancel, initialD
           </>
       )}
 
-      <div className={styles.formActions}>
-        <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit Item' : 'Add Item'}</button>
-        <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
-      </div>
+      {!ref && (
+        <div className={styles.formActions}>
+          <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
+          <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit' : 'Add'}</button>
+        </div>
+      )}
     </div>
   );
-};
+});
 
 export default SoftwareForm;

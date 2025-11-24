@@ -1,11 +1,16 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useImperativeHandle, forwardRef } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 
-const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void }> = ({ onSave, onCancel, initialData, view }) => {
+export type TrainingFormHandle = {
+  getFormData: () => { isValid: boolean; item?: UserRequestItem; includeTravel?: boolean }
+}
+
+const TrainingForm = forwardRef<TrainingFormHandle, FormProps & { onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, inline?: boolean, onToggleIncludeTravel?: (value: boolean) => void }>((props, ref) => {
+  const { onSave, onCancel, initialData, view, inline, onToggleIncludeTravel } = props;
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
@@ -109,6 +114,20 @@ const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextF
       }
       return valid;
   }
+  
+  // expose imperative handle to parent (after validate is defined)
+  useImperativeHandle(ref, () => ({
+    getFormData: () => {
+      const result: { isValid: boolean; item?: UserRequestItem; includeTravel?: boolean } = { isValid: false };
+      // run same validation as below
+      const valid = validate();
+      if (!valid) return result;
+      result.isValid = true;
+      result.item = { Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Training' } as any;
+      result.includeTravel = includeTravel;
+      return result;
+    }
+  }));
 
   const handleSave = (): void => {
     if (isLoading) return;
@@ -146,6 +165,9 @@ const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextF
         </div>
       ) : (
       <>
+        {ref && (
+          <h4>Training details</h4>
+        )}
         <div className={styles.formRow}>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>Title *</label>
@@ -185,7 +207,7 @@ const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextF
           </div>
           <div>
             <label className={styles.formRowLabel}>Link *</label>
-            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px' }} className={linkError ? styles.invalid : ''}/>
+            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px', padding: '0 0 5px 0' }} className={linkError ? styles.invalid : ''}/>
             {linkError && <div className={styles.validationError}>{linkError}</div>}
           </div>
           <div style={{ marginTop: '20px' }}>
@@ -193,7 +215,7 @@ const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextF
               <input 
                 type="checkbox" 
                 checked={includeTravel} 
-                onChange={e => setIncludeTravel(e.target.checked)} 
+                onChange={e => { setIncludeTravel(e.target.checked); if (onToggleIncludeTravel) onToggleIncludeTravel(e.target.checked); }} 
               />
               I want to add a travel for this training
             </label>
@@ -201,12 +223,14 @@ const TrainingForm: React.FC<FormProps & { onSave: (item: UserRequestItem, nextF
         </>
       )}
 
-      <div className={styles.formActions}>
-        <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit Item' : 'Add Item'}</button>
-        <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
-      </div>
+      {(!inline || initialData) && (
+        <div className={styles.formActions}>
+          <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
+          <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit' : 'Add'}</button>
+        </div>
+      )}
     </div>
   );
-};
+});
 
-export default TrainingForm;
+export default TrainingForm as any;

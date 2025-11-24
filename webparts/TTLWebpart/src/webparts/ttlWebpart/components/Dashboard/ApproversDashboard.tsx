@@ -7,6 +7,7 @@ import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
 import DashboardComponent from './DashboardComponent';
 import { ApproversDashboardProps } from './DashboardProps';
+import HeaderComponent from '../Header/HeaderComponent';
 
 const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -22,7 +23,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
       setError(null);
 
       // Only get requests with the correct statuses for approver
-      const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval')");
+      const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Submitted' or RequestStatus eq 'Resubmitted')");
 
       // Filter on requests meant for the approver
       const filteredRequests = requestData
@@ -126,11 +127,10 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
     <div className={styles.ttlDashboard}>
       {isApprover ? (
         <>
-        <div className={styles.header}>
-          <button className={styles.backButton} onClick={onBack}>Back</button>
-          <h1 style={{fontSize: '30px'}}>Approver Dashboard</h1>
-        </div>
-  
+        <HeaderComponent
+          view='Approver Dashboard'
+        />
+
         {error && (
           <div className={styles.error}>
             <p>{error}</p>

@@ -39,28 +39,6 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
         return people.join(', ');
     };
 
-    // Based on the type of request item, show a different icon
-    const getTypeIcon = (type: string): string => {
-        const typeMap: { [key: string]: string } = {
-            'Software': 'fa-solid fa-computer fa-lg',
-            'Training': 'fa-solid fa-user-graduate fa-lg',
-            'Travel': 'fa-solid fa-plane-departure fa-lg',
-            'Accommodation': 'fa-solid fa-bed fa-lg'
-        };
-        return typeMap[type] || 'fa-solid fa-question';
-    };
-
-    // Based on the type of request item, give it a different colour
-    const getRequestTypeColor = (type: string): string => {
-        const colorMap: { [key: string]: string } = {
-            'Software': '#e3f2fd',
-            'Training': '#f3e5f5',
-            'Travel': '#e8f5e8',
-            'Accommodation': '#ffc0c0ff'
-        };
-        return colorMap[type] || '#f5f5f5';
-    };
-
     // Upload and associate document with request item 
     const onFilePickerSave = async (filePickerResult: IFilePickerResult[], requestItemId: number) => {
       if (!filePickerResult?.length || !context) return;
@@ -168,20 +146,19 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
             <div
                 key={item.ID}
-                className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareRequestCard : requestDetailsStyles.requestCard}
-                style={{ backgroundColor: getRequestTypeColor(item.RequestType!) }}
+                className={requestDetailsStyles.requestCard}
             >
                 <div className={requestDetailsStyles.cardHeader}>
                     <div className={requestDetailsStyles.cardTitle}>
-                        <i className={`${getTypeIcon(item.RequestType!)} ${requestDetailsStyles.typeIcon}`}></i>
-                        <h3>{item.Title}</h3>
+                        <i className={requestDetailsStyles.typeIcon}></i>
+                        <h3>{item.RequestType}</h3>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', height: '30px' }}>
                         {showActions && (
                             <div className={requestDetailsStyles.cardActions}>
                                 <i className="fa fa-pencil" onClick={() => onEdit(item)} />
-                                {(request.RequestStatus === 'Saved' || request.RequestStatus === 'Declined') && (
+                                {(request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && (
                                     <i className="fa fa-trash-o" onClick={() => onDelete(item)} />
                                 )}
                             </div>
@@ -234,6 +211,10 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                 </div>
 
                 <div className={requestDetailsStyles.cardContent}>
+                    <div className={requestDetailsStyles.fieldGroup}>
+                        <span className={requestDetailsStyles.fieldLabelTitle}>{item.Title}</span>
+                    </div>
+
                     <div className={requestDetailsStyles.fieldGroup}>
                         <span className={requestDetailsStyles.fieldLabel}>Cost:</span>
                         <span className={requestDetailsStyles.fieldValue}>€ {item.Cost || '0'}</span>
@@ -309,19 +290,19 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
     return (
         <>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-            <div className={requestDetailsStyles.requestCardsContainer}>
-                <h2 style={{ textAlign: 'center' }}>Request Items ({items.length})</h2>
-                <div className={items[0].RequestType === "Software" ? requestDetailsStyles.softwareItem : requestDetailsStyles.cardsGrid}>
+            <div style={{marginLeft: '10px'}}>
+                <div className={requestDetailsStyles.cardsGrid}>
                     {items.length > 0 ? (
                         items.map(renderItemCard)
                     ) : (
                         <div className={styles.noData}>No request items found for this request</div>
                     )}
 
-                    {view === 'myView' && request.RequestStatus === 'Saved' && items[0].RequestType !== "Software" && (
+                    {view === 'myView' && request.RequestStatus === 'Draft' && items[0].RequestType !== "Software" && (
                         <div className={requestDetailsStyles.addButtonContainer}>
-                            <button onClick={onAdd} className={requestDetailsStyles.addButton} title="Add new request item">
+                            <button onClick={onAdd} className={styles.stdButton}>
                                 <i className="fa-solid fa-plus"></i>
+                                Add new item
                             </button>
                         </div>
                     )}

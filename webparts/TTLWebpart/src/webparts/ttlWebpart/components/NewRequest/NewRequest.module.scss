@@ -1,3 +1,12 @@
+.newRequestContainer {
+  width: 100%;
+  justify-self: center;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+}
+
 .itemsTable {
   width: 100%;
   border-collapse: collapse;
@@ -33,11 +42,11 @@
 
 .formHeader {
   display: flex;
-    border-bottom: 2px solid #f3f2f1;
-    margin-bottom: 20px;
-    padding-bottom: 6px;
-    justify-content: center;
-    align-items: center;
+  border-bottom: 2px solid #f3f2f1;
+  margin-bottom: 20px;
+  padding-bottom: 6px;
+  justify-content: space-between;
+  align-items: baseline;
 }
 
 .chooseRequestButton {
@@ -57,7 +66,6 @@
   justify-content: center;
   gap: 30px;
   width: 100%;
-  transform: translateY(35%);
 }
 
 .chooseRequestButton {
@@ -119,28 +127,6 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
-
-  .iconButton {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 30px;
-    color: #444;
-    transition: color 0.2s ease;
-
-    &:hover:not(:disabled) {
-      color: rgb(47, 129, 131);
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    i {
-      pointer-events: none;
-    }
-  }
 }
 
 .modalContainer {
@@ -214,6 +200,12 @@
       color: rgb(47, 129, 131);
     }
   }
+}
+
+@media (max-width: 1150px) {
+   .formHeader {
+    flex-wrap: wrap;
+   }
 }
 
 @media (max-width: 1020px) {

@@ -4,6 +4,7 @@
   #workbenchPageContent,
   .CanvasComponent.LCS .CanvasZone {
     max-width: 100% !important;
+    background-color: #f4fafa;
   }
 }
 
@@ -47,14 +48,6 @@
   }
 }
 
-.headerButtons {
-    position: absolute;
-    display: flex;
-    right: 2%;
-    transform: translateY(5px);
-    gap: 10px;
-}
-
 .tableContainer {
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -81,7 +74,12 @@
 
 .filterContainer {
   display: flex;
+  justify-content: flex-end;
   margin: 15px 0px 15px 0px;
+}
+
+.searchHR {
+  transform: translateY(-14px);
 }
 
 .filterInput {
@@ -94,7 +92,7 @@
   table-layout: fixed;
   
   thead {
-    background-color: #f8f9fa;
+    background-color: #eaf5f5;
     
     th {
       padding: 16px 12px;
@@ -186,37 +184,17 @@
   font-weight: 600;
   text-transform: capitalize;
   
-  &.saved {
-    background-color: #ffc80054;
-    color: #8a6d00;
-  }
-
-  &.sentForApproval {
-    background-color: #f88f0534;
-    color: #b37019;
-  }
-
-  &.booking {
-    background-color: #00828b4f;
-    color: #008888;
+  &.default {
+    background-color: #2a2a2854;
+    color: #212120;
   }
 
   &.approved {
     background-color: #15ff002f;
     color: #107c10;
   }
-  
-  &.inProcessByHR {
-    background-color: #0000ff3d;
-    color: #10547c;
-  }
 
-  &.needsReapproval {
-    background-color: #edceff;
-    color: #6a008a;
-  }
-  
-  &.declined {
+  &.rejected {
     background-color: #ff001548;
     color: #a4262c;
   }
@@ -253,29 +231,20 @@
   }
 }
 
+.disabledButton {
+  background: none;
+  border: none;
+  color: rgb(143, 143, 143);
+  background-color: rgb(26, 69, 70);
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: not-allowed;
+  margin-bottom: 10px;
+  padding: 8px 20px;
+}
+
 .ttlForm {
-  background: #ffffff;
   padding: 24px 32px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  max-width: 720px;
-  min-height: 45vh;
-  margin: 20px auto;
-  font-family: "Segoe UI", Roboto, sans-serif;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.formHeader {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 2px solid #f3f2f1;
-  padding-bottom: 6px;
-  margin-bottom: 20px;
-}
-
-.ttlForm h3 {
-  font-size: 18px;
-  color: #201f1e;
-  margin-bottom: 16px;
 }
 
 .formItem {
@@ -304,9 +273,13 @@
 }
 
 .formRow input[type="text"],
-.formRow input[type="number"],
+.formRow input[type="number"] {
+  font-size: 14px;
+  padding: 3px;
+}
+
 .formRow select {
-  padding: 10px 12px;
+  padding: 5px;
   font-size: 14px;
 }
 
@@ -343,6 +316,7 @@ input:focus {
   padding: 5px 12px 7px 12px;
   border-radius: 4px;
   font-size: 16px;
+  width: 78px;
   cursor: pointer;
 }
 
@@ -359,6 +333,7 @@ input:focus {
   padding: 5px 12px 7px 12px;
   border-radius: 4px;
   font-size: 16px;
+  width: 78px;
   cursor: pointer;
 }
 
@@ -461,13 +436,16 @@ input:focus {
 }
 
 .tabContainer {
+  position: relative;
   display: flex;
   justify-content: center;
   margin-bottom: 1.5rem;
 }
 
 .tabButtonWrapper {
-  position: relative;
+  position: absolute;
+  left: 0;
+  bottom: -42px;
   display: flex;
   background-color: white;
   border-radius: 4px;
@@ -498,7 +476,7 @@ input:focus {
   transform: translateX(0%);
 }
 
-.tabButtonToApprove,
+.tabButtonAllRequests,
 .tabButtonApproved,
 .tabButtonAwaiting {
   border: none;
@@ -514,19 +492,23 @@ input:focus {
 }
 
 .tabButtonAwaiting {
-  border-radius: 4px 0px 0px 4px;
+  border-radius: 0;
 }
 
 .tabButtonApproved {
   border-radius: 0px 4px 4px 0px;
 }
 
-.tabButtonToApprove {
-  border-radius: 0;
+.tabButtonAllRequests {
+  border-radius: 4px 0px 0px 4px;
 }
 
 .activeTabText {
   color: white;
+}
+
+.peoplePicker {
+  background-color: white;
 }
 
 .activeTab {
@@ -541,6 +523,12 @@ input:focus {
 @media (max-width: 1150px) {
   .ttlDashboard {
     padding: 10px;
+  }
+
+  .searchHR {
+    padding: 40px 0 10px 0;
+    transform: none;
+    justify-content: flex-start;
   }
 }
 

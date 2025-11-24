@@ -122,19 +122,6 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
 
       <div className={styles.formRow}>
         <div className={styles.formItem}>
-          <label>Goal *</label>
-          <textarea 
-            value={goal} 
-            onChange={e => setGoal(e.target.value)} 
-            className={goalError ? styles.invalid : ''}
-          />
-          {goalError && <div className={styles.validationError}>{goalError}</div>}
-        </div>
-      </div>
-
-
-      <div className={styles.formRow}>
-        <div className={styles.formItem}>
           <label>Team *</label>
           <select
             value={team}
@@ -168,12 +155,21 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
         </div>
       </div>
 
+      <label>Goal *</label>
+      <textarea 
+        value={goal} 
+        onChange={e => setGoal(e.target.value)} 
+        className={goalError ? styles.invalid : ''}
+        style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }}
+      />
+      {goalError && <div className={styles.validationError}>{goalError}</div>}
+
       <div className={styles.formActions}>
-        <button className={styles.saveButton} onClick={handleSave}>
-          Save
-        </button>
         <button className={styles.cancelButton} onClick={onCancel}>
           Cancel
+        </button>
+        <button className={styles.saveButton} onClick={handleSave}>
+          Save
         </button>
       </div>
     </div>

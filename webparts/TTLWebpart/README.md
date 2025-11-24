@@ -11,7 +11,7 @@ There is also an exception when the total cost of a request exceeds 5000 EUR. In
 
 New request is created (> 5000 EUR): the approver and HR are both informed of the new creation.
 New request is created (< 5000 EUR): the approver, HR and managing director are informed of the new creation.
-Request is declined: the requester is informed of the decision.
+Request is Rejected: the requester is informed of the decision.
 Request is approved by approver: HR is informed that a request requires their approval.
 Request is approved by all required approvers: requester is informed that their request is approved and will be booked.
 
@@ -35,9 +35,9 @@ Request is approved by all required approvers: requester is informed that their 
 - HelperFunctions.ts: file with functions that are used in multiple components
 
 - TtlDashboard.tsx: Dashboard that shows the requests of the logged in user
-- ApproversDashboard.tsx: Dashboard that shows requests that are 'sent for approval' or 'sent for reapproval' and are attached to the logged in approver (only visible for approvers)
+- ApproversDashboard.tsx: Dashboard that shows requests that are 'Submitted' or 'sent for reapproval' and are attached to the logged in approver (only visible for approvers)
 - HRDashboard.tsx: Dashboard that shows requests that are 'in process by HR'
-- DirectorDashboard.tsx: Dashboard that shows requests that are 'sent for approval' and exceed 5000 EUR
+- DirectorDashboard.tsx: Dashboard that shows requests that are 'Submitted' and exceed 5000 EUR
 - DashboardComponent.tsx: Component that contains the table with requests, tailored for each type of dashboard
 
 - ChooseNewRequest.tsx: Component where the user is prompted to choose the kind of request they want to make
@@ -50,7 +50,7 @@ Request is approved by all required approvers: requester is informed that their 
 
 - RequestDetails.tsx: When a request is created, this component contains all information from that item. Actions can be taken based on the status of that specific request (CRUD operations, approvals etc.)
 - RequestItemsList.tsx: Component inside the RequestDetails that shows each request item
-- AddItemModal.tsx: Modal for adding a request item to a request in the details page (only possible when request status is 'saved')
+- AddItemModal.tsx: Modal for adding a request item to a request in the details page (only possible when request status is 'Draft')
 - ConfirmDeleteDialog.tsx: Dialog for deleting whole requests or individual request items
 - EditItemModal.tsx: Modal for editing requests
 - EditRequestForm.tsx: Modal for editing details about the request like: approver, title, goal etc.

@@ -10,6 +10,7 @@ import DashboardComponent from './DashboardComponent';
 import DirectorDashboard from './DirectorDashboard';
 import ChooseNewRequest from '../NewRequest/ChooseNewRequest';
 import { ITtlWebpartProps } from './DashboardProps';
+import HeaderComponent from '../Header/HeaderComponent';
 
 const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -165,6 +166,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         setNewRequest(false);
         setShowApproverDashboard(false);
         setShowHRDashboard(false);
+        setShowDirectorDashboard(false);
       }
     };
 
@@ -329,7 +331,15 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
 
   if (showHRDashboad) {
     return (
-      <HRDashboard context={context} onBack={handleBackClick} isHR={isHR}/>
+      <HRDashboard 
+        context={context} 
+        onBack={handleBackClick} 
+        isHR={isHR} 
+        isCEO={isCEO}
+        allApprovers={allApprovers}
+        loggedInUser={loggedInUser}
+        onViewClick={handleViewClick}
+        />
     );
   }
 
@@ -341,28 +351,14 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
 
   return (
     <div className={styles.ttlDashboard}>
-      <div className={styles.header}>
-        <h1>My Requests</h1>
-        <div className={styles.headerButtons}>
-          {loggedInUser && (
-            allApprovers.some(approver => approver.TeamMember.EMail === loggedInUser.Email) && (
-              <button
-                onClick={() => handleViewClick('approvers')}
-                style={{ width: '110px' }}
-                className={styles.stdButton}
-              >
-                Approver
-              </button>
-            )
-          )}
-          {isHR && (
-            <button onClick={() => handleViewClick('HR')} style={{width: '110px'}} className={styles.stdButton}>HR</button>
-          )}
-          {isCEO && (
-            <button onClick={() => handleViewClick('director')} style={{width: '110px'}} className={styles.stdButton}>Director</button>
-          )}
-        </div>
-      </div>
+      <HeaderComponent
+        view='My Requests'
+        isHR={isHR}
+        isCEO={isCEO}
+        allApprovers={allApprovers}
+        loggedInUser={loggedInUser}
+        onViewClick={handleViewClick}
+      />
 
       {error && (
         <div className={styles.error}>

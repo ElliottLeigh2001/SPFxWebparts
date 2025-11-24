@@ -18,11 +18,11 @@ export const titles: Record<ActionType, string> = {
   approve: 'Confirm Approval',
   reapprove: 'Confirm Reapprove',
   deny: 'Confirm Denial',
-  completed: 'Confirm Booking'
+  completed: 'Confirm HR Processing'
 };
 
 export const messages: Record<ActionType, string> = {
-  save: 'Are you sure you want to save this request? You still can edit it later but it will not be sent for approval.',
+  save: 'Are you sure you want to save this request? You still can edit it later but it will not be Submitted.',
   send: 'Are you sure you want to send this request for approval? This will notify approvers and you will not be able to edit this request.',
   discard: 'Are you sure you want to discard this request? This cannot be undone.',
   approve: 'Are you sure you want to approve this request?',

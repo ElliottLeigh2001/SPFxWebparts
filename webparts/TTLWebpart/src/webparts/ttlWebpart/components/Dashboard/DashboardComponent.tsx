@@ -98,9 +98,9 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
   };
 
   return (
-    <div>
+    <div style={{width: '96%', justifySelf: 'center'}}>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
-      <div className={styles.filterContainer}>
+      <div className={`${styles.filterContainer} ${view === 'HR' ? styles.searchHR : ''}`}>
         <label style={{marginRight: '10px', fontSize: 'large'}}>Search: </label>
           <input
             className={styles.filterInput}

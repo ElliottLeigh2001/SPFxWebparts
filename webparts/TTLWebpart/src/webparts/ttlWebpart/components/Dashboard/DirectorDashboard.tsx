@@ -7,6 +7,7 @@ import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
 import DashboardComponent from './DashboardComponent';
 import { DirectorDashboardProps } from './DashboardProps';
+import HeaderComponent from '../Header/HeaderComponent';
 
 const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, isCEO }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -22,7 +23,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, 
       setError(null);
 
       // Get requests with certain statuses
-      const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Sent for approval' or RequestStatus eq 'Needs reapproval' or RequestStatus eq 'Awaiting CEO approval')")
+      const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Submitted' or RequestStatus eq 'Resubmitted' or RequestStatus eq 'Awaiting CEO approval')")
 
       // Only show requests where the total cost exceeds 5000 euro
       const filteredCEORequests = requestData
@@ -126,10 +127,9 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, 
     <div className={styles.ttlDashboard}>
       {isCEO ? (
         <>
-          <div className={styles.header}>
-            <button className={styles.backButton} onClick={onBack}>Back</button>
-            <h1 style={{ fontSize: '30px' }}>Director Dashboard</h1>
-          </div>
+        <HeaderComponent
+          view='Director Dashboard'
+        />
 
           {error && (
             <div className={styles.error}>

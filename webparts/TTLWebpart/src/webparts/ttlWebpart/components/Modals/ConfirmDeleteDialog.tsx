@@ -21,18 +21,18 @@ const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({ isOpen, isDel
             <p>Are you sure you want to delete the item "{itemName}"? This action cannot be undone.</p>
             <div className={requestDetailsStyles.modalActions}>
               <button
-                className={requestDetailsStyles.deleteButton}
-                onClick={onConfirmItemDelete}
-                disabled={isDeleting}
-              >
-                {isDeleting ? 'Deleting...' : 'Yes, Delete'}
-              </button>
-              <button
                 className={requestDetailsStyles.cancelButton}
                 onClick={onCancel}
                 disabled={isDeleting}
               >
                 Cancel
+              </button>
+              <button
+                className={requestDetailsStyles.deleteButton}
+                onClick={onConfirmItemDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Confirm'}
               </button>
             </div>
           </>
@@ -45,7 +45,7 @@ const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({ isOpen, isDel
                 onClick={onConfirmRequestDelete}
                 disabled={isDeleting}
               >
-                {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                {isDeleting ? 'Deleting...' : 'Confirm'}
               </button>
               <button
                 className={requestDetailsStyles.cancelButton}

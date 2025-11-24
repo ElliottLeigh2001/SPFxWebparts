@@ -1,10 +1,15 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
-const AccommodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData, view }) => {
+export type AccommodationFormHandle = {
+  getFormData: () => { isValid: boolean; item?: any }
+}
+
+const AccommodationForm = forwardRef<AccommodationFormHandle, FormProps & { inline?: boolean }>((props, ref) => {
+  const { onSave, onCancel, initialData, view, inline } = props;
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
@@ -108,6 +113,17 @@ const AccommodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData,
       return valid;
   }
 
+  useImperativeHandle(ref, () => ({
+    getFormData: () => {
+      const result: { isValid: boolean; item?: any } = { isValid: false };
+      const valid = validate();
+      if (!valid) return result;
+      result.isValid = true;
+      result.item = { Title: title, Provider: provider, Location: location, StartDate: startDate, OData__EndDate: endDate, Cost: cost, Link: link, RequestType: 'Accommodation' };
+      return result;
+    }
+  }));
+
   const handleSave = (): void => {
     if (isLoading) return;
     setIsLoading(true);
@@ -138,7 +154,10 @@ const AccommodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData,
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
       ) : (
-<>
+      <>
+        {ref && (
+          <h4>Accommodation details</h4>
+        )}
         <div className={styles.formRow}>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>Title *</label>
@@ -178,18 +197,20 @@ const AccommodationForm: React.FC<FormProps> = ({ onSave, onCancel, initialData,
           </div>
           <div>
             <label className={styles.formRowLabel}>Link *</label>
-            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px' }} className={linkError ? styles.invalid : ''}/>
+            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px',  padding: '0 0 5px 0' }} className={linkError ? styles.invalid : ''}/>
             {linkError && <div className={styles.validationError}>{linkError}</div>}
           </div>
         </>
       )}
 
-      <div className={styles.formActions}>
-        <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit Item' : 'Add Item'}</button>
-        <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
-      </div>
+      {(!inline || initialData) && (
+        <div className={styles.formActions}>
+          <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
+          <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit' : 'Add'}</button>
+        </div>
+      )}
     </div>
   );
-};
+});
 
-export default AccommodationForm;
+export default AccommodationForm as any;

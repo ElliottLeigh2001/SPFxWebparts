@@ -17,6 +17,7 @@ import EditItemModal from '../Modals/EditItemModal';
 import { createComment } from '../../service/CommentService';
 import { TTLComment } from '../../Interfaces/TTLCommentInterface';
 import { RequestDetailsProps } from './RequestDetailsProps';
+import HeaderComponent from '../Header/HeaderComponent';
 
 const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO }) => {
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
@@ -45,7 +46,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     setDisplayedItems(items || []);
   }, [items]);
 
-  // Check if the request is of ype software or training/travel
+  // Check if the request is of type software or training/travel
   // This state is used in the Power Automate flow
   useEffect(() => {
     if (items[0].RequestType === 'Software') {
@@ -107,9 +108,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     setIsUpdatingStatus(true);
     setStatusActionError(null);
 
-    // If the request is sent for approval for the first time, set the submissionDate
+    // If the request is Submitted for the first time, set the submissionDate
     let submissionDate: any;
-    if (type === "Sent for approval") {
+    if (type === "Submitted") {
       submissionDate = new Date();
     } else {
       submissionDate = undefined;
@@ -130,7 +131,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       if (onUpdate) onUpdate();
       
       // Navigate back after a short delay
-      if (type !== 'Booking') {
+      if (type !== 'HR Processing') {
         setTimeout(() => {
           onBack();
         }, 1500);
@@ -211,7 +212,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       setIsUpdating(false);
     }
   };
-
 
   // Function for deleting an entire request with its linked requestitems
   const handleDeleteRequest = async (): Promise<void> => {
@@ -308,46 +308,21 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   return (
     <>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
-    <div className={styles.ttlDashboard}>
+    <div>
+      <HeaderComponent view={request.Title}/>
       <div className={requestDetailsStyles.detailsContainer}>
-        <div className={requestDetailsStyles.detailsHeader}>
-          <button className={requestDetailsStyles.backButton} onClick={onBack}>
-            Back
-          </button>
 
-          <h1>Request Details: {displayedRequest.Title}</h1>
-
-          <div className={requestDetailsStyles.detailsActions}>
-            {(displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') && (
-              <>
-                <button
-                  className={requestDetailsStyles.iconButton}
-                  onClick={() => { setConfirmAction('send'); setShowConfirmActionDialog(true); } }
-                  title="Send for approval"
-                >
-                  <i className="fa fa-paper-plane" aria-hidden="true"></i>
-                </button>
-                <button
-                  className={requestDetailsStyles.iconButton}
-                  onClick={() => setEditingRequest(true)}
-                  title="Edit"
-                >
-                  <i className="fa fa-pencil" aria-hidden="true"></i>
-                </button>
-            
-              <button
-                className={requestDetailsStyles.iconButton}
-                onClick={() => setShowDeleteConfirm(true)}
-                title="Discard"
-              >
-                <i className="fa fa-trash" aria-hidden="true"></i>
-              </button>
-              </>
-            )}
+        <div className={requestDetailsStyles.details}>
+          <div className={requestDetailsStyles.titleContainer}>
+            <h3 className={requestDetailsStyles.panelHeader}>Details</h3>
+            <button
+              className={requestDetailsStyles.iconButton}
+              onClick={() => setEditingRequest(true)}
+              title="Edit"
+            >
+              <i className="fa fa-pencil" aria-hidden="true"></i>
+            </button>
           </div>
-        </div>
-
-        <div className={requestDetailsStyles.requestSummary}>
           {view !== 'myView' && (
             <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
           )}
@@ -369,7 +344,25 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
           <span><strong>Status:</strong> <span style={{padding: '4px 12px'}} className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
           <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
         </div>
-      </div>
+
+        <div className={requestDetailsStyles.items}>
+          <div className={requestDetailsStyles.titleContainer}>
+            <h3 className={requestDetailsStyles.panelHeader}>Items ({displayedItems.length})</h3>
+          </div>
+          <RequestItemsList
+            items={displayedItems}
+            onEdit={handleEditItem}
+            onDelete={handleDeleteItem}
+            onAdd={() => setShowAddModal(true)}
+            showActions={((displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') || 
+              (view === 'HR' && displayedRequest.RequestStatus === 'In process by HR'))}
+              view={view}
+              request={displayedRequest}
+              context={context}
+              onDocumentUploaded={() => onUpdate()}
+              />
+          </div>
+        </div>
 
       {(error || actionError) && (
         <div className={styles.error}>
@@ -425,20 +418,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         onConfirmRequestDelete={handleDeleteRequest}
       />
 
-      <RequestItemsList
-        items={displayedItems}
-        onEdit={handleEditItem}
-        onDelete={handleDeleteItem}
-        onAdd={() => setShowAddModal(true)}
-        showActions={((displayedRequest.RequestStatus === 'Saved' || displayedRequest.RequestStatus === 'Declined') || 
-                      (view === 'HR' && displayedRequest.RequestStatus === 'In process by HR'))}
-        view={view}
-        request={displayedRequest}
-        context={context}
-        onDocumentUploaded={() => onUpdate()}
-      />
-
-
       <ConfirmActionDialog
           isOpen={showConfirmActionDialog}
           action={confirmAction}
@@ -464,11 +443,11 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                       await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
                       // If the other approver (practice lead) has not yet approved,
                       // don't send to HR yet, but set the approvedByCEO column to true
-                    } else if (request.RequestStatus === 'Sent for approval') {
-                      await updateRequestApprover('Sent for approval', true);
+                    } else if (request.RequestStatus === 'Submitted') {
+                      await updateRequestApprover('Submitted', true);
                       // Do the same for reapprovals
-                    } else if (request.RequestStatus === 'Needs reapproval') {
-                      await updateRequestApprover('Needs reapproval', true)
+                    } else if (request.RequestStatus === 'Resubmitted') {
+                      await updateRequestApprover('Resubmitted', true)
                     }
                   }
                   // If the approver is a practice lead
@@ -493,15 +472,15 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                       await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest,})
                     } 
                   }
-                  // If the approver is HR and they approve, set status to booking
+                  // If the approver is HR and they approve, set status to HR Processing
                   else if (view === 'HR') {
-                    await updateRequestApprover('Booking')
+                    await updateRequestApprover('HR Processing')
                   }
                 } 
                 // If a request is denied
                 else if (confirmAction === 'deny') {
                   // Update status
-                  await updateRequestApprover('Declined');
+                  await updateRequestApprover('Rejected');
                   // Add comment (it's required upon denial)
                   await handleAddComment(comment!)
                   // Inform requester that their request has been denied
@@ -510,7 +489,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                 // When the requester sends their request for approval
                 else if (confirmAction === 'send') {
                   // Update status
-                  await updateRequestApprover('Sent for approval')
+                  await updateRequestApprover('Submitted')
                   // Get data from the approver so it can be included in the email
                   const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
                   const approverEmail = approverData?.TeamMember?.EMail;
@@ -523,7 +502,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   // Add comment (it's required upon reapproval)
                   await handleAddComment(comment!)
                   // Update status
-                  await updateRequestApprover('Needs reapproval', false)
+                  await updateRequestApprover('Resubmitted', false)
                   // Get data from the approver so it can be included in the email
                   const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
                   const approverEmail = approverData?.TeamMember?.EMail;
@@ -546,7 +525,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         />
     </div>
       <div className={styles.newRequestButtonContainer}>
-        {view !== 'myView' && (request.RequestStatus !== 'Completed' && request.RequestStatus !== 'Booking') && HRTab !== 'awaitingApproval' && (
+        {view !== 'myView' && (request.RequestStatus !== 'Completed' && request.RequestStatus !== 'HR Processing') && HRTab !== 'awaitingApproval' && (
           
           <div style={{display: 'flex', gap: '20px'}}>
           <button
@@ -575,7 +554,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             )}
           </div>
         )}
-        {view === 'HR' && request.RequestStatus === 'Booking' && (
+        {view === 'HR' && request.RequestStatus === 'HR Processing' && (
           <button
           onClick={() => {setConfirmAction('completed'); setShowConfirmActionDialog(true)}}
           className={requestDetailsStyles.approveButton}
@@ -584,6 +563,28 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             Mark as booked
           </button>
         )} 
+      </div>
+
+      <div className={requestDetailsStyles.detailsActions}>
+        {(displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') && (
+          <>
+            <button
+              className={styles.stdButton}
+              onClick={() => { setConfirmAction('send'); setShowConfirmActionDialog(true); } }
+              style={{width: '171px'}}
+            >
+              Send for approval
+            </button>
+        
+          <button
+            className={styles.stdButton}
+            onClick={() => setShowDeleteConfirm(true)}
+            style={{width: '171px'}}
+          >
+            Discard
+          </button>
+          </>
+        )}
       </div>
       
       <CommentsSection

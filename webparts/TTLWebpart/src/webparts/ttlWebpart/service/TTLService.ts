@@ -106,7 +106,6 @@ const mapSharePointItemToUserRequestItem = (sharePointItem: any): UserRequestIte
         DocumentID: sharePointItem.DocumentID ? { Id: sharePointItem.DocumentID.Id, url: sharePointItem.DocumentID.url } : undefined,
         Processed: sharePointItem.Processed || false,
         ChangedByHR: sharePointItem.ChangedByHR || false,
-        ReasonForTravel: sharePointItem.ReasonForTravel || ''
     };
 };
 
@@ -191,7 +190,6 @@ export const createRequestItem = async (context: WebPartContext, item: UserReque
         Cost: item.Cost || '',
         Licensing: item.Licensing || '',
         LicenseType: item.LicenseType || '',
-        ReasonForTravel: item.ReasonForTravel || '',
     };
 
     if (userIds.length > 0) {
@@ -207,7 +205,7 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
     const sp = getSP(context);
     const requestsList = sp.web.lists.getByTitle('TTL_Requests');
     let submissionDate;
-    if (type === 'Sent for approval') {
+    if (type === 'Submitted') {
       submissionDate = new Date();
     } else {
       submissionDate = null;
@@ -220,7 +218,7 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
         Project: request.Project || '',
         TeamIDId: Number(request.TeamID) || null,
         ApproverIDId: Number(request.ApproverID) || null,
-        RequestStatus: type || 'Saved',
+        RequestStatus: type || 'Draft',
         TotalCost: request.TotalCost || 0,
         SubmissionDate: submissionDate
     });
@@ -273,7 +271,6 @@ export const createRequestItemForExistingRequest = async (
     Licensing: item.Licensing || '',
     LicenseType: item.LicenseType || '',
     RequestIDId: requestId,
-    ReasonForTravel: item.ReasonForTravel || ''
   };
 
   if (userIds.length > 0) {
@@ -365,7 +362,6 @@ export const updateRequestItem = async (context: WebPartContext, itemId: number,
         Cost: item.Cost || '',
         Licensing: item.Licensing || '',
         LicenseType: item.LicenseType || '',
-        ReasonForTravel: item.ReasonForTravel || ''
     };
 
     if (userIds.length > 0) {
@@ -411,7 +407,6 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
             title: user.Title,
             loginName: user.LoginName
         })) : [],
-        ReasonForTravel: item.ReasonForTravel,
     };
 };
 

@@ -7,6 +7,7 @@ import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
 import DashboardComponent from './DashboardComponent';
 import { HRDashboardProps } from './DashboardProps';
+import HeaderComponent from '../Header/HeaderComponent';
 
 const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -14,7 +15,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'awaitingApproval' | 'toApprove' | 'approved'>('toApprove');
+  const [activeTab, setActiveTab] = useState<'awaitingApproval' | 'allRequests' | 'approved'>('allRequests');
 
   // Get requests data
   const fetchRequests = async (requestId?: number): Promise<void> => {
@@ -84,11 +85,6 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
     goBack({ setSelectedRequest, setRequestItems, setError, pushState, viewName: 'HR' });
   };
 
-  // Handle status update and refresh the list
-  const handleStatusUpdate = async (): Promise<void> => {
-    await fetchRequests();
-  };
-
   if (isLoading) {
     return (
       <div className={styles.ttlDashboard}>
@@ -116,7 +112,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
         view='HR'
         HRTab={activeTab}
         onBack={() => handleBackClick(true)}
-        onUpdate={handleStatusUpdate}
+        onUpdate={fetchRequests}
         context={context}
         error={error} 
       />
@@ -124,62 +120,61 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
   }
 
   let filteredRequests = requests.filter(req => {
-    if (activeTab === 'toApprove') {
-      return req.RequestStatus === 'In process by HR';
+    if (activeTab === 'allRequests') {
+      return requests;
     } else if (activeTab === 'awaitingApproval') {
       return (
-        req.RequestStatus === 'Sent for approval' ||
+        req.RequestStatus === 'Submitted' ||
         req.RequestStatus === 'Awaiting CEO approval' ||
-        req.RequestStatus === 'Needs reapproval'
+        req.RequestStatus === 'Resubmitted'
       );
     } else {
-      return req.RequestStatus === 'Booking' || req.RequestStatus === 'Completed';
+      return req.RequestStatus === 'HR Processing' || req.RequestStatus === 'Completed';
     }
   });
 
   if (activeTab === 'approved') {
     filteredRequests = filteredRequests.sort((a, b) => {
       const order: Record<string, number>  = {
-        'Booking': 1,
+        'HR Processing': 1,
         'Completed': 2,
       };
       return order[a.RequestStatus] - order[b.RequestStatus];
     });
   }
 
-
   return (
     <div className={styles.ttlDashboard}>
       {isHR ? (
         <>
-        <div className={styles.header}>
-          <button className={styles.backButton} onClick={onBack}>Back</button>
-          <h1 style={{ fontSize: '30px' }}>HR Dashboard</h1>
-        </div>
+        <HeaderComponent
+          view='HR Dashboard'
+        />
         <div className={styles.tabContainer}>
           <div className={styles.tabButtonWrapper}>
             <div
               className={`${styles.activeBg} ${
                 activeTab === 'awaitingApproval'
-                  ? styles.slideLeft
-                  : activeTab === 'toApprove'
                   ? styles.slideCenter
+                  : activeTab === 'allRequests'
+                  ? styles.slideLeft
                   : styles.slideRight
               }`}
-            ></div>
+            >
+            </div>
+
+            <button
+              className={`${styles.tabButtonAllRequests} ${activeTab === 'allRequests' ? styles.activeTabText : ''}`}
+              onClick={() => setActiveTab('allRequests')}
+            >
+              All Requests
+            </button>
 
             <button
               className={`${styles.tabButtonAwaiting} ${activeTab === 'awaitingApproval' ? styles.activeTabText : ''}`}
               onClick={() => setActiveTab('awaitingApproval')}
             >
               Awaiting Approval
-            </button>
-
-            <button
-              className={`${styles.tabButtonToApprove} ${activeTab === 'toApprove' ? styles.activeTabText : ''}`}
-              onClick={() => setActiveTab('toApprove')}
-            >
-              To Approve
             </button>
 
             <button

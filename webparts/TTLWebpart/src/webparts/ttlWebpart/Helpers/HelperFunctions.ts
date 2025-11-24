@@ -70,19 +70,17 @@ export const formatEditingDate = (dateString: string | undefined): string => {
 // Show statuses as different colours
 export const getRequestStatusStyling = (status: string): string => {
     const statusMap: { [key: string]: string } = {
-      'Saved': styles.saved,
-      'Unsaved': styles.saved,
-      'Sent for approval': styles.sentForApproval,
-      'In Process By HR': styles.inProcessByHR,
-      'Needs reapproval': styles.needsReapproval,
-      'Processed by HR': styles.approved,
-      'Declined': styles.declined,
-      'Booking': styles.booking,
+      'Draft': styles.default,
+      'Submitted': styles.default,
+      'In Process By HR': styles.default,
+      'Resubmitted': styles.default,
+      'Rejected': styles.rejected,
+      'HR Processing': styles.default,
       'Approved': styles.approved,
       'Completed': styles.approved,
     };
 
-    return statusMap[status] || styles.inProcessByHR;
+    return statusMap[status] || styles.default;
 };
 
 // Function to calculate the yearly cost of a software license
@@ -150,6 +148,7 @@ export const attachUrlHandlers = (args: {
     const requestId = params.get("requestId");
     const view = params.get("view");
 
+    // Sync UI state with URL
     if (view === viewName && requestId && requests.length > 0) {
       const request = requests.find((req: any) => req.ID === parseInt(requestId));
       if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
@@ -222,6 +221,7 @@ export const goBack = (args: {
 }) => {
   const { setSelectedRequest, setRequestItems, setError, pushState = true, viewName = 'requests' } = args;
 
+  // Clear selection and items
   setSelectedRequest(null);
   setRequestItems([]);
   setError(null);

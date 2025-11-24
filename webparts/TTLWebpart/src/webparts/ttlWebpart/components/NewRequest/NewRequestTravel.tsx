@@ -11,8 +11,9 @@ import { Modal } from '@fluentui/react';
 import { sendEmail } from '../../service/AutomateService';
 import AccommodationForm from '../Forms/AccomodationForm';
 import { NewRequestProps } from './NewRequestProps';
+import HeaderComponent from '../Header/HeaderComponent';
 
-const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave, approvers, loggedInUser }) => {
+const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave, approvers, loggedInUser }) => {
     const [title, setTitle] = useState('');
     const [goal, setGoal] = useState('');
     const [project, setProject] = useState('');
@@ -149,7 +150,7 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
             }, items, type);
 
             // If you are sending for approval (not saving), trigger the Automate flow
-            if (type === 'Sent for approval') {
+            if (type === 'Submitted') {
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.TeamMember?.EMail;
                 const approverTitle = approverData.TeamMember?.Title;
@@ -244,36 +245,40 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
     const disabled = isSaving || items.length === 0
     return (
         <>
+            <HeaderComponent view="New Request"/>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
             <div className={styles.ttlForm}>
-                <div className={styles.formHeader}>
-                    <h2>New Training / Travel Request</h2>
+                <div className={newRequestStyles.formHeader}>
+                    <h2>New Travel Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
-                            className={newRequestStyles.iconButton}
+                            className={disabled ? styles.disabledButton : styles.stdButton}
+                            style={{width: '171px'}}
                             disabled={disabled}
                             onClick={() => { setConfirmAction('save'); setConfirmOpen(true); }}
                             title={disabled ? "Add an item to your request before saving" : "Save"}
                         >
-                            <i className="fa fa-bookmark-o" aria-hidden="true"></i>
+                            Draft
                         </button>
 
                         <button
-                            className={newRequestStyles.iconButton}
+                            className={disabled ? styles.disabledButton : styles.stdButton}
+                            style={{width: '171px'}}
                             disabled={disabled}
                             onClick={() => { setConfirmAction('send'); setConfirmOpen(true); }}
                             title={disabled ? "Add an item to your request before sending" : "Send for approval"}
                         >
-                            <i className="fa fa-paper-plane" aria-hidden="true"></i>
+                            Send for approval
                         </button>
 
                         <button
-                            className={newRequestStyles.iconButton}
+                            className={styles.stdButton}
+                            style={{width: '171px'}}
                             disabled={isSaving}
                             onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); }}
                             title="Discard"
                         >
-                            <i className="fa fa-trash" aria-hidden="true"></i>
+                            Discard
                         </button>
                     </div>
                 </div>
@@ -291,12 +296,6 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
                         <input className={projectError ? styles.invalid : ''} value={project} onChange={e => setProject(e.target.value)} required />
                         {projectError && <div className={styles.validationError}>{projectError}</div>}
                     </div>
-                </div>
-
-                <div style={{ marginBottom: '18px' }}>
-                    <label className={styles.formRowLabel}>Goal *</label>
-                    <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '99%', marginTop: '6px' }} />
-                    {goalError && <div className={styles.validationError}>{goalError}</div>}
                 </div>
 
                 <div className={styles.formRow}>
@@ -336,6 +335,12 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
                         </select>
                         {approverError && <div className={styles.validationError}>{approverError}</div>}
                     </div>
+                </div>
+
+                <div style={{ marginBottom: '18px' }}>
+                    <label className={styles.formRowLabel}>Goal *</label>
+                    <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} />
+                    {goalError && <div className={styles.validationError}>{goalError}</div>}
                 </div>
 
                 <h4 style={{marginTop: "3em"}}>Add items to your request</h4>
@@ -455,9 +460,9 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
                         setConfirmProcessing(true);
                         try {
                             if (confirmAction === 'save') {
-                                await handleSave('Saved');
+                                await handleSave('Draft');
                             } else if (confirmAction === 'send') {
-                                await handleSave('Sent for approval');
+                                await handleSave('Submitted');
                             } else if (confirmAction === 'discard') {
                                 onCancel();
                             }
@@ -474,4 +479,4 @@ const NewRequestTrainingTravel: React.FC<NewRequestProps> = ({ context, onCancel
     );
 }
 
-export default NewRequestTrainingTravel;
+export default NewRequestTravel;

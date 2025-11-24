@@ -37,6 +37,7 @@ const ConfirmActionDialog: React.FC<ConfirmActionDialogProps> = ({ isOpen, actio
           </>
         )}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 25 }}>
+          <button className={styles.cancelButton} onClick={onCancel} disabled={isProcessing}>Cancel</button>
           <button
             className={styles.saveButton}
             onClick={() => {
@@ -52,7 +53,6 @@ const ConfirmActionDialog: React.FC<ConfirmActionDialogProps> = ({ isOpen, actio
             Confirm
           </button>
 
-          <button className={styles.cancelButton} onClick={onCancel} disabled={isProcessing}>Cancel</button>
         </div>
       </div>
     </Modal>

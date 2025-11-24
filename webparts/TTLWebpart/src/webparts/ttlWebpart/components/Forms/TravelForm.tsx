@@ -1,25 +1,29 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 
-const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void }> = ({ onSave, onCancel, initialData, view, isReturnJourney }) => {
+export type TravelFormHandle = {
+  getFormData: () => { isValid: boolean; item?: UserRequestItem; includeAccommodation?: boolean; includeReturnJourney?: boolean }
+}
+
+const TravelForm = forwardRef<TravelFormHandle, FormProps & { isReturnJourney?: boolean, onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, inline?: boolean, onToggleIncludeAccommodation?: (v: boolean) => void, onToggleIncludeReturnJourney?: (v: boolean) => void }>((props, ref) => {
+  const { onSave, onCancel, initialData, view, returning, inline, onToggleIncludeAccommodation, onToggleIncludeReturnJourney } = props;
+  
   const [title, setTitle] = useState(initialData?.Title || '');
   const [date, setDate] = useState(formatEditingDate(initialData?.StartDate) || '');
   const [location, setLocation] = useState(initialData?.Location || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
   const [link, setLink] = useState(initialData?.Link || '');
-  const [reasonForTravel, setReasonForTravel] = useState(initialData?.ReasonForTravel || '');
   const [titleError, setTitleError] = useState('');
   const [providerError, setProviderError] = useState('');
   const [costError, setCostError] = useState('');
   const [dateError, setDateError] = useState('');
   const [linkError, setLinkError] = useState('');
   const [locationError, setLocationError] = useState('');
-  const [reasonForTravelError, setReasonForTravelError] = useState('');
   const [isLoading, setIsLoading] = useState(false)
   const [includeAccommodation, setIncludeAccommodation] = useState(false);
   const [includeReturnJourney, setIncludeReturnJourney] = useState(false);
@@ -34,7 +38,6 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
     setDateError('');
     setLocationError('');
     setCostError('');
-    setReasonForTravelError('');
 
     if (!title) {
       setTitleError('Title is required');
@@ -48,11 +51,6 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
 
     if (!location) {
       setLocationError('Location is required');
-      valid = false;
-    }
-
-    if (!reasonForTravel) {
-      setReasonForTravelError('Reason for travel is required');
       valid = false;
     }
 
@@ -115,6 +113,19 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
       return valid;
   }
 
+  useImperativeHandle(ref, () => ({
+    getFormData: () => {
+      const result: { isValid: boolean; item?: UserRequestItem; includeAccommodation?: boolean; includeReturnJourney?: boolean } = { isValid: false };
+      const valid = validate();
+      if (!valid) return result;
+      result.isValid = true;
+      result.item = { Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' } as any;
+      result.includeAccommodation = includeAccommodation;
+      result.includeReturnJourney = includeReturnJourney;
+      return result;
+    }
+  }));
+
   const handleSave = (): void => {
     if (isLoading) return;
     setIsLoading(true);
@@ -137,14 +148,14 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
         setIsLoading(false);
         return;
       }
-      onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, ReasonForTravel: reasonForTravel, RequestType: 'Travel' }, nextForms);
+      onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
       setIsLoading(false);
     }
     if (!validate()) {
       setIsLoading(false);
       return;
     }
-    onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, ReasonForTravel: reasonForTravel, RequestType: 'Travel' }, nextForms);
+    onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
     setIsLoading(false);
     setTitle('');
     setProvider('');
@@ -152,11 +163,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
     setDate('');
     setLocation('');
     setCost('');
-    setReasonForTravel('');
   };
-
-  // Modal title logic
-  const modalTitle = initialData ? 'Edit Item' : 'Add Item'
 
   return (
     <div>
@@ -168,6 +175,11 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
         </div>
       ) : (
       <>
+        {ref && returning ? (
+          <h4>Travel details - Return Journey</h4>
+        ) : (
+          <h4>Travel details</h4>
+        )}
          <div className={styles.formRow}>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>Title *</label>
@@ -204,22 +216,15 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
               {linkError && <div className={styles.validationError}>{linkError}</div>}
             </div>
           </div>
-          <div className={styles.formRow}>
-            <div style={{width: '100%'}} className={styles.formItem}>
-              <label className={styles.formRowLabel}>Reason for travel *</label>
-              <textarea value={reasonForTravel} onChange={e => setReasonForTravel(e.target.value)} className={reasonForTravelError ? styles.invalid : ''}/>
-              {reasonForTravelError && <div className={styles.validationError}>{reasonForTravelError}</div>}
-            </div>
-          </div>
 
-          {!isReturnJourney && !initialData && (
+          {!returning && !initialData && (
             <div style={{ marginTop: '20px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <input 
                     type="checkbox" 
                     checked={includeReturnJourney} 
-                    onChange={e => setIncludeReturnJourney(e.target.checked)} 
+                    onChange={e => { setIncludeReturnJourney(e.target.checked); if (onToggleIncludeReturnJourney) onToggleIncludeReturnJourney(e.target.checked); }} 
                   />
                   I want to add a return journey
                 </label>
@@ -227,7 +232,7 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
                   <input 
                     type="checkbox" 
                     checked={includeAccommodation} 
-                    onChange={e => setIncludeAccommodation(e.target.checked)} 
+                    onChange={e => { setIncludeAccommodation(e.target.checked); if (onToggleIncludeAccommodation) onToggleIncludeAccommodation(e.target.checked); }} 
                   />
                   I want to add an accommodation for this travel
                 </label>
@@ -237,12 +242,14 @@ const TravelForm: React.FC<FormProps & { isReturnJourney?: boolean, onSave: (ite
         </>
       )}
 
-        <div className={styles.formActions}>
-          <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{modalTitle}</button>
-          <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
-        </div>
+        {(!inline || initialData) && (
+          <div className={styles.formActions}>
+            <button className={styles.cancelButton} onClick={onCancel} disabled={isLoading}>Cancel</button>
+            <button className={styles.saveButton} onClick={handleSave} disabled={isLoading}>{initialData ? 'Edit' : 'Add'}</button>
+          </div>
+        )}
     </div>
   );
-};
+});
 
-export default TravelForm;
+export default TravelForm as any;
