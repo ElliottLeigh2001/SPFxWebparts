@@ -82,6 +82,7 @@ export interface Approver {
         Title?: string;
         EMail?: string;
     }
+    Team?: string;
 }
 
 export interface Team {

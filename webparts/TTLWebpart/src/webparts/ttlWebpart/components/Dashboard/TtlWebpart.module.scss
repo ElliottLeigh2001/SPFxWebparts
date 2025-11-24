@@ -244,6 +244,8 @@
 }
 
 .ttlForm {
+  width: 96%;
+  justify-self: center;
   padding: 24px 32px;
 }
 
@@ -330,7 +332,6 @@ input:focus {
   background-color: rgb(47, 129, 131);
   border: 3px solid rgb(47, 129, 131);
   color: white;
-  padding: 5px 12px 7px 12px;
   border-radius: 4px;
   font-size: 16px;
   width: 78px;
@@ -444,7 +445,7 @@ input:focus {
 
 .tabButtonWrapper {
   position: absolute;
-  left: 0;
+  left: 2%;
   bottom: -42px;
   display: flex;
   background-color: white;
@@ -518,6 +519,11 @@ input:focus {
   &:hover {
     background-color: rgb(39, 109, 110) !important;
   }
+}
+
+input[type="checkbox"] {
+  accent-color: rgb(47, 129, 131);
+  cursor: pointer;
 }
 
 @media (max-width: 1150px) {

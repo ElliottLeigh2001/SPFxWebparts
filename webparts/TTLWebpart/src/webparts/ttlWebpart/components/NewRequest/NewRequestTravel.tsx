@@ -3,11 +3,11 @@ import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import { createRequestWithItems, getApproverById, getTeams } from '../../service/TTLService';
 import { Approver, Team, UserRequestItem } from '../../Interfaces/TTLInterfaces';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import styles from '../Dashboard/TtlWebpart.module.scss';
+import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import newRequestStyles from './NewRequest.module.scss'
-import { Modal } from '@fluentui/react';
 import { sendEmail } from '../../service/AutomateService';
 import AccommodationForm from '../Forms/AccomodationForm';
 import { NewRequestProps } from './NewRequestProps';
@@ -21,10 +21,12 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
     const [approver, setApprover] = useState<number | ''>('');
     const [teams, setTeams] = useState<Team[]>([]);
     const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
-    const [items, setItems] = useState<UserRequestItem[]>([]);
-    const [activeForm, setActiveForm] = useState<'training'|'travel'|'accommodation'|null>(null);
-    const [activeFormName, setActiveFormName] = useState<'training'|'travel'|'accommodation'|null>(null);
-    const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
+    const trainingFormRef = useRef<any>(null);
+    const travelFormRef = useRef<any>(null);
+    const accommodationFormRef = useRef<any>(null);
+    const [showInlineTraining, setShowInlineTraining] = useState(false);
+    const [showInlineReturnTravel, setShowInlineReturnTravel] = useState(false);
+    const [showInlineAccommodation, setShowInlineAccommodation] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<'save'|'send'|'discard'|null>(null);
@@ -35,8 +37,6 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
     const [approverError, setApproverError] = useState('');
     const [projectError, setProjectError] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [nextItemId, setNextItemId] = useState(1);
-    const [isReturnJourney, setIsReturnJourney] = useState(false);
 
     // Get approvers and teams from SharePoint
     useEffect(() => {
@@ -88,161 +88,83 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
         return isValid;
     };
 
-    // Function for adding a request item to the request
-    const addItem = (item: UserRequestItem): void => {
-        const newItem = {
-            ...item,
-            ID: nextItemId
-        };
-        // Reflect change in the UI
-        setItems(prev => [...prev, newItem]);
-        setNextItemId(prev => prev + 1);
-        setActiveForm(null);
-    };
+    const collectAllItems = async (): Promise<UserRequestItem[] | null> => {
+        let collected: UserRequestItem[] = [];
 
-    // Function for updating a request item
-    const updateItem = (updatedItem: UserRequestItem): void => {
-        // Reflect change in the UI
-        setItems(prev => prev.map(item => 
-            item.ID === updatedItem.ID ? updatedItem : item
-        ));
-        // Close the modal
-        setEditingItem(undefined);
-        setActiveForm(null);
-    };
+        // 1. TRAINING
+        const t = await trainingFormRef.current?.getFormData();
+        if (!t?.isValid) return null;
+        collected.push(t.item);
 
-    // Function for setting a certain request item for editing
-    const editItem = async (index: number): Promise<void> => {
-        // Get the item on index
-        const item = items[index];
-        // Open the editing modal
-        setEditingItem(item);
-        // Set the form based on which type of item it is (training, travel...)
-        setActiveForm(item.RequestType?.toLowerCase() as any);
-    };
+        // If no travel needed → return training item only
+        if (!t.includeTravel) return collected;
 
-    // Remove a request item from the list
-    const removeItem = (index: number): void => {
-        setItems(prev => prev.filter((_, i) => i !== index));
+        // 2. TRAVEL
+        const tr = await travelFormRef.current?.getFormData();
+        if (!tr?.isValid) return null;
+        collected.push(tr.item);
+
+        // 3. ACCOMMODATION
+        if (tr.includeAccommodation) {
+            const ac = await accommodationFormRef.current?.getFormData();
+            if (!ac?.isValid) return null;
+            collected.push(ac.item);
+        }
+
+        // 4. RETURN JOURNEY TRAVEL
+        if (tr.includeReturnJourney) {
+            const ret = await travelFormRef.current?.getReturnJourneyData?.();
+            if (ret?.isValid) collected.push(ret.item);
+        }
+
+        return collected;
     };
 
     // On submit of the request, save it
     const handleSave = async (type: string): Promise<void> => {
-        // Check validation
+        // Validate main form
         if (!validate()) return;
-        // For calculating the cost
-        let totalCost = 0;
+
+        // Collect inline items
+        const collectedItems = await collectAllItems();
+        if (!collectedItems) return; // Validation failed inside inline forms
+
+        let totalCost = collectedItems.reduce((sum, x) => sum + Number(x.Cost || 0), 0);
+
         setIsSaving(true);
         setError(null);
-        setTitleError('');
-        setGoalError('');
-        // Calculate total cost of all items
-        totalCost = costSum();
-        // Create the request with its items
-        try {
-            const requestId = await createRequestWithItems(context, { 
-                Title: title, 
-                Goal: goal, 
-                Project: project, 
-                TeamID: team, 
-                ApproverID: approver, 
-                TotalCost: totalCost
-            }, items, type);
 
-            // If you are sending for approval (not saving), trigger the Automate flow
+        try {
+            const requestId = await createRequestWithItems(
+                context,
+                {
+                    Title: title,
+                    Goal: goal,
+                    Project: project,
+                    TeamID: team,
+                    ApproverID: approver,
+                    TotalCost: totalCost
+                },
+                collectedItems,
+                type
+            );
+
             if (type === 'Submitted') {
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.TeamMember?.EMail;
                 const approverTitle = approverData.TeamMember?.Title;
                 sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, authorEmail: loggedInUser.Email, authorName: loggedInUser.Title, totalCost: totalCost.toString(), typeOfRequest: 'Training / Travel'});
             }
-            
-            // Call the parent's onSave to refresh the dashboard
+
             onSave();
-            
-        } catch (error) {
-            console.error('Error creating request:', error);
+
+        } catch (err) {
             setError('Failed to create request');
         } finally {
             setIsSaving(false);
         }
     };
 
-    // Close all modals
-    const closeModal = (): void => {
-        setEditingItem(undefined);
-        setActiveFormName(null);
-        setActiveForm(null);
-        setIsReturnJourney(false);
-    };
-
-    // Function for handling different types of form submits
-    const handleFormSave = (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>): void => {
-        // Update or add item based on if you are editing
-        if (editingItem) {
-            updateItem({ ...item, ID: editingItem.ID });
-        } else {
-            addItem(item);
-        }
-
-        // If there are next forms in the sequence, open the first one
-        // This is based on if one or more of the checkboxes are selected in a training or travel form
-        if (nextForms && nextForms.length > 0) {
-            const nextForm = nextForms[0];
-
-            // Travel form
-            if (nextForm.type === 'travel') {
-                // If it's return journey, don't set editing item
-                if (nextForm.data?.isReturnJourney) {
-                    setIsReturnJourney(true);
-                    setEditingItem(undefined);
-                } else {
-                    setIsReturnJourney(false);
-                    setEditingItem(nextForm.data ?? undefined);
-                }
-
-                setActiveForm('travel');
-                setActiveFormName('travel');
-            }
-
-            // Accommodation form
-            if (nextForm.type === 'accommodation') {
-                setIsReturnJourney(false);
-                setEditingItem(nextForm.data ?? undefined);
-                setActiveForm('accommodation');
-                setActiveFormName('accommodation');
-            }
-
-        } else {
-            setEditingItem(undefined);
-            setActiveForm(null);
-            setActiveFormName(null);
-            setIsReturnJourney(false);
-        }
-    };
-
-    // Set the modal title based on type and edit/add
-    const getModalTitle = (): string => {
-        if (editingItem) {
-            return `Edit ${activeFormName}`;
-        }
-        else if (isReturnJourney) {
-            return `Add return journey`; 
-        }
-        return `Add ${activeFormName}`;
-    };
-
-    // Function for calculating the total cost of all request items
-    const costSum = (): number => {
-        let totalCost = 0;
-
-        for (const it of items) {
-            totalCost += Number(it.Cost);
-        }
-        return totalCost;
-    }
-
-    const disabled = isSaving || items.length === 0
     return (
         <>
             <HeaderComponent view="New Request"/>
@@ -252,21 +174,17 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
                     <h2>New Travel Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
-                            className={disabled ? styles.disabledButton : styles.stdButton}
+                            className={styles.stdButton}
                             style={{width: '171px'}}
-                            disabled={disabled}
                             onClick={() => { setConfirmAction('save'); setConfirmOpen(true); }}
-                            title={disabled ? "Add an item to your request before saving" : "Save"}
                         >
                             Draft
                         </button>
 
                         <button
-                            className={disabled ? styles.disabledButton : styles.stdButton}
+                            className={styles.stdButton}
                             style={{width: '171px'}}
-                            disabled={disabled}
                             onClick={() => { setConfirmAction('send'); setConfirmOpen(true); }}
-                            title={disabled ? "Add an item to your request before sending" : "Send for approval"}
                         >
                             Send for approval
                         </button>
@@ -283,170 +201,112 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
                     </div>
                 </div>
 
-                <h4>General Information</h4>
+                <div className={newRequestStyles.newRequestContainer}>                    
+                    <div className={requestDetailsStyles.details}>
+                        <div className={requestDetailsStyles.titleContainer}>
+                            <h3 className={requestDetailsStyles.panelHeader}>General Information</h3>
+                        </div>
 
-                <div className={styles.formRow}>
-                    <div className={styles.formItem}>
-                        <label className={styles.formRowLabel}>Title *</label>
-                        <input className={titleError ? styles.invalid : ''} value={title} onChange={e => setTitle(e.target.value)} required />
-                        {titleError && <div className={styles.validationError}>{titleError}</div>}
+                        <div className={styles.formRow}>
+                            <div className={styles.formItem}>
+                                <label className={styles.formRowLabel}>Title *</label>
+                                <input className={titleError ? styles.invalid : ''} value={title} onChange={e => setTitle(e.target.value)} required />
+                                {titleError && <div className={styles.validationError}>{titleError}</div>}
+                            </div>
+                            <div className={styles.formItem}>
+                                <label className={styles.formRowLabel}>Project </label>
+                                <input className={projectError ? styles.invalid : ''} value={project} onChange={e => setProject(e.target.value)} required />
+                                {projectError && <div className={styles.validationError}>{projectError}</div>}
+                            </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                            <div className={styles.formItem}>
+                                <label className={styles.formRowLabel}>Team *</label>
+                                <select
+                                    name="team"
+                                    id="team"
+                                    value={team}
+                                    onChange={e => setTeam(Number(e.target.value))}
+                                    required
+                                >
+                                    <option value="">-- Select team --</option>
+                                    {teams.map((a: any) => (
+                                        <option key={a.Id} value={a.Id}>
+                                            {a.Title}
+                                        </option>
+                                    ))}
+                                </select>
+                                {teamError && <div className={styles.validationError}>{teamError}</div>}
+                            </div>
+                            <div className={styles.formItem}>
+                                <label className={styles.formRowLabel}>Approver *</label>
+                                <select
+                                    name="approver"
+                                    id="approver"
+                                    value={approver}
+                                    onChange={e => setApprover(Number(e.target.value))}
+                                    required
+                                >
+                                    <option value="">-- Select Approver --</option>
+                                    {allApprovers.map((a: any) => (
+                                        <option key={a.Id} value={a.Id}>
+                                            {a.TeamMember?.Title}
+                                        </option>
+                                    ))}
+                                </select>
+                                {approverError && <div className={styles.validationError}>{approverError}</div>}
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: '18px' }}>
+                            <label className={styles.formRowLabel}>Goal *</label>
+                            <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} />
+                            {goalError && <div className={styles.validationError}>{goalError}</div>}
+                        </div>
+
                     </div>
-                    <div className={styles.formItem}>
-                        <label className={styles.formRowLabel}>Project </label>
-                        <input className={projectError ? styles.invalid : ''} value={project} onChange={e => setProject(e.target.value)} required />
-                        {projectError && <div className={styles.validationError}>{projectError}</div>}
+
+                    <div className={requestDetailsStyles.items}>
+                        <div className={requestDetailsStyles.titleContainer}>
+                            <h3 className={requestDetailsStyles.panelHeader}>Items</h3>      
+                        </div>
+                        <div>
+
+                            <TravelForm ref={travelFormRef} travelRequest={true} context={context} inline={true} initialData={undefined}
+                                onToggleIncludeTraining={(v: boolean) => setShowInlineTraining(v)}
+                                onToggleIncludeAccommodation={(v: boolean) => setShowInlineAccommodation(v)}
+                                onToggleIncludeReturnJourney={(v: boolean) => setShowInlineReturnTravel(v)}
+                            />
+
+                            {showInlineTraining && (
+                                <div style={{ marginTop: '18px' }}>
+                                    <TrainingForm 
+                                        ref={trainingFormRef}
+                                        showCheckbox={false}
+                                        context={context} 
+                                        initialData={undefined}
+                                        inline={true}
+                                        onToggleIncludeTravel={(v: boolean) => setShowInlineTraining(v)}
+                                    />
+                                </div>
+                            )}
+
+                            {showInlineReturnTravel && (
+                                <div style={{ marginTop: '18px' }}>
+                                    <TravelForm ref={travelFormRef} returning={true} context={context} inline={true} initialData={undefined}/>
+                                </div>
+                            )}
+
+                            {showInlineAccommodation && (
+                                <div style={{ marginTop: '18px' }}>
+                                    <AccommodationForm ref={accommodationFormRef} context={context} inline={true} initialData={undefined} />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className={styles.formRow}>
-                    <div className={styles.formItem}>
-                        <label className={styles.formRowLabel}>Team *</label>
-                        <select
-                            name="team"
-                            id="team"
-                            value={team}
-                            onChange={e => setTeam(Number(e.target.value))}
-                            required
-                        >
-                            <option value="">-- Select team --</option>
-                            {teams.map((a: any) => (
-                                <option key={a.Id} value={a.Id}>
-                                    {a.Title}
-                                </option>
-                            ))}
-                        </select>
-                        {teamError && <div className={styles.validationError}>{teamError}</div>}
-                    </div>
-                    <div className={styles.formItem}>
-                        <label className={styles.formRowLabel}>Approver *</label>
-                        <select
-                            name="approver"
-                            id="approver"
-                            value={approver}
-                            onChange={e => setApprover(Number(e.target.value))}
-                            required
-                        >
-                            <option value="">-- Select Approver --</option>
-                            {allApprovers.map((a: any) => (
-                                <option key={a.Id} value={a.Id}>
-                                    {a.TeamMember?.Title}
-                                </option>
-                            ))}
-                        </select>
-                        {approverError && <div className={styles.validationError}>{approverError}</div>}
-                    </div>
-                </div>
-
-                <div style={{ marginBottom: '18px' }}>
-                    <label className={styles.formRowLabel}>Goal *</label>
-                    <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} />
-                    {goalError && <div className={styles.validationError}>{goalError}</div>}
-                </div>
-
-                <h4 style={{marginTop: "3em"}}>Add items to your request</h4>
-
-                <div className={newRequestStyles.addButtons}>
-                    <button className={styles.stdButton} onClick={() => {setActiveForm('training'); setActiveFormName('training')}}>Add Training Item</button>
-                    <button className={styles.stdButton} onClick={() => {setActiveForm('travel'); setActiveFormName('travel')}}>Add Travel Item</button>
-                    <button className={styles.stdButton} onClick={() => {setActiveForm('accommodation'); setActiveFormName('accommodation')}}>Add Accommodation Item</button>
-                </div>
-
-                <Modal
-                    isOpen={activeForm === 'training'}
-                    onDismiss={closeModal}
-                    isBlocking={false}
-                    containerClassName={newRequestStyles.modalContainer}
-                >
-                    <div className={newRequestStyles.modalHeader}>
-                        <h3>{getModalTitle()}</h3>
-                        <button className={newRequestStyles.modalCloseButton} onClick={closeModal}>×</button>
-                    </div>
-                    <div className={newRequestStyles.modalBody}>
-                        <TrainingForm 
-                            context={context} 
-                            onSave={handleFormSave} 
-                            onCancel={closeModal} 
-                            initialData={editingItem}
-                        />
-                    </div>
-                </Modal>
-
-                <Modal
-                    isOpen={activeForm === 'travel'}
-                    onDismiss={closeModal}
-                    isBlocking={false}
-                    containerClassName={newRequestStyles.modalContainer}
-                >
-                    <div className={newRequestStyles.modalHeader}>
-                        <h3>{getModalTitle()}</h3>
-                        <button className={newRequestStyles.modalCloseButton} onClick={closeModal}>×</button>
-                    </div>
-                    <div className={newRequestStyles.modalBody}>
-                        <TravelForm 
-                            context={context} 
-                            onSave={handleFormSave} 
-                            onCancel={closeModal} 
-                            initialData={editingItem}
-                            isReturnJourney={isReturnJourney}
-                        />
-                    </div>
-                </Modal>
-
-                <Modal
-                    isOpen={activeForm === 'accommodation'}
-                    onDismiss={closeModal}
-                    isBlocking={false}
-                    containerClassName={newRequestStyles.modalContainer}
-                >
-                    <div className={newRequestStyles.modalHeader}>
-                        <h3>{getModalTitle()}</h3>
-                        <button className={newRequestStyles.modalCloseButton} onClick={closeModal}>×</button>
-                    </div>
-                    <div className={newRequestStyles.modalBody}>
-                        <AccommodationForm 
-                            context={context} 
-                            onSave={handleFormSave} 
-                            onCancel={closeModal} 
-                            initialData={editingItem}
-                        />
-                    </div>
-                </Modal>
-
-                {items.length > 0 && (
-                  <>
-                    <h3>Shopping Basket (€{costSum()})</h3><table className={newRequestStyles.itemsTable}>
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Cost</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items.map((it, idx) => (
-                                <tr key={idx}>
-                                    <td>{it.Title}</td>
-                                    <td>{it.RequestType}</td>
-                                    <td>€ {it.Cost}</td>
-                                    <td>
-                                        <div className={newRequestStyles.itemActions}>
-                                            <i
-                                                className="fa fa-pencil"
-                                                style={{ marginRight: '8px' }}
-                                                onClick={() => editItem(idx)} />
-                                            <i
-                                                className="fa fa-trash-o"
-                                                style={{ marginLeft: '8px' }}
-                                                onClick={() => removeItem(idx)} />
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                  </>
-                )}
 
                 {error && <div className={styles.validationError}>{error}</div>}
 
@@ -473,7 +333,6 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
                         }
                     }}
                 />
-
             </div>
         </>
     );

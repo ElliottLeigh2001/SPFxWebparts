@@ -10,7 +10,7 @@ export type TrainingFormHandle = {
 }
 
 const TrainingForm = forwardRef<TrainingFormHandle, FormProps & { onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, inline?: boolean, onToggleIncludeTravel?: (value: boolean) => void }>((props, ref) => {
-  const { onSave, onCancel, initialData, view, inline, onToggleIncludeTravel } = props;
+  const { onSave, onCancel, initialData, showCheckbox, view, inline, onToggleIncludeTravel } = props;
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
@@ -210,16 +210,18 @@ const TrainingForm = forwardRef<TrainingFormHandle, FormProps & { onSave?: (item
             <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px', padding: '0 0 5px 0' }} className={linkError ? styles.invalid : ''}/>
             {linkError && <div className={styles.validationError}>{linkError}</div>}
           </div>
-          <div style={{ marginTop: '20px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                type="checkbox" 
-                checked={includeTravel} 
-                onChange={e => { setIncludeTravel(e.target.checked); if (onToggleIncludeTravel) onToggleIncludeTravel(e.target.checked); }} 
-              />
-              I want to add a travel for this training
-            </label>
-          </div>
+          {showCheckbox && (
+            <div style={{ marginTop: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={includeTravel} 
+                  onChange={e => { setIncludeTravel(e.target.checked); if (onToggleIncludeTravel) onToggleIncludeTravel(e.target.checked); }} 
+                />
+                I want to add a travel for this training
+              </label>
+            </div>
+          )}
         </>
       )}
 

@@ -65,7 +65,7 @@ const ChooseNewRequest: React.FC<NewRequestProps> = ({ context, onSave, onCancel
     <>
     <HeaderComponent view="New Request"/>
     <div style={{ position: 'relative' }} className={styles.ttlForm}>
-      <h2 style={{ textAlign: 'center' }}>Which type of request would you like to make?</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '5rem' }}>Which type of request would you like to make?</h2>
       <div className={newRequestStyles.chooseContainer}>
 
         <div className={newRequestStyles.chooseGrid}>

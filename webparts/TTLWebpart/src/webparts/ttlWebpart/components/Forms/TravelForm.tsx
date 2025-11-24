@@ -9,8 +9,12 @@ export type TravelFormHandle = {
   getFormData: () => { isValid: boolean; item?: UserRequestItem; includeAccommodation?: boolean; includeReturnJourney?: boolean }
 }
 
-const TravelForm = forwardRef<TravelFormHandle, FormProps & { isReturnJourney?: boolean, onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, inline?: boolean, onToggleIncludeAccommodation?: (v: boolean) => void, onToggleIncludeReturnJourney?: (v: boolean) => void }>((props, ref) => {
-  const { onSave, onCancel, initialData, view, returning, inline, onToggleIncludeAccommodation, onToggleIncludeReturnJourney } = props;
+const TravelForm = forwardRef<TravelFormHandle, FormProps & 
+  { isReturnJourney?: boolean, onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, 
+    inline?: boolean, onToggleIncludeTraining?: (v: boolean) => void; onToggleIncludeAccommodation?: (v: boolean) => void, onToggleIncludeReturnJourney?: (v: boolean) => void 
+  }>((props, ref) => {
+
+  const { onSave, onCancel, initialData, view, returning, travelRequest, inline, onToggleIncludeTraining, onToggleIncludeAccommodation, onToggleIncludeReturnJourney } = props;
   
   const [title, setTitle] = useState(initialData?.Title || '');
   const [date, setDate] = useState(formatEditingDate(initialData?.StartDate) || '');
@@ -27,6 +31,7 @@ const TravelForm = forwardRef<TravelFormHandle, FormProps & { isReturnJourney?: 
   const [isLoading, setIsLoading] = useState(false)
   const [includeAccommodation, setIncludeAccommodation] = useState(false);
   const [includeReturnJourney, setIncludeReturnJourney] = useState(false);
+  const [includeTravel, setIncludeTravel] = useState(false);
   
   // Form validation
   const validate = (): boolean => {
@@ -220,6 +225,17 @@ const TravelForm = forwardRef<TravelFormHandle, FormProps & { isReturnJourney?: 
           {!returning && !initialData && (
             <div style={{ marginTop: '20px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {travelRequest && (
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={includeTravel} 
+                      onChange={e => { setIncludeTravel(e.target.checked); if (onToggleIncludeTraining) onToggleIncludeTraining(e.target.checked); }} 
+                    />
+                    I want to add a training for this travel
+                  </label>
+                )}
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <input 
                     type="checkbox" 

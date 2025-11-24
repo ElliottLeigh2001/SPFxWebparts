@@ -413,7 +413,7 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
 // Recalculate and update the total cost for a request
 export const recalcAndUpdateRequestTotal = async (
   context: WebPartContext, 
-  requestId: number
+  requestId: number,
 ): Promise<number> => {
   const sp = getSP(context);
   
@@ -424,7 +424,14 @@ export const recalcAndUpdateRequestTotal = async (
     // Calculate total cost
     let totalCost = 0;
     for (const item of items) {
-      totalCost += calculateSoftwareLicenseCost({Cost: Number(item.Cost), Licensing: item.Licensing, LicenseType: item.LicenseType, UsersLicense: item.UsersLicense})
+      // If it's a software request
+      if (items[0].RequestType === 'Software') {
+        // Perform calculation for the yearly cost of the software license
+        totalCost += calculateSoftwareLicenseCost({Cost: Number(item.Cost), Licensing: item.Licensing, LicenseType: item.LicenseType, UsersLicense: item.UsersLicense})
+      } else {
+        // Otherwise just add up the costs
+        totalCost += Number(item.Cost)
+      }
     }
     
     // Update the request with the new total
@@ -469,7 +476,7 @@ export const deleteRequestWithItems = async (context: WebPartContext, requestId:
 export const getApprovers = async (context: WebPartContext): Promise<Approver[]> => {
     try {
         const response: SPHttpClientResponse = await context.spHttpClient.get(
-            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamMember/Title,TeamMember/Id,TeamMember/EMail,BackUp/Title,BackUp/Id,BackUp/EMail,CEO/Id,CEO/Title,CEO/EMail&$expand=TeamMember,BackUp,CEO`,
+            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamMember/Title,TeamMember/Id,TeamMember/EMail,BackUp/Title,BackUp/Id,BackUp/EMail,CEO/Id,CEO/Title,CEO/EMail,Team&$expand=TeamMember,BackUp,CEO`,
             SPHttpClient.configurations.v1
         );
         

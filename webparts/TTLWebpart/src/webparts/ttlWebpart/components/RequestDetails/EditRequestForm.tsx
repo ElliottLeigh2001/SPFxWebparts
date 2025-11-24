@@ -29,8 +29,9 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
           getTeams(context),
           getApprovers(context)
         ]);
+        const approversWithoutCEO = approversData.filter(app => app.TeamMember)
         setTeams(teamsData);
-        setApprovers(approversData);
+        setApprovers(approversWithoutCEO);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {

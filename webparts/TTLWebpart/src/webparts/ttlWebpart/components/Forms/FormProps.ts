@@ -8,7 +8,6 @@ export interface FormProps {
   initialData?: UserRequestItem;
   view?: string;
   returning?: boolean;
-  // Optional callbacks for chained flows (e.g., training -> travel -> accommodation)
-  onRequestTravel?: (item: UserRequestItem) => void;
-  onRequestNext?: (item: UserRequestItem, options?: any) => void;
+  travelRequest?: boolean;
+  showCheckbox?: boolean;
 }
