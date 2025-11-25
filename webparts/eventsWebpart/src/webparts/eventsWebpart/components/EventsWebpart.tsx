@@ -111,7 +111,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       );
     }
 
-    // ** My events filter **
+    // My events filter
     if (showMyEvents) {
       filtered = filtered.filter((item) =>
         myEventIds.includes(item.Id!)
@@ -198,7 +198,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   };
 
   // Carousel arrows logic
-  // (handlers moved below so they can use computed `pages` / `pageIndex`)
+  // (handlers moved below so they can use computed `totalPages` / `pageIndex`)
 
   if (loading) return <div>Loading events...</div>;
   if (selectedEvent) {
@@ -218,7 +218,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     return text.length > length ? text.slice(0, length) + "..." : text;
   }
   
-  const pages = Math.max(1, Math.ceil(items.length / itemsPerPage));
+  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
   const pageIndex = Math.floor(currentIndex / itemsPerPage);
   
   // Carousel arrows logic
@@ -226,7 +226,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     setCurrentIndex((prev) => Math.max(prev - itemsPerPage, 0));
   };
   const handleNext = (): void => {
-    const maxStart = Math.max(0, (pages - 1) * itemsPerPage);
+    const maxStart = Math.max(0, (totalPages - 1) * itemsPerPage);
     setCurrentIndex((prev) => Math.min(prev + itemsPerPage, maxStart));
   };
 
@@ -396,7 +396,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                 className={styles.track}
                 style={{ transform: `translateX(-${pageIndex * 100}%)` }}
               >
-                {Array.from({ length: pages }).map((_, p) => {
+                {Array.from({ length: totalPages }).map((_, p) => {
                   const pageItems = items.slice(
                     p * itemsPerPage,
                     p * itemsPerPage + itemsPerPage
@@ -459,7 +459,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
               <div>
                 <button
                   onClick={handleNext}
-                  disabled={pageIndex >= pages - 1}
+                  disabled={pageIndex >= totalPages - 1}
                 >
                   <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7.65 4.15c.2-.2.5-.2.7 0l5.49 5.46c.21.22.21.57 0 .78l-5.49 5.46a.5.5 0 0 1-.7-.7L12.8 10 7.65 4.85a.5.5 0 0 1 0-.7Z"></path></svg>
                 </button>
@@ -467,19 +467,60 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
             </div>
           )}
         </main>
-        {pages > 1 && (
-          <div className={styles.pageDots}>
-            {Array.from({ length: pages }).map((_, i) => (
-              <span
-                key={i}
-                className={`${styles.dotWrapper} ${i === pageIndex ? styles.active : ""}`}
-                onClick={() => setCurrentIndex(i * itemsPerPage)}
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                className={styles.pageButton}
+                disabled={pageIndex === 0}
+                onClick={() => setCurrentIndex((pageIndex - 1) * itemsPerPage)}
               >
-                <span className={`${styles.dot} ${i === pageIndex ? styles.active : ""}`}></span>
-              </span>
-            ))}
-          </div>
-        )}
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((page) => {
+                  return (
+                    page === 1 ||
+                    page === totalPages ||
+                    Math.abs(page - (pageIndex + 1)) <= 1
+                  );
+                })
+                .reduce((acc: (number | string)[], page, index, filtered) => {
+                  if (index > 0 && page - (filtered[index - 1] as number) > 1) {
+                    acc.push("…");
+                  }
+                  acc.push(page);
+                  return acc;
+                }, [])
+                .map((page, i) =>
+                  page === "…" ? (
+                    <span key={`ellipsis-${i}`}>…</span>
+                  ) : (
+                  <button
+                    key={page}
+                    className={`${styles.pageNumber} ${
+                      pageIndex + 1 === page ? styles.activePage : ""
+                    }`}
+                    onClick={() => {
+                      if (typeof page === "number") {
+                        setCurrentIndex((page - 1) * itemsPerPage);
+                      }
+                    }}
+                  >
+                    {page}
+                  </button>
+                  )
+                )}
+
+              <button
+                className={styles.pageButton}
+                disabled={pageIndex >= totalPages - 1}
+                onClick={() => setCurrentIndex((pageIndex + 1) * itemsPerPage)}
+              >
+                Next
+              </button>
+            </div>
+          )}
       </div>
     </>
   );

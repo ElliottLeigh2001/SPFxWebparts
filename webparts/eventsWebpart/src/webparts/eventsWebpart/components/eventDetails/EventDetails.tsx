@@ -279,10 +279,11 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
 
         </div>
 
-          <aside className={detailsStyles.register}>
-            <div className={detailsStyles.tabsContainer}>
-              <h3 className={detailsStyles.panelHeader}>Register Now</h3>
-            </div>
+      <aside className={detailsStyles.register}>
+        <div className={detailsStyles.tabsContainer}>
+          <h3 className={detailsStyles.panelHeader}>Register Now</h3>
+        </div>
+
         {event.EventTypes !== 'No signup' ? (
           <>
             {event.SignupDeadline && (
