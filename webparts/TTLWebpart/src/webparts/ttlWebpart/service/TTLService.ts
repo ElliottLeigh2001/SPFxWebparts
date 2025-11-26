@@ -2,7 +2,7 @@ import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
 import { spfi, SPFI } from "@pnp/sp";
 import { SPFx } from "@pnp/sp/presets/all";
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { Approver, Team, UserRequest, UserRequestItem } from "../Interfaces/TTLInterfaces";
+import { Approver, UserRequest, UserRequestItem } from "../Interfaces/TTLInterfaces";
 import { calculateSoftwareLicenseCost } from "../Helpers/HelperFunctions";
 
 // Define spfi for CRUD operations to lists
@@ -53,7 +53,7 @@ export const getRequestsData = async (
 ): Promise<UserRequest[]> => {
   try {
     // Base query
-  let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,TeamID/Id,TeamID/Title&$expand=RequestItemID,Author,ApproverID,TeamID`;
+  let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,Team&$expand=RequestItemID,Author,ApproverID`;
 
     // Add optional $orderby if provided
     if (orderBy) {
@@ -216,7 +216,7 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
         Title: request.Title || '',
         Goal: request.Goal || '',
         Project: request.Project || '',
-        TeamIDId: Number(request.TeamID) || null,
+        Team: request.Team|| null,
         ApproverIDId: Number(request.ApproverID) || null,
         RequestStatus: type || 'Draft',
         TotalCost: request.TotalCost || 0,
@@ -328,11 +328,11 @@ export const updateRequest = async (context: WebPartContext, requestId: number, 
         TotalCost: requestData.TotalCost || 0,
     };
 
-    // Handle TeamID - it's an object with Id property
-    if (requestData.TeamID?.Id) {
-        updateData.TeamIDId = requestData.TeamID.Id;
+    // Handle Team - it's an object with Id property
+    if (requestData.Team) {
+        updateData.Team = requestData.Team;
     } else {
-        updateData.TeamIDId = null;
+        updateData.Team = null;
     }
 
     // Handle ApproverID - it's an object with Id property
@@ -476,7 +476,7 @@ export const deleteRequestWithItems = async (context: WebPartContext, requestId:
 export const getApprovers = async (context: WebPartContext): Promise<Approver[]> => {
     try {
         const response: SPHttpClientResponse = await context.spHttpClient.get(
-            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamMember/Title,TeamMember/Id,TeamMember/EMail,BackUp/Title,BackUp/Id,BackUp/EMail,CEO/Id,CEO/Title,CEO/EMail,Team&$expand=TeamMember,BackUp,CEO`,
+            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamMember/Title,TeamMember/Id,TeamMember/EMail,BackUp/Title,BackUp/Id,BackUp/EMail,CEO/Id,CEO/Title,CEO/EMail,Team0&$expand=TeamMember,BackUp,CEO`,
             SPHttpClient.configurations.v1
         );
         
@@ -509,26 +509,6 @@ export const getApproverById = async (
     console.error('Error updating RequestItemID field:', error);
   }
 };
-
-// Get all teams from the teams list in SharePoint
-export const getTeams = async (context: WebPartContext): Promise<Team[]> => {
-    try {
-        const response: SPHttpClientResponse = await context.spHttpClient.get(
-            `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Team')/items?$select=Id,Coach/Title,Coach/Id,Title&$expand=Coach`,
-            SPHttpClient.configurations.v1
-        );
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data.value as Team[];
-    } catch (error) {
-        console.error('Error fetching requests data:', error);
-        return [];
-    }
-}
 
 const getUserIds = async (sp: SPFI, users: any[]): Promise<number[]> => {
   const ids: number[] = [];

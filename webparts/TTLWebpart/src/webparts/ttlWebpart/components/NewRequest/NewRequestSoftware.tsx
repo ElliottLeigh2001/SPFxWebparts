@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import newRequestStyles from './NewRequest.module.scss';
-import { createRequestWithItems, getApproverById, getTeams } from '../../service/TTLService';
+import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
+import { createRequestWithItems, getApproverById } from '../../service/TTLService';
 import { sendEmail } from '../../service/AutomateService';
 import { calculateSoftwareLicenseCost } from '../../Helpers/HelperFunctions';
 import SoftwareForm, { SoftwareFormHandle } from '../Forms/SoftwareForm';
-import { Approver, Team } from '../../Interfaces/TTLInterfaces';
+import { Approver } from '../../Interfaces/TTLInterfaces';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import * as React from 'react';
 import { NewRequestProps } from './NewRequestProps';
@@ -15,9 +16,9 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
   const [title, setTitle] = useState('');
   const [goal, setGoal] = useState('');
   const [project, setProject] = useState('');
-  const [team, setTeam] = useState<number | ''>('');
+  const [team, setTeam] = useState<string | ''>('');
+  const [teamId, setTeamId] = useState<number | ''>('');
   const [approver, setApprover] = useState<number | ''>('');
-  const [teams, setTeams] = useState<Team[]>([]);
   const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
   const [titleError, setTitleError] = useState('');
   const [goalError, setGoalError] = useState('');
@@ -29,7 +30,6 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'save' | 'send' | 'discard' | null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
-  // software details are handled by SoftwareForm via imperative ref
   const softwareFormRef = React.useRef<SoftwareFormHandle | null>(null);
   const [softwareFormKey, setSoftwareFormKey] = useState(0);
 
@@ -38,13 +38,22 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
     const loadData = async () => {
       const approversWithoutCEO = approvers.filter((app: { TeamMember: any; }) => app.TeamMember);
       setAllApprovers(approversWithoutCEO);
-
-      const fetchedTeams: Team[] = await getTeams(context);
-      setTeams(fetchedTeams);
     };
 
     loadData();
   }, []);
+
+  // Auto-select approver when team changes
+  useEffect(() => {
+      if (!teamId || allApprovers.length === 0) return;
+
+      const approverForTeam = allApprovers.find(a => a.Id === teamId);
+
+      if (approverForTeam) {
+          setApprover(approverForTeam.Id);
+          setApproverError('');
+      }
+  }, [teamId, allApprovers]);
 
   // Form validation
   const validate = (): boolean => {
@@ -115,7 +124,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
           Title: title,
           Goal: goal,
           Project: project,
-          TeamID: team,
+          Team: team,
           ApproverID: approver,
           TotalCost: calculatedCost,
         },
@@ -186,53 +195,77 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
         </div>
       </div>
 
-      <h4>General Information</h4>
-
-      <div className={styles.formRow}>
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Title *</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} className={titleError ? styles.invalid : ''} />
-          {titleError && <div className={styles.validationError}>{titleError}</div>}
+    <div className={newRequestStyles.newRequestContainer}>                    
+      <div className={requestDetailsStyles.details}>
+        <div className={requestDetailsStyles.titleContainer}>
+          <h3 className={requestDetailsStyles.panelHeader}>General Information</h3>
         </div>
 
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Project</label>
-          <input value={project} onChange={e => setProject(e.target.value)} className={projectError ? styles.invalid : ''} />
-          {projectError && <div className={styles.validationError}>{projectError}</div>}
-        </div>
-      </div>
 
-      <div className={styles.formRow}>
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Team *</label>
-          <select value={team} onChange={e => setTeam(Number(e.target.value))} className={teamError ? styles.invalid : ''}>
-            <option value="">-- Select Team --</option>
-            {teams.map(t => <option key={t.Id} value={t.Id}>{t.Title}</option>)}
-          </select>
-          {teamError && <div className={styles.validationError}>{teamError}</div>}
+        <div className={styles.formRow}>
+          <div className={styles.formItem}>
+            <label className={styles.formRowLabel}>Title *</label>
+            <input value={title} onChange={e => setTitle(e.target.value)} className={titleError ? styles.invalid : ''} />
+            {titleError && <div className={styles.validationError}>{titleError}</div>}
+          </div>
+
+          <div className={styles.formItem}>
+            <label className={styles.formRowLabel}>Project</label>
+            <input value={project} onChange={e => setProject(e.target.value)} className={projectError ? styles.invalid : ''} />
+            {projectError && <div className={styles.validationError}>{projectError}</div>}
+          </div>
         </div>
 
-        <div className={styles.formItem}>
-          <label className={styles.formRowLabel}>Approver *</label>
-          <select value={approver} onChange={e => setApprover(Number(e.target.value))} className={approverError ? styles.invalid : ''}>
-            <option value="">-- Select Approver --</option>
-            {allApprovers.map(a => <option key={a.Id} value={a.Id}>{a.TeamMember?.Title}</option>)}
-          </select>
-          {approverError && <div className={styles.validationError}>{approverError}</div>}
+        <div className={styles.formRow}>
+          <div className={styles.formItem}>
+            <label className={styles.formRowLabel}>Team *</label>
+            <select
+                value={teamId}
+                onChange={e => {
+                    const id = Number(e.target.value);
+                    setTeamId(id);
+
+                    // Find the team object so we can store its name
+                    const sel = allApprovers.find(a => a.Id === id);
+                    if (sel) setTeam(sel.Team0 ?? '');
+                }}
+            >
+                <option value="">-- Select team --</option>
+                {allApprovers.map(a => (
+                    <option key={a.Id} value={a.Id}>
+                        {a.Team0}
+                    </option>
+                ))}
+            </select>
+            {teamError && <div className={styles.validationError}>{teamError}</div>}
+          </div>
+
+          <div className={styles.formItem}>
+            <label className={styles.formRowLabel}>Approver *</label>
+            <select value={approver} onChange={e => setApprover(Number(e.target.value))} className={approverError ? styles.invalid : ''}>
+              <option value="">-- Select Approver --</option>
+              {allApprovers.map(a => <option key={a.Id} value={a.Id}>{a.TeamMember?.Title}</option>)}
+            </select>
+            {approverError && <div className={styles.validationError}>{approverError}</div>}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '18px' }}>
+          <label className={styles.formRowLabel}>Goal *</label>
+          <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} className={goalError ? styles.invalid : ''} />
+          {goalError && <div className={styles.validationError}>{goalError}</div>}
         </div>
       </div>
-
-      <div style={{ marginBottom: '18px' }}>
-        <label className={styles.formRowLabel}>Goal *</label>
-        <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} className={goalError ? styles.invalid : ''} />
-        {goalError && <div className={styles.validationError}>{goalError}</div>}
+      
+      <div className={requestDetailsStyles.items}>
+          <div className={requestDetailsStyles.titleContainer}>
+              <h3 className={requestDetailsStyles.panelHeader}>Software License Details</h3>      
+          </div>
+          <div>
+            <SoftwareForm key={softwareFormKey} ref={softwareFormRef} context={context} onSave={() => { } } onCancel={() => { } } />
+          </div>
       </div>
-
-      <h4>Software License Details</h4>
-
-      <div>
-        <SoftwareForm key={softwareFormKey} ref={softwareFormRef} context={context} onSave={() => { } } onCancel={() => { } } />
-      </div>
+    </div>
 
       {error && <div className={styles.validationError}>{error}</div>}
 

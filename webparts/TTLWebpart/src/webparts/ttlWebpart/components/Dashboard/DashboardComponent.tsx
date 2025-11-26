@@ -22,7 +22,7 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
       const title = (r.Title || '').toString().toLowerCase()
       const project = (r.Project || '').toString().toLowerCase()
       const requester = (r.Author?.Title || '').toString().toLowerCase()
-      const team = (r.TeamID?.Title || '').toString().toLowerCase()
+      const team = (r.Team || '').toString().toLowerCase()
 
       // Check if any field includes the search query
       return (
@@ -175,7 +175,7 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
                       {view === "HR" && <td>{request.ApproverID?.Title || "-"}</td>}
                       <td>€ {request.TotalCost || "-"}</td>
                       <td>{request.Project || "-"}</td>
-                      <td>{request.TeamID?.Title || "-"}</td>
+                      <td>{request.Team || "-"}</td>
                       <td>{formatDate(request.SubmissionDate)}</td>
                       <td>
                         <span

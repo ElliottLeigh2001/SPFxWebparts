@@ -21,10 +21,7 @@ export interface UserRequest {
         };
         Created?: string;
     }[];
-    TeamID?: {
-        Id?: number;
-        Title?: string;
-    }
+    Team: string;
     ApproverID?: {
         Id?: number;
         Title?: string;
@@ -82,14 +79,5 @@ export interface Approver {
         Title?: string;
         EMail?: string;
     }
-    Team?: string;
-}
-
-export interface Team {
-    Id: number
-    Title: string;
-    Coach: {
-        Id: number;
-        Title: string;
-    }
+    Team0?: string;
 }

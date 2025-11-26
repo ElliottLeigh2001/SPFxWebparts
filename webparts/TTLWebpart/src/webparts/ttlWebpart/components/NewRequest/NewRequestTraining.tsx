@@ -1,8 +1,8 @@
 import * as React from 'react';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
-import { createRequestWithItems, getApproverById, getTeams } from '../../service/TTLService';
-import { Approver, Team, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { createRequestWithItems, getApproverById } from '../../service/TTLService';
+import { Approver, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useEffect, useState, useRef } from 'react';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import styles from '../Dashboard/TtlWebpart.module.scss';
@@ -17,9 +17,9 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
     const [title, setTitle] = useState('');
     const [goal, setGoal] = useState('');
     const [project, setProject] = useState('');
-    const [team, setTeam] = useState<number | ''>('');
+    const [team, setTeam] = useState<string | ''>('');
+    const [teamId, setTeamId] = useState<number | ''>('');
     const [approver, setApprover] = useState<number | ''>('');
-    const [teams, setTeams] = useState<Team[]>([]);
     const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
     const trainingFormRef = useRef<any>(null);
     const travelFormRef = useRef<any>(null);
@@ -40,14 +40,24 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
     // Get approvers and teams from SharePoint
     useEffect(() => {
-        const getApproversandTeams = async (): Promise<void> => {
+        const getApprover = async (): Promise<void> => {
             const approversWithoutCEO = approvers.filter(app => app.TeamMember)
             setAllApprovers(approversWithoutCEO)
-            const allTeams: Team[] = await getTeams(context)
-            setTeams(allTeams);
         }
-        getApproversandTeams();
+        getApprover();
     }, [])
+
+    // Auto-select approver when team changes
+    useEffect(() => {
+        if (!teamId || allApprovers.length === 0) return;
+
+        const approverForTeam = allApprovers.find(a => a.Id === teamId);
+
+        if (approverForTeam) {
+            setApprover(approverForTeam.Id);
+            setApproverError('');
+        }
+    }, [teamId, allApprovers]);
 
     // Form validation (empty fields, max characters)
     const validate = (): boolean => {
@@ -55,6 +65,8 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
         setTitleError('');
         setGoalError('');
+        setTeamError('');
+        setApproverError('');
         setError(null);
 
         if (!title.trim()) {
@@ -102,7 +114,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
     const collectAllItems = async (): Promise<UserRequestItem[] | null> => {
         let collected: UserRequestItem[] = [];
 
-        // 1. TRAINING
+        // 1. Training
         const t = await trainingFormRef.current?.getFormData();
         if (!t?.isValid) return null;
         collected.push(t.item);
@@ -110,19 +122,19 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
         // If no travel needed → return training item only
         if (!t.includeTravel) return collected;
 
-        // 2. TRAVEL
+        // 2. Travel
         const tr = await travelFormRef.current?.getFormData();
         if (!tr?.isValid) return null;
         collected.push(tr.item);
 
-        // 3. ACCOMMODATION
+        // 3. Accommodation
         if (tr.includeAccommodation) {
             const ac = await accommodationFormRef.current?.getFormData();
             if (!ac?.isValid) return null;
             collected.push(ac.item);
         }
 
-        // 4. RETURN JOURNEY TRAVEL
+        // 4. Return journey travel
         if (tr.includeReturnJourney) {
             const ret = await travelFormRef.current?.getReturnJourneyData?.();
             if (ret?.isValid) collected.push(ret.item);
@@ -133,12 +145,12 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
     // On submit of the request, save it
     const handleSave = async (type: string): Promise<void> => {
-        // Validate main form
-        if (!validate()) return;
-
+        
         // Collect inline items
         const collectedItems = await collectAllItems();
-        if (!collectedItems) return; // Validation failed inside inline forms
+        // Validate all forms
+        if (!validate() || !collectedItems) return;
+
 
         let totalCost = collectedItems.reduce((sum, x) => sum + Number(x.Cost || 0), 0);
 
@@ -152,7 +164,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                     Title: title,
                     Goal: goal,
                     Project: project,
-                    TeamID: team,
+                    Team: team,
                     ApproverID: approver,
                     TotalCost: totalCost
                 },
@@ -235,16 +247,20 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                             <div className={styles.formItem}>
                                 <label className={styles.formRowLabel}>Team *</label>
                                 <select
-                                    name="team"
-                                    id="team"
-                                    value={team}
-                                    onChange={e => setTeam(Number(e.target.value))}
-                                    required
+                                    value={teamId}
+                                    onChange={e => {
+                                        const id = Number(e.target.value);
+                                        setTeamId(id);
+
+                                        // Find the team object so we can store its name
+                                        const sel = allApprovers.find(a => a.Id === id);
+                                        if (sel) setTeam(sel.Team0 ?? '');
+                                    }}
                                 >
                                     <option value="">-- Select team --</option>
-                                    {teams.map((a: any) => (
+                                    {allApprovers.map(a => (
                                         <option key={a.Id} value={a.Id}>
-                                            {a.Title}
+                                            {a.Team0}
                                         </option>
                                     ))}
                                 </select>
@@ -256,6 +272,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                                     name="approver"
                                     id="approver"
                                     value={approver}
+                                    className={approverError ? styles.invalid : ''}
                                     onChange={e => setApprover(Number(e.target.value))}
                                     required
                                 >
@@ -272,7 +289,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
                         <div style={{ marginBottom: '18px' }}>
                             <label className={styles.formRowLabel}>Goal *</label>
-                            <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} />
+                            <textarea value={goal} onChange={e => setGoal(e.target.value)} className={goalError ? styles.invalid : ''} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} />
                             {goalError && <div className={styles.validationError}>{goalError}</div>}
                         </div>
 

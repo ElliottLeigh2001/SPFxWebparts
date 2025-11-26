@@ -464,13 +464,10 @@
 
 .fieldGroup {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
 }
 
 .fieldLabel {
-  font-weight: 600;
-  color: #666;
+  font-weight: 700;
   margin-right: 8px;
   flex-shrink: 0;
 }
@@ -535,6 +532,16 @@
     }
   }
 
+}
+
+@media (max-width: 1000px) {    
+  .details {
+    min-height: initial;
+  }
+
+  .detailsContainer {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 1250px) {    

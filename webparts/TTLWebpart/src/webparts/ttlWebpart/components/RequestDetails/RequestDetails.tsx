@@ -340,7 +340,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             </>
           )}
           <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
-          <span><strong>Team:</strong> {displayedRequest.TeamID?.Title || '/'}</span>
+          <span><strong>Team:</strong> {displayedRequest.Team || '/'}</span>
           <span><strong>Status:</strong> <span className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
           <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
         </div>

@@ -202,10 +202,10 @@
   }
 }
 
-@media (max-width: 1150px) {
-   .formHeader {
+@media (max-width: 1000px) {    
+  .newRequestContainer {
     flex-wrap: wrap;
-   }
+  }
 }
 
 @media (max-width: 1020px) {
@@ -217,4 +217,10 @@
         width: 50%
       }
   }
+}
+
+@media (max-width: 1150px) {
+   .formHeader {
+    flex-wrap: wrap;
+   }
 }

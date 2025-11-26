@@ -1,8 +1,8 @@
 import * as React from 'react';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
-import { createRequestWithItems, getApproverById, getTeams } from '../../service/TTLService';
-import { Approver, Team, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { createRequestWithItems, getApproverById } from '../../service/TTLService';
+import { Approver, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useEffect, useState, useRef } from 'react';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import styles from '../Dashboard/TtlWebpart.module.scss';
@@ -17,9 +17,9 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
     const [title, setTitle] = useState('');
     const [goal, setGoal] = useState('');
     const [project, setProject] = useState('');
-    const [team, setTeam] = useState<number | ''>('');
+    const [team, setTeam] = useState<string | ''>('');
+    const [teamId, setTeamId] = useState<number | ''>('');
     const [approver, setApprover] = useState<number | ''>('');
-    const [teams, setTeams] = useState<Team[]>([]);
     const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
     const trainingFormRef = useRef<any>(null);
     const travelFormRef = useRef<any>(null);
@@ -40,14 +40,24 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
 
     // Get approvers and teams from SharePoint
     useEffect(() => {
-        const getApproversandTeams = async (): Promise<void> => {
+        const getApprovers = async (): Promise<void> => {
             const approversWithoutCEO = approvers.filter(app => app.TeamMember)
             setAllApprovers(approversWithoutCEO)
-            const allTeams: Team[] = await getTeams(context)
-            setTeams(allTeams);
         }
-        getApproversandTeams();
+        getApprovers();
     }, [])
+
+  // Auto-select approver when team changes
+  useEffect(() => {
+      if (!teamId || allApprovers.length === 0) return;
+
+      const approverForTeam = allApprovers.find(a => a.Id === teamId);
+
+      if (approverForTeam) {
+          setApprover(approverForTeam.Id);
+          setApproverError('');
+      }
+  }, [teamId, allApprovers]);
 
     // Form validation (empty fields, max characters)
     const validate = (): boolean => {
@@ -55,6 +65,8 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
 
         setTitleError('');
         setGoalError('');
+        setTeamError('');
+        setApproverError('');
         setError(null);
 
         if (!title.trim()) {
@@ -224,16 +236,20 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
                             <div className={styles.formItem}>
                                 <label className={styles.formRowLabel}>Team *</label>
                                 <select
-                                    name="team"
-                                    id="team"
-                                    value={team}
-                                    onChange={e => setTeam(Number(e.target.value))}
-                                    required
+                                    value={teamId}
+                                    onChange={e => {
+                                        const id = Number(e.target.value);
+                                        setTeamId(id);
+
+                                        // Find the team object so we can store its name
+                                        const sel = allApprovers.find(a => a.Id === id);
+                                        if (sel) setTeam(sel.Team0 ?? '');
+                                    }}
                                 >
                                     <option value="">-- Select team --</option>
-                                    {teams.map((a: any) => (
+                                    {allApprovers.map(a => (
                                         <option key={a.Id} value={a.Id}>
-                                            {a.Title}
+                                            {a.Team0}
                                         </option>
                                     ))}
                                 </select>
@@ -245,6 +261,7 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
                                     name="approver"
                                     id="approver"
                                     value={approver}
+                                    className={approverError ? styles.invalid : ''}
                                     onChange={e => setApprover(Number(e.target.value))}
                                     required
                                 >
@@ -261,7 +278,7 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
 
                         <div style={{ marginBottom: '18px' }}>
                             <label className={styles.formRowLabel}>Goal *</label>
-                            <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} />
+                            <textarea value={goal} onChange={e => setGoal(e.target.value)} className={goalError ? styles.invalid : ''} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} />
                             {goalError && <div className={styles.validationError}>{goalError}</div>}
                         </div>
 

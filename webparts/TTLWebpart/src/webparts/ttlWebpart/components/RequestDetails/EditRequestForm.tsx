@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as React from 'react';
-import { UserRequest, Team, Approver } from '../../Interfaces/TTLInterfaces';
-import { getTeams, getApprovers } from '../../service/TTLService';
+import { UserRequest, Approver } from '../../Interfaces/TTLInterfaces';
+import { getApprovers } from '../../service/TTLService';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { EditRequestFormProps } from './RequestDetailsProps';
 
@@ -10,9 +10,9 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
   const [title, setTitle] = useState(request.Title || '');
   const [goal, setGoal] = useState(request.Goal || '');
   const [project, setProject] = useState(request.Project || '');
-  const [team, setTeam] = useState<any | ''>((request.TeamID?.Id ?? request.TeamID) || '');
+  const [team, setTeam] = useState<string>((request.Team) || '');
+  const [teamId, setTeamId] = useState<number | ''>('');
   const [approver, setApprover] = useState<number | ''>(request.ApproverID?.Id || '');
-  const [teams, setTeams] = useState<Team[]>([]);
   const [approvers, setApprovers] = useState<Approver[]>([]);
   const [titleError, setTitleError] = useState('');
   const [goalError, setGoalError] = useState('');
@@ -25,12 +25,9 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
   useEffect(() => {
     const loadData = async (): Promise<void> => {
       try {
-        const [teamsData, approversData] = await Promise.all([
-          getTeams(context),
-          getApprovers(context)
-        ]);
+        const approversData = await getApprovers(context)
+
         const approversWithoutCEO = approversData.filter(app => app.TeamMember)
-        setTeams(teamsData);
         setApprovers(approversWithoutCEO);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -40,6 +37,19 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
     };
     loadData();
   }, [context]);
+
+  // Auto-select approver when team changes
+  useEffect(() => {
+      if (!teamId || approvers.length === 0) return;
+
+      const approverForTeam = approvers.find(a => a.Id === teamId);
+
+      if (approverForTeam) {
+          setApprover(approverForTeam.Id);
+          setApproverError('');
+      }
+  }, [teamId, approvers]);
+
 
   // Form validation (empty fields, max character length)
   const validate = (): boolean => {
@@ -91,7 +101,7 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
       Title: title,
       Goal: goal,
       Project: project,
-      TeamID: team ? { Id: team as number } : undefined,
+      Team: team,
       ApproverID: approver ? { Id: approver as number } : undefined
     };
     
@@ -125,17 +135,24 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
         <div className={styles.formItem}>
           <label>Team *</label>
           <select
-            value={team}
-            onChange={e => setTeam(Number(e.target.value))}
-            className={teamError ? styles.invalid : ''}
+              value={teamId}
+              onChange={e => {
+                  const id = Number(e.target.value);
+                  setTeamId(id);
+
+                  // Find the team object so we can store its name
+                  const sel = approvers.find(a => a.Id === id);
+                  if (sel) setTeam(sel.Team0 ?? '');
+              }}
           >
-            <option value="">-- Select team --</option>
-            {teams.map((teamItem) => (
-              <option key={teamItem.Id} value={teamItem.Id}>
-                {teamItem.Title}
-              </option>
-            ))}
+              <option value="">-- Select team --</option>
+              {approvers.map(a => (
+                  <option key={a.Id} value={a.Id}>
+                      {a.Team0}
+                  </option>
+              ))}
           </select>
+
           {teamError && <div className={styles.validationError}>{teamError}</div>}
         </div>
         <div className={styles.formItem}>
