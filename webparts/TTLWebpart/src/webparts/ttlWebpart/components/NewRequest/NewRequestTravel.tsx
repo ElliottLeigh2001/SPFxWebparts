@@ -183,7 +183,7 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
             <div className={styles.ttlForm}>
                 <div className={newRequestStyles.formHeader}>
-                    <h2>New Travel Request</h2>
+                    <h2 style={{color: '#055a57'}}>New Travel Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
                             className={styles.stdButton}

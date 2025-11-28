@@ -355,7 +355,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             onDelete={handleDeleteItem}
             onAdd={() => setShowAddModal(true)}
             showActions={((displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') || 
-              (view === 'HR' && displayedRequest.RequestStatus === 'In process by HR'))}
+              (view === 'HR' && displayedRequest.RequestStatus === 'HR Processing'))}
               view={view}
               request={displayedRequest}
               context={context}
@@ -386,7 +386,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             request={request}
             onSave={handleUpdateRequest}
             onCancel={closeModal} />
-          {isUpdating && <div className={styles.loading}>Updating...</div>}
         </div>
       </Modal>
 
@@ -556,11 +555,19 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         )}
         {view === 'HR' && request.RequestStatus === 'HR Processing' && (
           <button
-          onClick={() => {setConfirmAction('completed'); setShowConfirmActionDialog(true)}}
-          className={requestDetailsStyles.approveButton}
-          style={{width: '150px'}}
+          onClick={() => {
+            if (changedByHR) {
+            setConfirmAction('reapprove');
+            } else {
+              setConfirmAction('completed'); 
+            }
+            setShowConfirmActionDialog(true)
+          }}
+          disabled={isUpdatingStatus}
+          className={styles.stdButton}
+          style={{width: '176px'}}
           >
-            Mark as booked
+          {changedByHR ? 'Reapprove' : 'Mark as completed'}
           </button>
         )} 
       </div>

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
+import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
@@ -181,9 +182,17 @@ const TravelForm = forwardRef<TravelFormHandle, FormProps &
       ) : (
       <>
         {ref && returning ? (
-          <h4>Travel details - Return Journey</h4>
+          <div className={requestDetailsStyles.cardHeader}>
+            <div className={requestDetailsStyles.cardTitle}>
+              <h3>Travel details - Return Journey</h3>
+            </div>
+          </div>
         ) : (
-          <h4>Travel details</h4>
+          <div className={requestDetailsStyles.cardHeader}>
+            <div className={requestDetailsStyles.cardTitle}>
+              <h3>Travel details</h3>
+            </div>
+          </div>
         )}
          <div className={styles.formRow}>
           <div className={styles.formItem}>

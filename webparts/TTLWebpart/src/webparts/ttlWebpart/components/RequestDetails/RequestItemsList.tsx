@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState, useMemo } from 'react';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import requestDetailsStyles from './RequestDetails.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
@@ -22,6 +23,31 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
     view,
     context,
 }) => {
+    const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set(['Software', 'Training', 'Travel', 'Accommodation']));
+
+    // Group items by request type
+    const groupedItems = useMemo(() => {
+        const groups: { [key: string]: UserRequestItem[] } = {};
+        items.forEach(item => {
+            const type = item.RequestType || 'Other';
+            if (!groups[type]) {
+                groups[type] = [];
+            }
+            groups[type].push(item);
+        });
+        return groups;
+    }, [items]);
+
+    // Toggle collapse/expand for a type
+    const toggleTypeExpanded = (type: string) => {
+        const newSet = new Set(expandedTypes);
+        if (newSet.has(type)) {
+            newSet.delete(type);
+        } else {
+            newSet.add(type);
+        }
+        setExpandedTypes(newSet);
+    };
 
     // Function for making API calls to SharePoint
     const getSP = (context: any): SPFI => {
@@ -151,7 +177,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                 <div className={requestDetailsStyles.cardHeader}>
                     <div className={requestDetailsStyles.cardTitle}>
                         <i className={requestDetailsStyles.typeIcon}></i>
-                        <h3>{item.RequestType}</h3>
+                        <h3>{item.Title}</h3>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', height: '30px' }}>
@@ -211,9 +237,6 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                 </div>
 
                 <div className={requestDetailsStyles.cardContent}>
-                    <div className={requestDetailsStyles.fieldGroup}>
-                        <span className={requestDetailsStyles.fieldLabelTitle}>{item.Title}</span>
-                    </div>
 
                     <div className={requestDetailsStyles.fieldGroup}>
                         <span className={requestDetailsStyles.fieldLabel}>Cost:</span>
@@ -290,24 +313,41 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
     return (
         <>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-            <div style={{marginLeft: '10px'}}>
-                <div className={requestDetailsStyles.cardsGrid}>
                     {items.length > 0 ? (
-                        items.map(renderItemCard)
+                        Object.keys(groupedItems).map(type => (
+                            <div className={requestDetailsStyles.cardsWrapper}>
+                                <div className={requestDetailsStyles.cardsGrid}>
+                                <div
+                                    className={requestDetailsStyles.typeHeader}
+                                    onClick={() => toggleTypeExpanded(type)}
+                                >
+                                    <div className={requestDetailsStyles.typeHeaderContent}>
+                                        <i className={`fa fa-chevron-${expandedTypes.has(type) ? 'down' : 'right'}`} style={{ marginRight: '8px' }}></i>
+                                        <h2 className={requestDetailsStyles.typeTitle}>{type} ({groupedItems[type].length})</h2>
+                                    </div>
+                                </div>
+                                <div key={type} className={requestDetailsStyles.typeSection}>
+                                    {expandedTypes.has(type) && (
+                                        <div className={requestDetailsStyles.typeContent}>
+                                            {groupedItems[type].map(renderItemCard)}
+                                        </div>
+                                    )}
+                                </div>
+                                </div>
+                            </div>
+                        ))
                     ) : (
                         <div className={styles.noData}>No request items found for this request</div>
                     )}
 
                     {view === 'myView' && request.RequestStatus === 'Draft' && items[0].RequestType !== "Software" && (
                         <div className={requestDetailsStyles.addButtonContainer}>
-                            <button onClick={onAdd} className={styles.stdButton}>
+                            <button onClick={onAdd} className={requestDetailsStyles.addNewItem}>
                                 <i className="fa-solid fa-plus"></i>
                                 Add new item
                             </button>
                         </div>
                     )}
-                </div>
-            </div>
         </>
     );
 };

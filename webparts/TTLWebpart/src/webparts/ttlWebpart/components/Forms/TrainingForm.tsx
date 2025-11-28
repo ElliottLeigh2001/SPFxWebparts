@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, useImperativeHandle, forwardRef } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
+import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
@@ -166,7 +167,11 @@ const TrainingForm = forwardRef<TrainingFormHandle, FormProps & { onSave?: (item
       ) : (
       <>
         {ref && (
-          <h4>Training details</h4>
+          <div className={requestDetailsStyles.cardHeader}>
+            <div className={requestDetailsStyles.cardTitle}>
+              <h3>Training details</h3>
+            </div>
+          </div>
         )}
         <div className={styles.formRow}>
           <div className={styles.formItem}>

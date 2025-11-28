@@ -37,19 +37,19 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating
           className={requestDetailsStyles.formSelectionButton} 
           onClick={() => setActiveForm('training')}
         >
-          Add Training
+          Training
         </button>
         <button 
           className={requestDetailsStyles.formSelectionButton} 
           onClick={() => setActiveForm('travel')}
         >
-          Add Travel
+          Travel
         </button>
         <button 
           className={requestDetailsStyles.formSelectionButton} 
           onClick={() => setActiveForm('accommodation')}
         >
-          Add Accommodation
+          Accommodation
         </button>
       </div>
     </div>

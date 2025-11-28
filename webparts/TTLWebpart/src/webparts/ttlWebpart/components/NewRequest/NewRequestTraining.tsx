@@ -194,7 +194,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
             <div className={styles.ttlForm}>
                 <div className={newRequestStyles.formHeader}>
-                    <h2>New Training Request</h2>
+                    <h2 style={{color: '#055a57'}}>New Training Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
                             className={styles.stdButton}
@@ -304,6 +304,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                                 ref={trainingFormRef}
                                 context={context} 
                                 initialData={undefined}
+                                showCheckbox={true}
                                 inline={true}
                                 onToggleIncludeTravel={(v: boolean) => handleTrainingToggle(v)}
                             />

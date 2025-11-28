@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
+import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import { FormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
@@ -156,7 +157,11 @@ const AccommodationForm = forwardRef<AccommodationFormHandle, FormProps & { inli
       ) : (
       <>
         {ref && (
-          <h4>Accommodation details</h4>
+          <div className={requestDetailsStyles.cardHeader}>
+            <div className={requestDetailsStyles.cardTitle}>
+              <h3>Accommodation details</h3>
+            </div>
+          </div>
         )}
         <div className={styles.formRow}>
           <div className={styles.formItem}>

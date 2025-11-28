@@ -169,8 +169,6 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
     }
   };
 
-  // software users handled inside SoftwareForm
-
   return (
     <>
     <HeaderComponent view="New Request" />
@@ -178,7 +176,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
       <div className={newRequestStyles.formHeader}>
-        <h2>New Software License Request</h2>
+        <h2 style={{color: '#055a57'}}>New Software License Request</h2>
 
         <div className={newRequestStyles.newRequestActions}>
           <button style={{ width: '171px' }} onClick={() => { setConfirmAction('save'); setConfirmOpen(true); } } className={styles.stdButton}>
@@ -200,7 +198,6 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
         <div className={requestDetailsStyles.titleContainer}>
           <h3 className={requestDetailsStyles.panelHeader}>General Information</h3>
         </div>
-
 
         <div className={styles.formRow}>
           <div className={styles.formItem}>
