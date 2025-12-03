@@ -326,7 +326,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                                         <h2 className={requestDetailsStyles.typeTitle}>{type} ({groupedItems[type].length})</h2>
                                     </div>
                                 </div>
-                                <div key={type} className={requestDetailsStyles.typeSection}>
+                                <div key={type} className={`${expandedTypes.has(type) ? requestDetailsStyles.typeSection : requestDetailsStyles.typeSectionCollapsed}`}>
                                     {expandedTypes.has(type) && (
                                         <div className={requestDetailsStyles.typeContent}>
                                             {groupedItems[type].map(renderItemCard)}

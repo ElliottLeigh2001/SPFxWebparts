@@ -258,8 +258,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     setShowApproverDashboard(false);
     setShowHRDashboard(false);
     setShowDirectorDashboard(false)
-    
-    // how the respective screens
+
     switch(view) {
       case 'new':
         setNewRequest(true);

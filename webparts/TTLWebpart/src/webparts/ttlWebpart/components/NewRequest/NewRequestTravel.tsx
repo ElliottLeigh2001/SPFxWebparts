@@ -103,27 +103,26 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
     const collectAllItems = async (): Promise<UserRequestItem[] | null> => {
         let collected: UserRequestItem[] = [];
 
-        // 1. TRAINING
-        const t = await trainingFormRef.current?.getFormData();
-        if (!t?.isValid) return null;
-        collected.push(t.item);
-
-        // If no travel needed → return training item only
-        if (!t.includeTravel) return collected;
-
-        // 2. TRAVEL
+        // 1. Travel
         const tr = await travelFormRef.current?.getFormData();
         if (!tr?.isValid) return null;
         collected.push(tr.item);
 
-        // 3. ACCOMMODATION
+        // 2. Training
+        if (tr.onToggleIncludeTraining) {
+            const t = await trainingFormRef.current?.getFormData();
+            if (!t?.isValid) return null;
+            collected.push(t.item);
+        }
+
+        // 3. Accommodation
         if (tr.includeAccommodation) {
             const ac = await accommodationFormRef.current?.getFormData();
             if (!ac?.isValid) return null;
             collected.push(ac.item);
         }
 
-        // 4. RETURN JOURNEY TRAVEL
+        // 4. Return journey travel
         if (tr.includeReturnJourney) {
             const ret = await travelFormRef.current?.getReturnJourneyData?.();
             if (ret?.isValid) collected.push(ret.item);

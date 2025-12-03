@@ -410,6 +410,10 @@ input:focus {
   width: 76px;
 }
 
+.pageNumber {
+  width: 33px;
+}
+
 .pageButton,
 .pageNumber {
   background-color: white;
@@ -418,6 +422,7 @@ input:focus {
   padding: 6px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  height: 32px;
 
   &:hover:not(:disabled) {
     background-color: #2f8183;

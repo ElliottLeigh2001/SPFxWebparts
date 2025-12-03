@@ -10,7 +10,7 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
   const [title, setTitle] = useState(request.Title || '');
   const [goal, setGoal] = useState(request.Goal || '');
   const [project, setProject] = useState(request.Project || '');
-  const [team, setTeam] = useState<string>((request.Team) || '');
+  const [team, setTeam] = useState<string>(request.Team || '');
   const [teamId, setTeamId] = useState<number | ''>('');
   const [approver, setApprover] = useState<number | ''>(request.ApproverID?.Id || '');
   const [approvers, setApprovers] = useState<Approver[]>([]);
@@ -40,16 +40,19 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
 
   // Auto-select approver when team changes
   useEffect(() => {
-      if (!teamId || approvers.length === 0) return;
+    if (!request.Team || approvers.length === 0) return;
 
-      const approverForTeam = approvers.find(a => a.Id === teamId);
+    const matching = approvers.find(a => a.Team0 === request.Team);
+    if (matching) {
+      setTeamId(matching.Id);
+    }
+  }, [approvers, request.Team]);
 
-      if (approverForTeam) {
-          setApprover(approverForTeam.Id);
-          setApproverError('');
-      }
-  }, [teamId, approvers]);
-
+  useEffect(() => {
+  if (!teamId) return;
+  setApprover(teamId);
+  setApproverError('');
+  }, [teamId]);
 
   // Form validation (empty fields, max character length)
   const validate = (): boolean => {

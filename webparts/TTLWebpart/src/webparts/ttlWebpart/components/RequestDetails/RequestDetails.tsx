@@ -130,11 +130,13 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       // Refresh parent component
       if (onUpdate) onUpdate();
       
-      // Navigate back after a short delay
-      if (type !== 'HR Processing') {
+      // Navigate back after a short delay. For director approvals that
+      // move the request to HR Processing we still want to go back to the
+      // dashboard, so allow navigation when `updateApprovedByCEO` is true.
+      if (type !== 'HR Processing' || updateApprovedByCEO === true) {
         setTimeout(() => {
           onBack();
-        }, 1500);
+        }, 150);
       }
 
     } catch (error) {
@@ -315,13 +317,15 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         <div className={requestDetailsStyles.details}>
           <div className={requestDetailsStyles.titleContainer}>
             <h3 className={requestDetailsStyles.panelHeader}>Details</h3>
-            <button
-              className={requestDetailsStyles.iconButton}
-              onClick={() => setEditingRequest(true)}
-              title="Edit"
-            >
-              <i className="fa fa-pencil" aria-hidden="true"></i>
-            </button>
+            {view === 'myView' && (request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && (
+              <button
+                className={requestDetailsStyles.iconButton}
+                onClick={() => setEditingRequest(true)}
+                title="Edit"
+              >
+                <i className="fa fa-pencil" aria-hidden="true"></i>
+              </button>
+            )}
           </div>
           {view !== 'myView' && (
             <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
@@ -437,7 +441,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                     // If the other approver (practice lead) has already approved
                     if (request.RequestStatus === 'Awaiting CEO approval') {
                       // Send to HR
-                      await updateRequestApprover('In process by HR', true);
+                      await updateRequestApprover('HR Processing', true);
                       // Send an email to HR to notify them that they need to approve next
                       await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
                       // If the other approver (practice lead) has not yet approved,
@@ -457,17 +461,17 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                     // If the total cost exceeds 5000 euro (so director approval is also needed)
                     if (Number(request.TotalCost) > 5000) {
                       // If the director has already approved, send to HR, otherwise wait for director approval
-                      nextStatus = request.ApprovedByCEO ? 'In process by HR' : 'Awaiting CEO approval';
+                      nextStatus = request.ApprovedByCEO ? 'HR Processing' : 'Awaiting CEO approval';
                     } else {
                       // If total cost is lower than 5000 euro (no director approval needed), just send straight to HR
-                      nextStatus = 'In process by HR'
+                      nextStatus = 'HR Processing'
                     }
                     // Update status
                     await updateRequestApprover(nextStatus);
                     
                     // Send an email to HR to notify them that they need to approve next
                     // This step only happens if all required approvers have approved
-                    if (nextStatus === 'In process by HR') {
+                    if (nextStatus === 'HR Processing') {
                       await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest,})
                     } 
                   }
@@ -524,23 +528,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         />
     </div>
       <div className={styles.newRequestButtonContainer}>
-        {view !== 'myView' && (request.RequestStatus !== 'Completed' && request.RequestStatus !== 'HR Processing') && HRTab !== 'awaitingApproval' && (
-          
+        {(view === 'approvers' || view === 'director') && (
           <div style={{display: 'flex', gap: '20px'}}>
-          <button
-            onClick={() => {
-              if (changedByHR) {
-                setConfirmAction('reapprove');
-              } else {
-                setConfirmAction('approve');
-              }
-              setShowConfirmActionDialog(true);
-            }}
-            className={requestDetailsStyles.approveButton}
-            disabled={isUpdatingStatus}
-          >
-          {changedByHR ? 'Reapprove' : 'Approve'}
-          </button>
             <button 
               onClick={() => {setConfirmAction('deny'); setShowConfirmActionDialog(true)}}
               className={requestDetailsStyles.declineButton}
@@ -548,6 +537,16 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             >
               Deny
             </button>
+          <button
+            onClick={() => {
+              setConfirmAction('approve');
+              setShowConfirmActionDialog(true);
+            }}
+            className={requestDetailsStyles.approveButton}
+            disabled={isUpdatingStatus}
+          >
+          Approve
+          </button>
             {statusActionError && (
               <p>{statusActionError}</p>
             )}

@@ -419,7 +419,7 @@
 .cardHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 12px;
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 8px;
@@ -525,6 +525,12 @@
   margin-bottom: 15px;
   background: #f7fbfb;
   padding: 10px 15px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.typeSectionCollapsed {
+  background: #f7fbfb;
   border-radius: 3px;
   overflow: hidden;
 }

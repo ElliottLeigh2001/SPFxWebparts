@@ -72,7 +72,6 @@ export const getRequestStatusStyling = (status: string): string => {
     const statusMap: { [key: string]: string } = {
       'Draft': styles.default,
       'Submitted': styles.default,
-      'In Process By HR': styles.default,
       'Resubmitted': styles.default,
       'Rejected': styles.rejected,
       'HR Processing': styles.default,

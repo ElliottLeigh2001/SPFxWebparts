@@ -127,9 +127,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
     <div className={styles.ttlDashboard}>
       {isApprover ? (
         <>
-        <HeaderComponent
-          view='Approver Dashboard'
-        />
+        <HeaderComponent view='Approver Dashboard'/>
 
         {error && (
           <div className={styles.error}>
