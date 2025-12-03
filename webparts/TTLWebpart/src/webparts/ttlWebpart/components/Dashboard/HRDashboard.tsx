@@ -88,6 +88,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
   if (isLoading) {
     return (
       <div className={styles.ttlDashboard}>
+        <HeaderComponent view='HR Dashboard'/>
         <div className={styles.loading}>Loading...</div>
       </div>
     );
@@ -147,9 +148,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
     <div className={styles.ttlDashboard}>
       {isHR ? (
         <>
-        <HeaderComponent
-          view='HR Dashboard'
-        />
+        <HeaderComponent view='HR Dashboard'/>
         <div className={styles.tabContainer}>
           <div className={styles.tabButtonWrapper}>
             <div

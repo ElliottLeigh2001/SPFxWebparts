@@ -34,6 +34,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [statusActionError, setStatusActionError] = useState<string | null>(null);
   const [showConfirmActionDialog, setShowConfirmActionDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|null>(null);
@@ -102,11 +103,11 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   };
 
   // Function for changing the request status
-  const updateRequestApprover = async (type: string, updateApprovedByCEO?: boolean): Promise<void> => {
+  const updateRequestApprover = async (type: string, updateApprovedByCEO: boolean, refreshParent: boolean): Promise<void> => {
     if (!request.ID) return;
-    
     setIsUpdatingStatus(true);
     setStatusActionError(null);
+    setIsProcessing(true);
 
     // If the request is Submitted for the first time, set the submissionDate
     let submissionDate: any;
@@ -128,22 +129,15 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       }));
       
       // Refresh parent component
-      if (onUpdate) onUpdate();
-      
-      // Navigate back after a short delay. For director approvals that
-      // move the request to HR Processing we still want to go back to the
-      // dashboard, so allow navigation when `updateApprovedByCEO` is true.
-      if (type !== 'HR Processing' || updateApprovedByCEO === true) {
-        setTimeout(() => {
-          onBack();
-        }, 150);
-      }
+
+      if (refreshParent && onUpdate) onUpdate();
 
     } catch (error) {
       console.error('Error approving request:', error);
       setStatusActionError('Failed to approve request');
     } finally {
       setIsUpdatingStatus(false);
+      setIsProcessing(false);
     }
   };
 
@@ -152,6 +146,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     if (!editingItem?.ID) return;
 
     setIsUpdating(true);
+    setIsProcessing(true);
     setActionError(null);
 
     try {
@@ -189,6 +184,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       setActionError('Failed to update item');
     } finally {
       setIsUpdating(false);
+      setIsProcessing(false);
     }
   };
 
@@ -197,6 +193,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     if (!request.ID) return;
 
     setIsUpdating(true);
+    setIsProcessing(true);
     setActionError(null);
 
     try {
@@ -212,6 +209,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       setActionError('Failed to update request');
     } finally {
       setIsUpdating(false);
+      setIsProcessing(false);
     }
   };
 
@@ -220,6 +218,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     if (!request.ID) return;
 
     setIsDeleting(true);
+    setIsProcessing(true);
     setActionError(null);
 
     try {
@@ -228,13 +227,24 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       // Send an API call to delete the request with its items
       await deleteRequestWithItems(context, request.ID, itemIds);
       
-      // Navigate back after successful deletion and refresh parent component
-      onBack();
+      // Mark success; navigation will happen after processing flag is cleared below
+      // Refresh parent component if needed
+      // onUpdate();
+      // Navigate back after successful deletion
+      // (we will call onBack after finally so loading is displayed for the full duration)
+      const success = true;
+      if (success) {
+        // nothing here; onBack will be called after finally
+      }
     } catch {
       setActionError('Failed to delete request');
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
+      setIsProcessing(false);
+      // After processing finished, navigate back if deletion succeeded
+      // (we navigate here to ensure caller UI doesn't flash while operations are in-flight)
+      onBack();
     }
   };
 
@@ -267,6 +277,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     if (!selectedItemToDelete?.ID) return;
 
     setIsDeleting(true);
+    setIsProcessing(true);
     setActionError(null);
     try {
       // Send API call to delete the request item
@@ -292,6 +303,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       setIsDeleting(false);
       setShowDeleteConfirm(false);
       setSelectedItemToDelete(null);
+      setIsProcessing(false);
     }
   }
 
@@ -311,62 +323,76 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     <>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
     <div>
+      {isProcessing && (
+        <div style={{position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.9)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          <div style={{textAlign: 'center'}}>
+            <i className="fa fa-spinner fa-spin" style={{fontSize: 36, marginBottom: 12}}></i>
+            <div>Processing…</div>
+          </div>
+        </div>
+      )}
       <HeaderComponent view={request.Title}/>
-      <div className={requestDetailsStyles.detailsContainer}>
+      {!isUpdatingStatus ? (
 
-        <div className={requestDetailsStyles.details}>
-          <div className={requestDetailsStyles.titleContainer}>
-            <h3 className={requestDetailsStyles.panelHeader}>Details</h3>
-            {view === 'myView' && (request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && (
-              <button
-                className={requestDetailsStyles.iconButton}
-                onClick={() => setEditingRequest(true)}
-                title="Edit"
-              >
-                <i className="fa fa-pencil" aria-hidden="true"></i>
-              </button>
-            )}
-          </div>
-          {view !== 'myView' && (
-            <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
-          )}
-          <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
-          {displayedItems[0].RequestType !== 'Software' ? (
-            <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
-          ) : (
-            <>
-              {displayedItems[0].Licensing === 'One-time' ? (
-                <span><strong>Total Cost (one-time):</strong> € {displayedRequest.TotalCost}</span>
-              ) : (
-
-                <span><strong>Total Cost (yearly):</strong> € {displayedRequest.TotalCost}</span>
+        <div className={requestDetailsStyles.detailsContainer}>
+  
+          <div className={requestDetailsStyles.details}>
+            <div className={requestDetailsStyles.titleContainer}>
+              <h3 className={requestDetailsStyles.panelHeader}>Details</h3>
+              {view === 'myView' && (request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && (
+                <button
+                  className={requestDetailsStyles.iconButton}
+                  onClick={() => setEditingRequest(true)}
+                  title="Edit"
+                >
+                  <i className="fa fa-pencil" aria-hidden="true"></i>
+                </button>
               )}
-            </>
-          )}
-          <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
-          <span><strong>Team:</strong> {displayedRequest.Team || '/'}</span>
-          <span><strong>Status:</strong> <span className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
-          <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
-        </div>
+            </div>
+            {view !== 'myView' && (
+              <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
+            )}
+            <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
+            {displayedItems[0].RequestType !== 'Software' ? (
+              <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
+            ) : (
+              <>
+                {displayedItems[0].Licensing === 'One-time' ? (
+                  <span><strong>Total Cost (one-time):</strong> € {displayedRequest.TotalCost}</span>
+                ) : (
+  
+                  <span><strong>Total Cost (yearly):</strong> € {displayedRequest.TotalCost}</span>
+                )}
+              </>
+            )}
+            <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
+            <span><strong>Team:</strong> {displayedRequest.Team || '/'}</span>
+            <span><strong>Status:</strong> <span className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
+            <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
+          </div>
+  
+          <div className={requestDetailsStyles.items}>
+            <div className={requestDetailsStyles.titleContainer}>
+              <h3 className={requestDetailsStyles.panelHeader}>Items ({displayedItems.length})</h3>
+            </div>
+            <RequestItemsList
+              items={displayedItems}
+              onEdit={handleEditItem}
+              onDelete={handleDeleteItem}
+              onAdd={() => setShowAddModal(true)}
+              showActions={((displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') || 
+                (view === 'HR' && displayedRequest.RequestStatus === 'HR Processing'))}
+                view={view}
+                request={displayedRequest}
+                context={context}
+                onDocumentUploaded={() => onUpdate()}
+                />
+            </div>
+          </div>
 
-        <div className={requestDetailsStyles.items}>
-          <div className={requestDetailsStyles.titleContainer}>
-            <h3 className={requestDetailsStyles.panelHeader}>Items ({displayedItems.length})</h3>
-          </div>
-          <RequestItemsList
-            items={displayedItems}
-            onEdit={handleEditItem}
-            onDelete={handleDeleteItem}
-            onAdd={() => setShowAddModal(true)}
-            showActions={((displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') || 
-              (view === 'HR' && displayedRequest.RequestStatus === 'HR Processing'))}
-              view={view}
-              request={displayedRequest}
-              context={context}
-              onDocumentUploaded={() => onUpdate()}
-              />
-          </div>
-        </div>
+      ) : (
+        <p>loading...</p>
+      )}
 
       {(error || actionError) && (
         <div className={styles.error}>
@@ -429,6 +455,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
           onConfirm={async (comment) => {
             if (!confirmAction) return;
             setConfirmProcessing(true);
+            setIsProcessing(true);
+            let success = false;
             try {
                 // If a request is approved
                 if (confirmAction === 'approve') {
@@ -441,16 +469,16 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                     // If the other approver (practice lead) has already approved
                     if (request.RequestStatus === 'Awaiting CEO approval') {
                       // Send to HR
-                      await updateRequestApprover('HR Processing', true);
+                      await updateRequestApprover('HR Processing', true, true);
                       // Send an email to HR to notify them that they need to approve next
                       await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
                       // If the other approver (practice lead) has not yet approved,
                       // don't send to HR yet, but set the approvedByCEO column to true
                     } else if (request.RequestStatus === 'Submitted') {
-                      await updateRequestApprover('Submitted', true);
+                      await updateRequestApprover('Submitted', true, true);
                       // Do the same for reapprovals
                     } else if (request.RequestStatus === 'Resubmitted') {
-                      await updateRequestApprover('Resubmitted', true)
+                      await updateRequestApprover('Resubmitted', true, true)
                     }
                   }
                   // If the approver is a practice lead
@@ -467,7 +495,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                       nextStatus = 'HR Processing'
                     }
                     // Update status
-                    await updateRequestApprover(nextStatus);
+                    await updateRequestApprover(nextStatus, false, true);
                     
                     // Send an email to HR to notify them that they need to approve next
                     // This step only happens if all required approvers have approved
@@ -477,13 +505,13 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   }
                   // If the approver is HR and they approve, set status to HR Processing
                   else if (view === 'HR') {
-                    await updateRequestApprover('HR Processing')
+                    await updateRequestApprover('HR Processing', false, true)
                   }
                 } 
                 // If a request is denied
                 else if (confirmAction === 'deny') {
                   // Update status
-                  await updateRequestApprover('Rejected');
+                  await updateRequestApprover('Rejected', false, true);
                   // Add comment (it's required upon denial)
                   await handleAddComment(comment!)
                   // Inform requester that their request has been denied
@@ -492,7 +520,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                 // When the requester sends their request for approval
                 else if (confirmAction === 'send') {
                   // Update status
-                  await updateRequestApprover('Submitted')
+                  await updateRequestApprover('Submitted', false, false)
                   // Get data from the approver so it can be included in the email
                   const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
                   const approverEmail = approverData?.TeamMember?.EMail;
@@ -505,7 +533,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   // Add comment (it's required upon reapproval)
                   await handleAddComment(comment!)
                   // Update status
-                  await updateRequestApprover('Resubmitted', false)
+                  await updateRequestApprover('Resubmitted', false, true)
                   // Get data from the approver so it can be included in the email
                   const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
                   const approverEmail = approverData?.TeamMember?.EMail;
@@ -516,13 +544,19 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                 // If HR had booked the request and marked it as completed
                 else if (confirmAction === 'completed') {
                   // Update status
-                  await updateRequestApprover('Completed')
+                  await updateRequestApprover('Completed', false, false)
                 }
+              success = true;
             } finally {
               setConfirmProcessing(false);
+              setIsProcessing(false);
               setShowConfirmActionDialog(false);
               setConfirmAction(null);
               sessionStorage.removeItem(`changedByHR${request.ID}`)
+              if (success) {
+                // Navigate back after successful action
+                onBack();
+              }
             }
           }}
         />

@@ -92,6 +92,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, 
   if (isLoading) {
     return (
       <div className={styles.ttlDashboard}>
+        <HeaderComponent view='Director Dashboard'/>
         <div className={styles.loading}>Loading...</div>
       </div>
     );
@@ -127,9 +128,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, 
     <div className={styles.ttlDashboard}>
       {isCEO ? (
         <>
-        <HeaderComponent
-          view='Director Dashboard'
-        />
+        <HeaderComponent view='Director Dashboard'/>
 
           {error && (
             <div className={styles.error}>

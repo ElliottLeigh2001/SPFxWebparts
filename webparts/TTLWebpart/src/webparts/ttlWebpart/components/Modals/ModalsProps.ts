@@ -28,7 +28,7 @@ export const messages: Record<ActionType, string> = {
   approve: 'Are you sure you want to approve this request?',
   reapprove: 'Are you sure you want to send this request for reapproval?',
   deny: 'Are you sure you want to deny this request?',
-  completed: 'Are you sure you want to mark this request as booked?'
+  completed: 'Are you sure you want to mark this request as completed?'
 };
 
 export interface ConfirmActionDialogProps {

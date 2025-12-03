@@ -93,6 +93,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
   if (isLoading) {
     return (
       <div className={styles.ttlDashboard}>
+        <HeaderComponent view='Approver Dashboard'/>
         <div className={styles.loading}>Loading...</div>
       </div>
     );

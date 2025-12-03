@@ -129,12 +129,13 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         setShowHRDashboard(false);
         setShowDirectorDashboard(false)
         
-        if (requests.length > 0) {
-          const request = requests.find(req => req.ID === parseInt(requestId));
-          if (request) {
-            handleRequestClick(request);
+          if (requests.length > 0) {
+            const request = requests.find(req => req.ID === parseInt(requestId));
+            if (request) {
+              // Reacting to URL change: don't push another history entry
+              handleRequestClick(request, false);
+            }
           }
-        }
       } else if (view === "approvers") {
         setShowApproverDashboard(true);
         setSelectedRequest(null);
@@ -190,7 +191,8 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       if (requestId && !view) {
         const request = requests.find(req => req.ID === parseInt(requestId));
         if (request && (!selectedRequest || selectedRequest.ID !== request.ID)) {
-          handleRequestClick(request);
+          // Reacting to URL change: don't push another history entry
+          handleRequestClick(request, false);
         }
       }
     }
@@ -202,7 +204,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   }, [context, refreshTrigger]);
 
   // Function to handle clicks on a request
-  const handleRequestClick = async (request: UserRequest) => {
+  const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -212,7 +214,9 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       setRequestItems(items);
       setSelectedRequest(request);
       // Update URL for request details
-      window.history.pushState({}, "", `?requestId=${request.ID}`);
+      if (pushState) {
+        window.history.pushState({}, "", `?requestId=${request.ID}`);
+      }
     } catch (error) {
       console.error('Error loading request details:', error);
       if (error.status === 404) {
@@ -280,6 +284,14 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   if (isLoading) {
     return (
       <div className={styles.ttlDashboard}>
+        <HeaderComponent
+          view='My Requests'
+          isHR={isHR}
+          isCEO={isCEO}
+          allApprovers={allApprovers}
+          loggedInUser={loggedInUser}
+          onViewClick={handleViewClick}
+        />
         <div className={styles.loading}>Loading...</div>
       </div>
     );
