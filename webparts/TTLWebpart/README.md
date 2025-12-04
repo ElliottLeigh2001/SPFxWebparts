@@ -2,12 +2,13 @@
 
 ## Summary
 
-This SPFx webpart is an extensive "application" to manage requests concerning trainings, travels, accommodations and software licenses. Each user has their own
-dashboard where they can visualise, add, update and delete requests. Once a request is created, the user can either 'save' their request so they can edit it later, or they can
-send it for approval. At this point, the request isn't editable and it goes to the dashboard of the approver that was selected during the process of making the request.
-The approver can either approve or deny any requests in their dashboard (and provide a comment on denial). If approved, HR members can in their turn approve or deny requests in their
-dashboard. They can also provide a comment and edit the cost of an item. If any cost was changed, they need to be sent for reapproval (and once again need to be approved by the approver). Only when both the approver and HR have approved the request, will the appropriate costs be paid. 
-There is also an exception when the total cost of a request exceeds 5000 EUR. In this case, the managing director of the company will also need to approve or deny the request in his own dashboard. A Power Automate flow is connected to this webpart to send out emails to the appropriate people at multiple stages of the process, shown below.
+This SPFx webpart is an extensive "application" to manage requests concerning trainings, travels, accommodations and software licenses. Each user has their own dashboard where they can visualise, add, update and delete requests. Once a request is created, the user can either 'save' their request so they can edit it later, or they can
+send it for approval. At this point, the request is no longer editable and it appear in the dashboard of the approver that was selected during the process of making the request.
+
+The approver can either approve or deny any requests in their dashboard (and provide a comment). 
+There is also a special dashboard for HR members where they can see every single request of every employee. If a request has been approved by the approver, an HR member can either edit the cost of a request item and send it for reapproval, or mark it as booked (thus completing the request). In the first case, the request will be send back to the approver for reapproval. In the second case, the request is finished. Once a request is finished, a file can be uploaded to a request item (for example the confirmation email of a training) so there's less chance that documents go missing.
+
+Lastly, there is an exception when the total cost of a request exceeds 5000 EUR. In this case, the managing director of the company will also need to approve or deny the request in his/her own dashboard. A Power Automate flow is connected to this webpart to send out emails to the appropriate people at multiple stages of the process, shown below.
 
 New request is created (> 5000 EUR): the approver and HR are both informed of the new creation.
 New request is created (< 5000 EUR): the approver, HR and managing director are informed of the new creation.
@@ -31,18 +32,20 @@ Request is approved by all required approvers: requester is informed that their 
 - TTLService.ts: service file for maintaining CRUD operations to SharePoint lists
 - CommentService.ts: service file for CRUD operations concerning comments
 - AutomateService.ts: service file for sending data to the Power Automate flow
+
 - TTLInterfaces.ts: interface file for maintaining types
 - HelperFunctions.ts: file with functions that are used in multiple components
 
 - TtlDashboard.tsx: Dashboard that shows the requests of the logged in user
-- ApproversDashboard.tsx: Dashboard that shows requests that are 'Submitted' or 'sent for reapproval' and are attached to the logged in approver (only visible for approvers)
+- ApproversDashboard.tsx: Dashboard that shows requests that are 'Submitted' or 'sent for reapproval' and are       attached to the logged in approver (only visible for approvers)
 - HRDashboard.tsx: Dashboard that shows requests that are 'in process by HR'
 - DirectorDashboard.tsx: Dashboard that shows requests that are 'Submitted' and exceed 5000 EUR
 - DashboardComponent.tsx: Component that contains the table with requests, tailored for each type of dashboard
 
 - ChooseNewRequest.tsx: Component where the user is prompted to choose the kind of request they want to make
-- NewRequestSoftware.tsx: Component for adding new requests and managing request items to that request (software licenses)
-- NewRequestTrainingTravel.tsx: Component for adding new requests and managing request items to that request (trainings, tavels, accommodations)
+- NewRequestSoftware.tsx: Component for detailing a new software request.
+- NewRequestTrainingTravel.tsx: Component for detailing a new training request. Optionally, a travel, return travel and accomodation can be added to this training.
+- NewRequestTravel.tsx: Component for detailing a new travel request. Optionally, return travel, a training and accomodation can be added to this travel.
 - AccommodationForm.tsx: Form to add an accommodation to a request
 - Software.tsx: Form to add a software license to a request
 - TrainingForm.tsx: Form to add a training to a request
@@ -80,10 +83,11 @@ To import into SharePoint site collection:
   - Filtering
   - Sorting
 - Getting request details (your dashboard)
-  - Performing CRUD operations
+  - Performing CRUD operations on the request
   - Sending for approval / saving
   - Viewing comments
 - Adding new requests with specific request items
+  - multiple options (software, training, travel)
 - Approval system with multiple steps
 - Dashboards for the managing director, approvers and HR
   - Filtering
