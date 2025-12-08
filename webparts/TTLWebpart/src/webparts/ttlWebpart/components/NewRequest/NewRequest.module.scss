@@ -110,6 +110,15 @@
 
 }
 
+.unchangeable {
+  padding: 4px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+}
+
 .addButtons {
   display: flex;
   align-items: center;

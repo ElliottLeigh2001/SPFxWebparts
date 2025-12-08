@@ -12,14 +12,15 @@ import { sendEmail } from '../../service/AutomateService';
 import AccommodationForm from '../Forms/AccomodationForm';
 import { NewRequestProps } from './NewRequestProps';
 import HeaderComponent from '../Header/HeaderComponent';
+import { getUserAndManager } from '../../Helpers/HelperFunctions';
 
 const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave, approvers, loggedInUser }) => {
     const [title, setTitle] = useState('');
     const [goal, setGoal] = useState('');
     const [project, setProject] = useState('');
-    const [team, setTeam] = useState<string | ''>('');
-    const [teamId, setTeamId] = useState<number | ''>('');
-    const [approver, setApprover] = useState<number | ''>('');
+    const [team, setTeam] = useState<string | undefined>(undefined);
+    const [approver, setApprover] = useState<number | undefined>(undefined);
+    const [teamCoach, setTeamCoach] = useState<{ id: number; title: string } | undefined>(undefined);
     const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
     const trainingFormRef = useRef<any>(null);
     const travelFormRef = useRef<any>(null);
@@ -33,31 +34,33 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
     const [confirmProcessing, setConfirmProcessing] = useState(false);
     const [titleError, setTitleError] = useState('');
     const [goalError, setGoalError] = useState('');
-    const [teamError, setTeamError] = useState('');
-    const [approverError, setApproverError] = useState('');
     const [projectError, setProjectError] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Get approvers and teams from SharePoint
+    // Load Teams and Approvers
     useEffect(() => {
-        const getApprovers = async (): Promise<void> => {
-            const approversWithoutCEO = approvers.filter(app => app.TeamMember)
-            setAllApprovers(approversWithoutCEO)
+        const loadData = async () => {
+        setIsLoading(true);
+        try {
+            const approversWithoutCEO = approvers.filter(app => app.PracticeLead);
+            setAllApprovers(approversWithoutCEO);
+            
+            // Get user's manager (team coach) and populate initial data
+            const userAndManager = await getUserAndManager(approversWithoutCEO, context);
+            setTeamCoach(userAndManager?.teamCoach);
+            setApprover(userAndManager?.approver);
+            setTeam(userAndManager?.team);
+        } catch (err) {
+            console.error("Error loading data:", err);
+            setError('Failed to load user data');
+        } finally {
+            setIsLoading(false);
         }
-        getApprovers();
-    }, [])
-
-  // Auto-select approver when team changes
-  useEffect(() => {
-      if (!teamId || allApprovers.length === 0) return;
-
-      const approverForTeam = allApprovers.find(a => a.Id === teamId);
-
-      if (approverForTeam) {
-          setApprover(approverForTeam.Id);
-          setApproverError('');
-      }
-  }, [teamId, allApprovers]);
+        };
+        
+        loadData();
+    }, [approvers]);
 
     // Form validation (empty fields, max characters)
     const validate = (): boolean => {
@@ -65,8 +68,6 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
 
         setTitleError('');
         setGoalError('');
-        setTeamError('');
-        setApproverError('');
         setError(null);
 
         if (!title.trim()) {
@@ -78,15 +79,7 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
             setGoalError('Goal is required');
             isValid = false;
         }
-        if (!team) {
-            setTeamError('Please select a team');
-            isValid = false;
-        }
-        if (!approver) {
-            setApproverError('Please select an approver');
-            isValid = false;
-        }
-        
+
         if (title.length > 255) {
             setTitleError('Max length of title is 255 characters')
             isValid = false;
@@ -162,8 +155,8 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
 
             if (type === 'Submitted') {
                 const approverData = await getApproverById(context, Number(approver));
-                const approverEmail = approverData?.TeamMember?.EMail;
-                const approverTitle = approverData.TeamMember?.Title;
+                const approverEmail = approverData?.PracticeLead?.EMail;
+                const approverTitle = approverData.PracticeLead?.Title;
                 sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, authorEmail: loggedInUser.Email, authorName: loggedInUser.Title, totalCost: totalCost.toString(), typeOfRequest: 'Training / Travel'});
             }
 
@@ -175,6 +168,21 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
             setIsSaving(false);
         }
     };
+
+    if (isLoading) {
+        return (
+        <>
+            <HeaderComponent view="New Request" />
+            <div className={styles.ttlForm}>
+            <div className={newRequestStyles.newRequestContainer}>
+                <div style={{ textAlign: 'center', padding: '50px' }}>
+                Loading...
+                </div>
+            </div>
+            </div>
+        </>
+        );
+    }
 
     return (
         <>
@@ -232,46 +240,27 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
                         </div>
 
                         <div className={styles.formRow}>
-                            <div className={styles.formItem}>
-                                <label className={styles.formRowLabel}>Team *</label>
-                                <select
-                                    value={teamId}
-                                    onChange={e => {
-                                        const id = Number(e.target.value);
-                                        setTeamId(id);
-
-                                        // Find the team object so we can store its name
-                                        const sel = allApprovers.find(a => a.Id === id);
-                                        if (sel) setTeam(sel.Team0 ?? '');
-                                    }}
-                                >
-                                    <option value="">-- Select team --</option>
-                                    {allApprovers.map(a => (
-                                        <option key={a.Id} value={a.Id}>
-                                            {a.Team0}
-                                        </option>
-                                    ))}
-                                </select>
-                                {teamError && <div className={styles.validationError}>{teamError}</div>}
+                            <div className={styles.formItemShort}>
+                                <label className={styles.formRowLabel}>Team Coach</label>
+                                <div className={newRequestStyles.unchangeable}>
+                                {teamCoach ? teamCoach.title : 'Loading...'}
+                                </div>
                             </div>
-                            <div className={styles.formItem}>
-                                <label className={styles.formRowLabel}>Approver *</label>
-                                <select
-                                    name="approver"
-                                    id="approver"
-                                    value={approver}
-                                    className={approverError ? styles.invalid : ''}
-                                    onChange={e => setApprover(Number(e.target.value))}
-                                    required
-                                >
-                                    <option value="">-- Select Approver --</option>
-                                    {allApprovers.map((a: any) => (
-                                        <option key={a.Id} value={a.Id}>
-                                            {a.TeamMember?.Title}
-                                        </option>
-                                    ))}
-                                </select>
-                                {approverError && <div className={styles.validationError}>{approverError}</div>}
+                            
+                            <div className={styles.formItemShort}>
+                                <label className={styles.formRowLabel}>Team</label>
+                                <div className={newRequestStyles.unchangeable}>
+                                {team ? team : 'Loading'}
+                                </div>
+                            </div>
+
+                            <div className={styles.formItemShort}>
+                                <label className={styles.formRowLabel}>Approver</label>
+                                <div className={newRequestStyles.unchangeable}>
+                                {approver
+                                    ? allApprovers.find(a => a.Id === approver)?.PracticeLead?.Title
+                                    : 'Loading'}
+                                </div>
                             </div>
                         </div>
 

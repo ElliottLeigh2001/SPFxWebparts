@@ -49,12 +49,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       setLoggedInUser(user);
 
       // Filter list on only approvers
-      const _approvers = approvers.filter(app => app.TeamMember);
+      const _approvers = approvers.filter(app => app.PracticeLead);
       // Get the director from the approvers list
       const boss = approvers.filter(app => app.CEO);
 
       // Check if the user is an approver
-      setIsApprover(_approvers.some(app => app.TeamMember.EMail === user?.Email))
+      setIsApprover(_approvers.some(app => app.PracticeLead.EMail === user?.Email))
       setAllApprovers(_approvers);
       // Check if the user is the director
       setIsCEO(boss.some(boss => boss.CEO.EMail === user?.Email));

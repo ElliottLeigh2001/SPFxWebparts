@@ -27,7 +27,7 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
       try {
         const approversData = await getApprovers(context)
 
-        const approversWithoutCEO = approversData.filter(app => app.TeamMember)
+        const approversWithoutCEO = approversData.filter(app => app.PracticeLead)
         setApprovers(approversWithoutCEO);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -168,7 +168,7 @@ const EditRequestForm: React.FC<EditRequestFormProps> = ({ context, request, onS
             <option value="">-- Select Approver --</option>
             {approvers.map((approverItem) => (
               <option key={approverItem.Id} value={approverItem.Id}>
-                {approverItem.TeamMember?.Title}
+                {approverItem.PracticeLead?.Title}
               </option>
             ))}
           </select>

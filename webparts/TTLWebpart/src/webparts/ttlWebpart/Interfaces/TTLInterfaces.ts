@@ -64,12 +64,17 @@ export interface TTLDocument {
 
 export interface Approver {
     Id: number;
-    TeamMember: {
+    TeamCoach: {
         Id?: number;
         Title?: string;
         EMail?: string;
     }
-    BackUp: {
+    PracticeLead: {
+        Id?: number;
+        Title?: string;
+        EMail?: string;
+    }
+    DeliveryDirector: {
         Id?: number;
         Title?: string;
         EMail?: string;

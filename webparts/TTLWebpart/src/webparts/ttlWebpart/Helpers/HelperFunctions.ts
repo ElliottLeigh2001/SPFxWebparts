@@ -1,4 +1,7 @@
+import { WebPartContext } from "@microsoft/sp-webpart-base";
 import styles from "../components/Dashboard/TtlWebpart.module.scss";
+import { Approver } from "../Interfaces/TTLInterfaces";
+import { getManager, loadUserProfile } from "../service/TTLService";
 
 // Function to validate the cost of a request item
 export const validateCost = (cost: any): { isValid: boolean; value: number; error: string } => {
@@ -230,3 +233,37 @@ export const goBack = (args: {
     window.history.pushState({}, "", `?view=${viewName}`);
   }
 };
+
+  // Get user's team coach
+export const getUserAndManager = async (approversList: Approver[], context: WebPartContext) => {
+    try {
+      const user = await loadUserProfile(context);
+      const manager = await getManager(context, user.managerAccount);
+      
+      // Find the manager in the approvers list
+      const teamCoachRow = approversList.find(app => 
+        app.TeamCoach?.Title === manager.name
+      );
+    
+      // Set the team coach
+      const teamCoach = ({
+        id: teamCoachRow!.Id,
+        title: teamCoachRow?.TeamCoach.Title!
+      });
+      
+      // Filter teams and approvers for this team coach
+      const teamsForCoach = approversList.filter(a => 
+        a.TeamCoach?.Title === manager.name
+      );
+      
+      // If there's only one team for this coach, auto-select it
+      const singleTeam = teamsForCoach[0];
+      const team = singleTeam.Team0;
+      const approver = singleTeam.Id;
+
+      return {teamCoach, team, approver}
+
+    } catch (err) {
+      console.error("Error getting user and manager:", err);
+    }
+  };

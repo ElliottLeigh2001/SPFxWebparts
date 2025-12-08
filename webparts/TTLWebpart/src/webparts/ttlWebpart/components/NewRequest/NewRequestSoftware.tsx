@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import newRequestStyles from './NewRequest.module.scss';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { createRequestWithItems, getApproverById } from '../../service/TTLService';
+import { createRequestWithItems } from '../../service/TTLService';
 import { sendEmail } from '../../service/AutomateService';
-import { calculateSoftwareLicenseCost } from '../../Helpers/HelperFunctions';
+import { calculateSoftwareLicenseCost, getUserAndManager } from '../../Helpers/HelperFunctions';
 import SoftwareForm, { SoftwareFormHandle } from '../Forms/SoftwareForm';
 import { Approver } from '../../Interfaces/TTLInterfaces';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
@@ -16,14 +16,12 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
   const [title, setTitle] = useState('');
   const [goal, setGoal] = useState('');
   const [project, setProject] = useState('');
-  const [team, setTeam] = useState<string | ''>('');
-  const [teamId, setTeamId] = useState<number | ''>('');
-  const [approver, setApprover] = useState<number | ''>('');
+  const [team, setTeam] = useState<string | undefined>(undefined);
+  const [approver, setApprover] = useState<number | undefined>(undefined);
   const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
+  const [teamCoach, setTeamCoach] = useState<{ id: number; title: string } | undefined>(undefined);
   const [titleError, setTitleError] = useState('');
   const [goalError, setGoalError] = useState('');
-  const [teamError, setTeamError] = useState('');
-  const [approverError, setApproverError] = useState('');
   const [projectError, setProjectError] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -32,28 +30,31 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const softwareFormRef = React.useRef<SoftwareFormHandle | null>(null);
   const [softwareFormKey, setSoftwareFormKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load Teams and Approvers
   useEffect(() => {
     const loadData = async () => {
-      const approversWithoutCEO = approvers.filter((app: { TeamMember: any; }) => app.TeamMember);
-      setAllApprovers(approversWithoutCEO);
-    };
-
-    loadData();
-  }, []);
-
-  // Auto-select approver when team changes
-  useEffect(() => {
-      if (!teamId || allApprovers.length === 0) return;
-
-      const approverForTeam = allApprovers.find(a => a.Id === teamId);
-
-      if (approverForTeam) {
-          setApprover(approverForTeam.Id);
-          setApproverError('');
+      setIsLoading(true);
+      try {
+        const approversWithoutCEO = approvers.filter(app => app.PracticeLead);
+        setAllApprovers(approversWithoutCEO);
+        
+        // Get user's manager (team coach) and populate initial data
+        const userAndManager = await getUserAndManager(approversWithoutCEO, context);
+        setTeamCoach(userAndManager?.teamCoach);
+        setApprover(userAndManager?.approver);
+        setTeam(userAndManager?.team);
+      } catch (err) {
+        console.error("Error loading data:", err);
+        setError('Failed to load user data');
+      } finally {
+        setIsLoading(false);
       }
-  }, [teamId, allApprovers]);
+    };
+    
+    loadData();
+  }, [approvers]);
 
   // Form validation
   const validate = (): boolean => {
@@ -61,8 +62,6 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
 
     setTitleError('');
     setGoalError('');
-    setTeamError('');
-    setApproverError('');
     setProjectError('');
 
     if (!title.trim()) {
@@ -72,16 +71,6 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
 
     if (!goal.trim()) {
       setGoalError('Goal is required');
-      valid = false;
-    }
-
-    if (!team) {
-      setTeamError('Please select a team');
-      valid = false;
-    }
-
-    if (!approver) {
-      setApproverError('Please select an approver');
       valid = false;
     }
 
@@ -110,7 +99,12 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
     const item = formResult.item;
 
     // Calculate the yearly cost of a software license based on license type, how many people need the license etc.
-    const calculatedCost = calculateSoftwareLicenseCost({ Cost: Number(item.Cost), Licensing: item.Licensing, LicenseType: item.LicenseType, UsersLicense: item.UsersLicense });
+    const calculatedCost = calculateSoftwareLicenseCost({ 
+      Cost: Number(item.Cost), 
+      Licensing: item.Licensing, 
+      LicenseType: item.LicenseType, 
+      UsersLicense: item.UsersLicense 
+    });
 
     let totalCost = Number(item.Cost);
 
@@ -118,6 +112,13 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
     setError(null);
 
     try {
+      // Get the selected approver row
+      const selectedApproverRow = allApprovers.find(a => a.Id === approver);
+      
+      if (!selectedApproverRow) {
+        throw new Error('Selected approver not found');
+      }
+
       const createdId = await createRequestWithItems(
         context,
         {
@@ -126,17 +127,17 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
           Project: project,
           Team: team,
           ApproverID: approver,
+          TeamCoachID: teamCoach?.id,
           TotalCost: calculatedCost,
         },
-        [ item ],
+        [item],
         type
       );
 
       // If sending for approval, trigger the Automate flow
-      if (type === 'Submitted') {
-        const approverData = await getApproverById(context, Number(approver));
-        const approverEmail = approverData?.TeamMember?.EMail;
-        const approverTitle = approverData.TeamMember?.Title;
+      if (type === 'Submitted' && selectedApproverRow?.PracticeLead) {
+        const approverEmail = selectedApproverRow.PracticeLead.EMail;
+        const approverTitle = selectedApproverRow.PracticeLead.Title;
 
         sendEmail({
           emailType: "new request",
@@ -156,7 +157,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
       setGoal('');
       setProject('');
       setTeam('');
-      setApprover('');
+      setApprover(undefined);
 
       setSoftwareFormKey(prev => prev + 1);
 
@@ -168,6 +169,21 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
       setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <HeaderComponent view="New Request" />
+        <div className={styles.ttlForm}>
+          <div className={newRequestStyles.newRequestContainer}>
+            <div style={{ textAlign: 'center', padding: '50px' }}>
+              Loading...
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -214,42 +230,38 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.formItem}>
-            <label className={styles.formRowLabel}>Team *</label>
-            <select
-                value={teamId}
-                onChange={e => {
-                    const id = Number(e.target.value);
-                    setTeamId(id);
-
-                    // Find the team object so we can store its name
-                    const sel = allApprovers.find(a => a.Id === id);
-                    if (sel) setTeam(sel.Team0 ?? '');
-                }}
-            >
-                <option value="">-- Select team --</option>
-                {allApprovers.map(a => (
-                    <option key={a.Id} value={a.Id}>
-                        {a.Team0}
-                    </option>
-                ))}
-            </select>
-            {teamError && <div className={styles.validationError}>{teamError}</div>}
+          <div className={styles.formItemShort}>
+            <label className={styles.formRowLabel}>Team Coach</label>
+            <div className={newRequestStyles.unchangeable}>
+              {teamCoach ? teamCoach.title : 'Loading...'}
+            </div>
+          </div>
+          
+          <div className={styles.formItemShort}>
+            <label className={styles.formRowLabel}>Team</label>
+            <div className={newRequestStyles.unchangeable}>
+              {team ? team : 'Loading'}
+            </div>
           </div>
 
-          <div className={styles.formItem}>
-            <label className={styles.formRowLabel}>Approver *</label>
-            <select value={approver} onChange={e => setApprover(Number(e.target.value))} className={approverError ? styles.invalid : ''}>
-              <option value="">-- Select Approver --</option>
-              {allApprovers.map(a => <option key={a.Id} value={a.Id}>{a.TeamMember?.Title}</option>)}
-            </select>
-            {approverError && <div className={styles.validationError}>{approverError}</div>}
+          <div className={styles.formItemShort}>
+            <label className={styles.formRowLabel}>Approver</label>
+            <div className={newRequestStyles.unchangeable}>
+              {approver
+                ? allApprovers.find(a => a.Id === approver)?.PracticeLead?.Title
+                : 'Loading'}
+            </div>
           </div>
         </div>
 
         <div style={{ marginBottom: '18px' }}>
           <label className={styles.formRowLabel}>Goal *</label>
-          <textarea value={goal} onChange={e => setGoal(e.target.value)} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} className={goalError ? styles.invalid : ''} />
+          <textarea 
+            value={goal} 
+            onChange={e => setGoal(e.target.value)} 
+            style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} 
+            className={goalError ? styles.invalid : ''} 
+          />
           {goalError && <div className={styles.validationError}>{goalError}</div>}
         </div>
       </div>

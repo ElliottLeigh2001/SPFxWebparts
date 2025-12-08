@@ -523,8 +523,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   await updateRequestApprover('Submitted', false, false)
                   // Get data from the approver so it can be included in the email
                   const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
-                  const approverEmail = approverData?.TeamMember?.EMail;
-                  const approverTitle = approverData?.TeamMember?.Title;
+                  const approverEmail = approverData?.PracticeLead?.EMail;
+                  const approverTitle = approverData?.PracticeLead?.Title;
                   // Send an email to the approver, HR and director if the price exceeds 5000 euro (handled by Power Automate flow)
                   await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
                 }
@@ -536,8 +536,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   await updateRequestApprover('Resubmitted', false, true)
                   // Get data from the approver so it can be included in the email
                   const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
-                  const approverEmail = approverData?.TeamMember?.EMail;
-                  const approverTitle = approverData?.TeamMember?.Title;
+                  const approverEmail = approverData?.PracticeLead?.EMail;
+                  const approverTitle = approverData?.PracticeLead?.Title;
                   // Send email to approver that they need to reapprove the request
                   await sendEmail({ emailType: "reapprove", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
                 }
