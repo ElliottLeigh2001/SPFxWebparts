@@ -33,6 +33,8 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     ageChild1: '',
     ageChild2: '',
     ageChild3: '',
+    ageChild4: '',
+    ageChild5: '',
   });
   const {
     isSignedUp,
@@ -155,6 +157,8 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       ageChild1: formData.ageChild1 ? parseInt(formData.ageChild1) || 0 : 0,
       ageChild2: formData.ageChild2 ? parseInt(formData.ageChild2) || 0 : 0,
       ageChild3: formData.ageChild3 ? parseInt(formData.ageChild3) || 0 : 0,
+      ageChild4: formData.ageChild4 ? parseInt(formData.ageChild4) || 0 : 0,
+      ageChild5: formData.ageChild5 ? parseInt(formData.ageChild5) || 0 : 0,
     };
 
     await handleSubmit(submissionData);
@@ -175,6 +179,8 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
       ageChild1: '',
       ageChild2: '',
       ageChild3: '',
+      ageChild4: '',
+      ageChild5: '',
     });
   };
   
@@ -186,7 +192,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
         <div className={detailsStyles.headerTitleContainer}>
           {event ? (
             <>
-              <h2>{event.Title}</h2>
+              <h2 style={{marginBottom: '8px'}}>{event.Title}</h2>
               <p>{formatSingleDate(event.StartTime)}</p>
               <p>{event.Location}</p>
             </>
@@ -240,7 +246,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                 <div className={detailsStyles.attendeesPanel}>
                   <ul>
                     {allAttendees.map(att => (
-                      <li key={att.Id}>{att.Attendee?.Title}</li>
+                      <li style={{marginBottom: '8px'}} key={att.Id}>{att.Attendee?.Title}</li>
                     ))}
                   </ul>
                 </div>
@@ -329,6 +335,10 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       setAgeChild2={(value: any) => updateFormData('ageChild2', value)}
                       ageChild3={formData.ageChild3}
                       setAgeChild3={(value: any) => updateFormData('ageChild3', value)}
+                      ageChild4={formData.ageChild4}
+                      setAgeChild4={(value: any) => updateFormData('ageChild4', value)}
+                      ageChild5={formData.ageChild5}
+                      setAgeChild5={(value: any) => updateFormData('ageChild5', value)}
                       disabled={loading}
                     />
                   )}

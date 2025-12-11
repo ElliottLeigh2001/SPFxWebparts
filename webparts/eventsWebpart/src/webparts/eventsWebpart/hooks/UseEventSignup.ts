@@ -19,6 +19,8 @@ interface SignupFormData {
   ageChild1: number;
   ageChild2: number;
   ageChild3: number;
+  ageChild4: number;
+  ageChild5: number;
 }
 
 export const useEventSignup = (context: WebPartContext, event: EventItem) => {
@@ -167,6 +169,8 @@ const handleSubmit = async (formData: SignupFormData): Promise<void> => {
         submitData.ageChild1 = formData.ageChild1;
         submitData.ageChild2 = formData.ageChild2;
         submitData.ageChild3 = formData.ageChild3;
+        submitData.ageChild4 = formData.ageChild4;
+        submitData.ageChild5 = formData.ageChild5;
       }
 
       await sp.web.lists.getByTitle("Subscriptions").items.add(submitData);

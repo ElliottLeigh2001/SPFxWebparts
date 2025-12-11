@@ -43,7 +43,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
   return (
     <div>
       <label>
-        Amount of kids *
+        Number of children *
         <br/>
         <select
           value={amountOfKids}
@@ -51,7 +51,7 @@ export const SinterklaasFormFields: React.FC<SinterklaasFormFieldsProps> = ({
           disabled={disabled}
           required
         >
-          {[0, 1, 2, 3].map(num => (
+          {[0, 1, 2, 3, 4, 5].map(num => (
             <option key={num} value={num}>{num}</option>
           ))}
         </select>

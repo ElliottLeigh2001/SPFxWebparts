@@ -7,5 +7,9 @@ export interface FamilyFormFieldsProps {
   setAgeChild2: (value: string) => void;
   ageChild3: string;
   setAgeChild3: (value: string) => void;
+  ageChild4: string;
+  setAgeChild4: (value: string) => void;
+  ageChild5: string;
+  setAgeChild5: (value: string) => void;
   disabled: boolean;
 }

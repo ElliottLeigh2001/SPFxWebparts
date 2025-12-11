@@ -37,15 +37,12 @@
   gap: 1rem;
 }
 
-.myEvents {
-  color: var(--light-grey);
-}
-
 .leftFilters {
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  height: 37.33px;
 }
 
 .rightFilters {
@@ -122,27 +119,17 @@
   min-width: 150px;
   text-align: left;
   transition: background 0.2s;
-  padding: 8px 12px;
   border-radius: 3px;
   border: 1px solid var(--light-grey);
   background-color: transparent;
+  height: 36px;
+  padding-left: 8px;
 
   input[type=text] {
     width: 100%;
     box-sizing: border-box;
     color: var(--light-grey);
   }
-}
-
-.textInput {
-  margin-bottom: 10px;
-  margin-top: 6px;
-  border-radius: 3px;
-  width: 90%;
-  border: 1px solid var(--light-grey);
-  font-family: inherit;
-  font-size: 14px;
-  padding: 0;
 }
 
 .searchInput {
@@ -326,20 +313,14 @@
 }
 
 .clearFilters {
-  border: 3px solid var(--main-bg-color);
-  color: var(--main-bg-color);
-  font-weight: 600;
+  border: 1px solid var(--light-grey);
+  color: var(--light-grey);
+  font-weight: 400;
   border-radius: 3px;
   cursor: pointer;
-  height: 40px;
+  height: 37.33px;
   width: 80px;
   background: transparent;
-
-  &:hover {
-  background-color: var(--light-grey)98;
-  border: 3px solid var(--dark-bg-color);
-  color: var(--dark-bg-color);
-  }
 }
 
 .dateInputRow {
@@ -400,6 +381,7 @@
 .pageNumber {
   background-color: white;
   border: 1px solid #2f8183;
+  border-radius: 3px;
   color: #2f8183;
   padding: 6px 12px;
   cursor: pointer;
@@ -427,22 +409,28 @@ select,
   appearance: base-select;
 }
 
-select, textarea {
+label {
+  color: #055a57;
+}
+
+.textInput, select, textarea {
+  box-sizing: border-box;
+  border: 1px solid #d0e8e8;
+  background: #f7fbfb;
+  height: 35px;
+  padding: 0 0 0 5px;
   margin-bottom: 10px;
   margin-top: 6px;
   border-radius: 3px;
   width: 90%;
-  border: 1px solid var(--light-grey);
   font-family: inherit;
   font-size: 14px;
-  padding: 0;
 }
 
 select {
-  background: #fff url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 8L0 0h12L6 8z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: #f7fbfb url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 8L0 0h12L6 8z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 10px center;
   background-size: 12px 8px;
   appearance: none;
-  padding: 8px 12px;
 }
 
 .checkboxContainer {

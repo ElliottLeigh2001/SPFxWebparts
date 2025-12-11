@@ -11,12 +11,16 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
   setAgeChild2,
   ageChild3,
   setAgeChild3,
+  ageChild4,
+  setAgeChild4,
+  ageChild5,
+  setAgeChild5,
   disabled
 }) => {
   return (
     <div>
       <label>
-        Amount of kids *
+        Number of children *
         <br/>
         <select
           value={amountOfKids}
@@ -24,7 +28,7 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
           disabled={disabled}
           required
         >
-          {[0, 1, 2, 3].map(num => (
+          {[0, 1, 2, 3, 4, 5].map(num => (
             <option key={num} value={num}>{num}</option>
           ))}
         </select>
@@ -75,6 +79,42 @@ export const FamilyFormFields: React.FC<FamilyFormFieldsProps> = ({
                 type="text"
                 value={ageChild3}
                 onChange={(e) => setAgeChild3(e.target.value)}
+                disabled={disabled}
+                className={styles.textInput}
+                required
+                pattern="[0-9]*"
+                inputMode="numeric"
+              />
+            </label>
+          </div>
+        )}
+        {amountOfKids >= 4 && (
+          <div>
+            <label>
+              Age child 4 *
+              <br/>
+              <input
+                type="text"
+                value={ageChild4}
+                onChange={(e) => setAgeChild4(e.target.value)}
+                disabled={disabled}
+                className={styles.textInput}
+                required
+                pattern="[0-9]*"
+                inputMode="numeric"
+              />
+            </label>
+          </div>
+        )}
+        {amountOfKids >= 5 && (
+          <div>
+            <label>
+              Age child 5 *
+              <br/>
+              <input
+                type="text"
+                value={ageChild5}
+                onChange={(e) => setAgeChild5(e.target.value)}
                 disabled={disabled}
                 className={styles.textInput}
                 required

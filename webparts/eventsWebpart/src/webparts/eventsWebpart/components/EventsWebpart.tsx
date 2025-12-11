@@ -22,7 +22,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const typeDropdownRef = useRef<HTMLDivElement | null>(null);
   const dateDropdownRef = useRef<HTMLDivElement | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState(6);
-  const [showMyEvents, setShowMyEvents] = useState(false);
   const [myEventIds, setMyEventIds] = useState<number[]>([]);
 
   useEffect(() => {
@@ -64,6 +63,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   // But if any new event types were made, they would be useless until a new
   // Form was created anyway
   const eventTypes: Record<string, string> = {
+    "MyEvents": "My Registrations",
     "Standard": "Basic events",
     "Sinterklaas": "Sinterklaas",
     "Family": "Family",
@@ -95,10 +95,12 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   useEffect(() => {
     let filtered = [...allItems];
 
-    // event-type filters
-    if (filters.length > 0) {
+    // event-type filters (exclude MyEvents from this filtering)
+    const realTypeFilters = filters.filter(f => f !== "MyEvents");
+
+    if (realTypeFilters.length > 0) {
       filtered = filtered.filter((item) =>
-        filters.includes((item.EventTypes || "").toString())
+        realTypeFilters.includes((item.EventTypes || "").toString())
       );
     }
 
@@ -111,8 +113,10 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       );
     }
 
-    // My events filter
-    if (showMyEvents) {
+    // My Events category filter
+    const myEventsSelected = filters.includes("MyEvents");
+
+    if (myEventsSelected) {
       filtered = filtered.filter((item) =>
         myEventIds.includes(item.Id!)
       );
@@ -131,7 +135,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
 
     setItems(filtered);
     setCurrentIndex(0);
-  }, [filters, dateRangeFilter, allItems, searchQuery, showMyEvents, myEventIds]);
+  }, [filters, dateRangeFilter, allItems, searchQuery, myEventIds]);
 
   // On mount: fetch events, user groups, and subscriptions
   useEffect(() => {
@@ -221,15 +225,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
   const pageIndex = Math.floor(currentIndex / itemsPerPage);
   
-  // Carousel arrows logic
-  const handlePrev = (): void => {
-    setCurrentIndex((prev) => Math.max(prev - itemsPerPage, 0));
-  };
-  const handleNext = (): void => {
-    const maxStart = Math.max(0, (totalPages - 1) * itemsPerPage);
-    setCurrentIndex((prev) => Math.min(prev + itemsPerPage, maxStart));
-  };
-
   return (
     <>
     <div>
@@ -316,21 +311,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                 )}
               </div>
 
-              <div className={styles.myEvents}>
-                <label>My Events
-                  <input 
-                    type="checkbox" 
-                    id="myEvents"
-                    style={{transform: 'translateY(4px)'}} 
-                    checked={showMyEvents}
-                    onChange={(e) => {
-                    const checked = e.target.checked;
-                    setShowMyEvents(checked);
-                    }}
-                  />
-                </label>
-              </div>
-
             </div>
 
             <div className={styles.rightFilters}>
@@ -358,7 +338,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                   setFilters([]);
                   setSearchQuery("");
                   setDateRangeFilter("");
-                  setShowMyEvents(false);
                   setDateDropdownOpen(false);
                   setTypeDropdownOpen(false);
                 }}
@@ -379,17 +358,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
         )}
 
         <main className={styles.mainContent}>
-          {items.length > itemsPerPage && (
-            <div className={styles.carouselControls}>
-              <div>
-                <button onClick={handlePrev} disabled={pageIndex === 0}>
-                  <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M12.35 15.85a.5.5 0 0 1-.7 0L6.16 10.4a.55.55 0 0 1 0-.78l5.49-5.46a.5.5 0 1 1 .7.7L7.2 10l5.16 5.15c.2.2.2.5 0 .7Z"></path></svg>
-                </button>
-              </div>
-            </div>
-          )}
 
-          
           {items.length > 0 ? (
             <div className={styles.eventViewport}>
               <div
@@ -454,18 +423,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
             </div>
           )}
 
-          {items.length > itemsPerPage && (
-            <div className={styles.carouselControls}>
-              <div>
-                <button
-                  onClick={handleNext}
-                  disabled={pageIndex >= totalPages - 1}
-                >
-                  <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7.65 4.15c.2-.2.5-.2.7 0l5.49 5.46c.21.22.21.57 0 .78l-5.49 5.46a.5.5 0 0 1-.7-.7L12.8 10 7.65 4.85a.5.5 0 0 1 0-.7Z"></path></svg>
-                </button>
-              </div>
-            </div>
-          )}
         </main>
           {totalPages > 1 && (
             <div className={styles.pagination}>
