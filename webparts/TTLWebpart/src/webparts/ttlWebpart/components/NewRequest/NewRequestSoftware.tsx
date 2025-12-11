@@ -138,15 +138,19 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
       if (type === 'Submitted' && selectedApproverRow?.PracticeLead) {
         const approverEmail = selectedApproverRow.PracticeLead.EMail;
         const approverTitle = selectedApproverRow.PracticeLead.Title;
+        const directorTitle = selectedApproverRow.CEO.Title;
+        const directorEmail = selectedApproverRow.CEO.EMail;
 
         sendEmail({
           emailType: "new request",
           requestId: createdId.toString(),
-          title,
+          title: title,
           approver: approverEmail,
-          approverTitle,
+          approverTitle: approverTitle,
           authorEmail: loggedInUser.Email,
           authorName: loggedInUser.Title,
+          directorTitle: directorTitle,
+          directorEmail: directorEmail,
           totalCost: totalCost.toString(),
           typeOfRequest: 'Software License'
         });

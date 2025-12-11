@@ -6,6 +6,7 @@ export interface ApproversDashboardProps {
   onBack: () => void;
   loggedInUser: any;
   isApprover: boolean;
+  isTeamCoach: boolean;
 }
 
 export interface DashboardComponentProps {

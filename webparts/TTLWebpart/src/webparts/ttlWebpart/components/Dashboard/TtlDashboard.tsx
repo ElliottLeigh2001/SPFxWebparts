@@ -28,6 +28,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [isCEO, setIsCEO] = useState<boolean>(false);
   const [isHR, setIsHR] = useState(false);
   const [isApprover, setIsApprover] = useState(false);
+  const [isTeamCoach, setIsTeamCoach] = useState(false);
 
   // Get data from SharePoint lists
   const fetchData = async (): Promise<void> => {
@@ -35,26 +36,31 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       setIsLoading(true);
       setError(null);
 
-      // Get user request data, the logged in user, all approvers and check if the user is a member of HR
-      const [requestData, user, approvers, HR] = await Promise.all([
-        getRequestsData(context, "Id desc"),
+      // Get the logged in user, all approvers and check if the user is a member of HR
+      const [user, approvers, HR] = await Promise.all([
         getLoggedInUser(context),
         getApprovers(context),
         checkHR(context)
       ]);
 
+      const requestData = await getRequestsData(context, "Id desc", `Author/Id eq ${user?.Id}`);
+
       // Filter requests to only show requests from the logged in user
-      const filteredRequests = requestData.filter(req => req.Author?.Id === user?.Id);
-      setRequests(filteredRequests as UserRequest[]);
+      setRequests(requestData as UserRequest[]);
       setLoggedInUser(user);
 
       // Filter list on only approvers
-      const _approvers = approvers.filter(app => app.PracticeLead);
+      const _approvers = approvers.filter(app => (app.PracticeLead || app.TeamCoach));
+
       // Get the director from the approvers list
       const boss = approvers.filter(app => app.CEO);
 
       // Check if the user is an approver
       setIsApprover(_approvers.some(app => app.PracticeLead.EMail === user?.Email))
+
+      // Check if the user is a team coach
+      setIsTeamCoach(_approvers.some(app=>app.TeamCoach.EMail === user?.Email));
+
       setAllApprovers(_approvers);
       // Check if the user is the director
       setIsCEO(boss.some(boss => boss.CEO.EMail === user?.Email));
@@ -336,7 +342,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
 
   if (showApproversDashboad) {
     return (
-      <ApproversDashboard context={context} onBack={handleBackClick} loggedInUser={loggedInUser} isApprover={isApprover}/>
+      <ApproversDashboard context={context} onBack={handleBackClick} loggedInUser={loggedInUser} isApprover={isApprover} isTeamCoach={isTeamCoach}/>
     );
   }
 

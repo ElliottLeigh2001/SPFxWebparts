@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import EditRequestForm from './EditRequestForm';
-import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById } from '../../service/TTLService';
+import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById, updateRequestDeadline } from '../../service/TTLService';
 import RequestItemsList from './RequestItemsList';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { Modal } from '@fluentui/react';
@@ -9,7 +9,7 @@ import requestDetailsStyles from './RequestDetails.module.scss';
 import * as React from 'react';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import { sendEmail } from '../../service/AutomateService';
-import { getRequestStatusStyling } from '../../Helpers/HelperFunctions';
+import { formatDate, getRequestStatusStyling } from '../../Helpers/HelperFunctions';
 import CommentsSection from './CommentsSection';
 import AddItemModal from '../Modals/AddItemModal';
 import ConfirmDeleteDialog from '../Modals/ConfirmDeleteDialog';
@@ -19,7 +19,7 @@ import { TTLComment } from '../../Interfaces/TTLCommentInterface';
 import { RequestDetailsProps } from './RequestDetailsProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover }) => {
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
   const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
@@ -41,6 +41,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
   const [typeOfRequest, setTypeOfRequest] = useState('');
+  const [deadlineWarning, setDeadlineWarning] = useState(false);
 
   // Set the items to display after an update, deletion, add...
   useEffect(() => {
@@ -55,6 +56,12 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     } else {
       setTypeOfRequest('Training / Travel')
     }
+    if (request.DeadlineDate) {
+      if (new Date(request.DeadlineDate) < new Date()) {
+        setDeadlineWarning(true);
+      }
+    }
+    console.log(deadlineWarning);
   }, []);
 
   // If the request was changed by HR, set the state accordingly
@@ -163,7 +170,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       }
 
       // Optimistically update local list so UI reflects change immediately
-      setDisplayedItems(prev => prev.map(i => i.ID === editingItem.ID ? { ...i, ...updatedItem, ID: editingItem.ID } : i));
+      const newDisplayed = displayedItems.map(i => i.ID === editingItem.ID ? { ...i, ...updatedItem, ID: editingItem.ID } : i);
+      setDisplayedItems(newDisplayed);
       // Recalculate and persist total cost
       try {
         const rid = (displayedRequest && (displayedRequest.ID || (displayedRequest as any).Id)) || (request && (request.ID || (request as any).Id));
@@ -175,6 +183,33 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         }
       } catch (err) {
         console.error('Error recalculating total after update:', err);
+      }
+      // Recalculate and persist the deadline date (closest / earliest StartDate)
+      try {
+        const rid = (displayedRequest && (displayedRequest.ID || (displayedRequest as any).Id)) || (request && (request.ID || (request as any).Id));
+        if (rid) {
+          // Find earliest valid StartDate among items
+          const dates = newDisplayed.map(it => new Date(it.StartDate as any))
+
+          if (dates.length > 0) {
+            const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
+            // Update DeadlineDate in SharePoint
+            try {
+              await updateRequestDeadline(context, Number(rid), earliest);
+            } catch (err) {
+              console.error('Error updating request deadline:', err);
+            }
+          } else {
+            // No valid dates —> clear DeadlineDate
+            try {
+              await updateRequestDeadline(context, Number(rid), null);
+            } catch (err) {
+              console.error('Error clearing request deadline:', err);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error recalculating deadline after update:', err);
       }
       setEditingItem(undefined);
       setActiveForm(null);
@@ -226,16 +261,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       const itemIds = items.filter(item => item.ID).map(item => item.ID!) as number[];
       // Send an API call to delete the request with its items
       await deleteRequestWithItems(context, request.ID, itemIds);
-      
-      // Mark success; navigation will happen after processing flag is cleared below
-      // Refresh parent component if needed
-      // onUpdate();
-      // Navigate back after successful deletion
-      // (we will call onBack after finally so loading is displayed for the full duration)
-      const success = true;
-      if (success) {
-        // nothing here; onBack will be called after finally
-      }
+
     } catch {
       setActionError('Failed to delete request');
     } finally {
@@ -367,6 +393,10 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             )}
             <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
             <span><strong>Team:</strong> {displayedRequest.Team || '/'}</span>
+            <span><strong>Submission Date:</strong> {formatDate(displayedRequest.SubmissionDate) || '/'}</span>
+            {view === 'HR' && (
+                <span><strong>Deadline Date:</strong> {formatDate(displayedRequest.DeadlineDate) || '/'}</span>
+            )}
             <span><strong>Status:</strong> <span className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
             <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
           </div>
@@ -471,7 +501,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                       // Send to HR
                       await updateRequestApprover('HR Processing', true, true);
                       // Send an email to HR to notify them that they need to approve next
-                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
+                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approverTitle: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
                       // If the other approver (practice lead) has not yet approved,
                       // don't send to HR yet, but set the approvedByCEO column to true
                     } else if (request.RequestStatus === 'Submitted') {
@@ -500,7 +530,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                     // Send an email to HR to notify them that they need to approve next
                     // This step only happens if all required approvers have approved
                     if (nextStatus === 'HR Processing') {
-                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: request.ApproverID?.Title, typeOfRequest: typeOfRequest,})
+                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approverTitle: request.ApproverID?.Title, typeOfRequest: typeOfRequest,})
                     } 
                   }
                   // If the approver is HR and they approve, set status to HR Processing
@@ -526,7 +556,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   const approverEmail = approverData?.PracticeLead?.EMail;
                   const approverTitle = approverData?.PracticeLead?.Title;
                   // Send an email to the approver, HR and director if the price exceeds 5000 euro (handled by Power Automate flow)
-                  await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
+                  await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approverEmail: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
                 }
                 // If the request is sent for reapproval by HR
                 else if (confirmAction === 'reapprove') {
@@ -539,7 +569,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   const approverEmail = approverData?.PracticeLead?.EMail;
                   const approverTitle = approverData?.PracticeLead?.Title;
                   // Send email to approver that they need to reapprove the request
-                  await sendEmail({ emailType: "reapprove", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approver: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
+                  await sendEmail({ emailType: "reapprove", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approverEmail: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
                 }
                 // If HR had booked the request and marked it as completed
                 else if (confirmAction === 'completed') {
@@ -562,7 +592,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         />
     </div>
       <div className={styles.newRequestButtonContainer}>
-        {(view === 'approvers' || view === 'director') && (
+        {((view === 'approvers' && isApprover) || view === 'director') && (
           <div style={{display: 'flex', gap: '20px'}}>
             <button 
               onClick={() => {setConfirmAction('deny'); setShowConfirmActionDialog(true)}}
@@ -587,26 +617,31 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
           </div>
         )}
         {view === 'HR' && request.RequestStatus === 'HR Processing' && (
-          <button
-          onClick={() => {
-            if (changedByHR) {
-            setConfirmAction('reapprove');
-            } else {
-              setConfirmAction('completed'); 
-            }
-            setShowConfirmActionDialog(true)
-          }}
-          disabled={isUpdatingStatus}
-          className={styles.stdButton}
-          style={{width: '176px'}}
-          >
-          {changedByHR ? 'Reapprove' : 'Mark as completed'}
-          </button>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+            {deadlineWarning && (
+              <p style={{ color: 'red', fontWeight: '600', textDecoration: 'underline' }}>WARNING: The deadline for this request has already passed</p>
+            )}
+            <button
+              onClick={() => {
+                if (changedByHR) {
+                  setConfirmAction('reapprove');
+                } else {
+                  setConfirmAction('completed');
+                }
+                setShowConfirmActionDialog(true);
+              } }
+              disabled={isUpdatingStatus}
+              className={styles.stdButton}
+              style={{ width: '176px' }}
+            >
+              {changedByHR ? 'Reapprove' : 'Mark as completed'}
+            </button>
+          </div>
         )} 
       </div>
 
       <div className={requestDetailsStyles.detailsActions}>
-        {(displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') && (
+        {(displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') && view === 'myView' && (
           <>
             <button
               className={styles.stdButton}

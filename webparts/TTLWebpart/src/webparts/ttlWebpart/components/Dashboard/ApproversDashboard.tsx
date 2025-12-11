@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
-import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
+import { UserRequest, UserRequestItem, Approver } from '../../Interfaces/TTLInterfaces';
+import { getRequestsData, getRequestItemsByRequestId, getApprovers } from '../../service/TTLService';
 import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
@@ -9,14 +9,14 @@ import DashboardComponent from './DashboardComponent';
 import { ApproversDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
-const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover }) => {
+const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover, isTeamCoach }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get all requests for approvers
+  // Get all requests for approvers and team coaches
   const fetchData = async (requestId?: number): Promise<void> => {
     try {
       setIsLoading(true);
@@ -25,9 +25,25 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
       // Only get requests with the correct statuses for approver
       const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Submitted' or RequestStatus eq 'Resubmitted')");
 
-      // Filter on requests meant for the approver
+      // Get all approvers to check if current user is a team coach
+      const approversList = await getApprovers(context);
+      
+      // Build a set of approver IDs where the current user is a team coach
+      const teamCoachForApproverIds = new Set<number>();
+      if (isTeamCoach) {
+        approversList.forEach((approver: Approver) => {
+          if (approver.TeamCoach?.Title === loggedInUser.Title) {
+            teamCoachForApproverIds.add(approver.Id);
+          }
+        });
+      }
+
+      // Filter on requests meant for the approver or where user is team coach for the approver
       const filteredRequests = requestData
-        .filter(req => req.ApproverID?.Title === loggedInUser.Title)
+        .filter(req => 
+          req.ApproverID?.Title === loggedInUser.Title || 
+          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))
+        )
       setRequests(filteredRequests as UserRequest[]);
 
       // Get items after an update in any child component to the UI always stays up to date
@@ -116,6 +132,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
         request={selectedRequest}
         items={requestItems}
         view='approvers'
+        isApprover={isApprover}
         onBack={() => handleBackClick(true)}
         onUpdate={handleStatusUpdate}
         context={context}
@@ -126,9 +143,10 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
 
   return (
     <div className={styles.ttlDashboard}>
-      {isApprover ? (
+      <HeaderComponent view='Approver Dashboard'/>
+      
+      {(isApprover || isTeamCoach) ? (
         <>
-        <HeaderComponent view='Approver Dashboard'/>
 
         {error && (
           <div className={styles.error}>

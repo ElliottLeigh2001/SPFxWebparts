@@ -140,25 +140,30 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
                       />
                   </th>
                   <th>Project</th>
-                  <th>Team</th>
+                  {view !== 'HR' && (
+                    <th>Team</th>
+                  )}
                   <th
                     className={`${styles.colDate} ${styles.sortable}`}
                     onClick={() => toggleSort('submissionDate')}
                     role="button"
                     aria-label="Sort by submission date"
-                  >
+                    >
                     <span> Submission Date</span>
                       <i
                         className={`fa ${
                           sortBy === 'submissionDate'
-                            ? sortDir === 'asc'
-                              ? 'fa-sort-up'
-                              : 'fa-sort-down'
-                            : 'fa-sort'
+                          ? sortDir === 'asc'
+                          ? 'fa-sort-up'
+                          : 'fa-sort-down'
+                          : 'fa-sort'
                         } ${styles.sortIcon}`}
-                      />
+                        />
 
                   </th>
+                  {view === 'HR' && (
+                    <th>Deadline Date</th>
+                  )}
                   <th>Status</th>
                 </tr>
               </thead>
@@ -175,8 +180,13 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
                       {view === "HR" && <td>{request.ApproverID?.Title || "-"}</td>}
                       <td>€ {request.TotalCost || "-"}</td>
                       <td>{request.Project || "-"}</td>
-                      <td>{request.Team || "-"}</td>
+                      {view !== 'HR' && (
+                        <td>{request.Team || "-"}</td>
+                      )}
                       <td>{formatDate(request.SubmissionDate)}</td>
+                      {view === 'HR' && (
+                        <td>{formatDate(request.DeadlineDate) || "-"}</td>
+                      )}
                       <td>
                         <span
                           className={`${styles.status} ${getRequestStatusStyling(

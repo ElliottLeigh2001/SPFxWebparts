@@ -30,7 +30,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
     const [showInlineAccommodation, setShowInlineAccommodation] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
-    const [confirmAction, setConfirmAction] = useState<'save'|'send'|'discard'|null>(null);
+    const [confirmAction, setConfirmAction] = useState<'save' | 'send' | 'discard' | null>(null);
     const [confirmProcessing, setConfirmProcessing] = useState(false);
     const [titleError, setTitleError] = useState('');
     const [goalError, setGoalError] = useState('');
@@ -41,24 +41,24 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
     // Load Teams and Approvers
     useEffect(() => {
         const loadData = async () => {
-        setIsLoading(true);
-        try {
-            const approversWithoutCEO = approvers.filter(app => app.PracticeLead);
-            setAllApprovers(approversWithoutCEO);
-            
-            // Get user's manager (team coach) and populate initial data
-            const userAndManager = await getUserAndManager(approversWithoutCEO, context);
-            setTeamCoach(userAndManager?.teamCoach);
-            setApprover(userAndManager?.approver);
-            setTeam(userAndManager?.team);
-        } catch (err) {
-            console.error("Error loading data:", err);
-            setError('Failed to load user data');
-        } finally {
-            setIsLoading(false);
-        }
+            setIsLoading(true);
+            try {
+                const approversWithoutCEO = approvers.filter(app => app.PracticeLead);
+                setAllApprovers(approversWithoutCEO);
+
+                // Get user's manager (team coach) and populate initial data
+                const userAndManager = await getUserAndManager(approversWithoutCEO, context);
+                setTeamCoach(userAndManager?.teamCoach);
+                setApprover(userAndManager?.approver);
+                setTeam(userAndManager?.team);
+            } catch (err) {
+                console.error("Error loading data:", err);
+                setError('Failed to load user data');
+            } finally {
+                setIsLoading(false);
+            }
         };
-        
+
         loadData();
     }, [approvers]);
 
@@ -73,13 +73,13 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
         if (!title.trim()) {
             setTitleError('Title is required');
             isValid = false;
-        } 
-        
+        }
+
         if (!goal.trim()) {
             setGoalError('Goal is required');
             isValid = false;
         }
-        
+
         if (title.length > 255) {
             setTitleError('Max length of title is 255 characters')
             isValid = false;
@@ -89,7 +89,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
             setProjectError('Max length of title is 255 characters')
             isValid = false;
         }
-        
+
         return isValid;
     };
 
@@ -138,7 +138,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
     // On submit of the request, save it
     const handleSave = async (type: string): Promise<void> => {
-        
+
         // Collect inline items
         const collectedItems = await collectAllItems();
         // Validate all forms
@@ -146,7 +146,10 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
 
         let totalCost = collectedItems.reduce((sum, x) => sum + Number(x.Cost || 0), 0);
-
+        const earliest = collectedItems.reduce(
+        (min, item) => new Date(item.StartDate!) < new Date(min.StartDate!) ? item : min
+        );
+        
         setIsSaving(true);
         setError(null);
 
@@ -159,6 +162,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                     Project: project,
                     Team: team,
                     ApproverID: approver,
+                    DeadlineDate: earliest,
                     TotalCost: totalCost
                 },
                 collectedItems,
@@ -169,7 +173,21 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.PracticeLead?.EMail;
                 const approverTitle = approverData.PracticeLead?.Title;
-                sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, authorEmail: loggedInUser.Email, authorName: loggedInUser.Title, totalCost: totalCost.toString(), typeOfRequest: 'Training / Travel'});
+                const directorEmail = approverData.CEO?.Email;
+                const directorTitle = approverData.CEO?.Title
+                sendEmail({ 
+                    emailType: "new request", 
+                    requestId: requestId.toString(), 
+                    title: title, 
+                    approverEmail: approverEmail,
+                    approverTitle: approverTitle,
+                    directorTitle: directorTitle,
+                    directorEmail: directorEmail, 
+                    authorEmail: loggedInUser.Email, 
+                    authorName: loggedInUser.Title, 
+                    totalCost: totalCost.toString(), 
+                    typeOfRequest: 'Training' 
+                });
             }
 
             onSave();
@@ -181,32 +199,32 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
         }
     };
 
-      if (isLoading) {
-            return (
+    if (isLoading) {
+        return (
             <>
                 <HeaderComponent view="New Request" />
                 <div className={styles.ttlForm}>
-                <div className={newRequestStyles.newRequestContainer}>
-                    <div style={{ textAlign: 'center', padding: '50px' }}>
-                    Loading...
+                    <div className={newRequestStyles.newRequestContainer}>
+                        <div style={{ textAlign: 'center', padding: '50px' }}>
+                            Loading...
+                        </div>
                     </div>
                 </div>
-                </div>
             </>
-            );
-        }
+        );
+    }
 
     return (
         <>
-            <HeaderComponent view="New Request"/>
+            <HeaderComponent view="New Request" />
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
             <div className={styles.ttlForm}>
                 <div className={newRequestStyles.formHeader}>
-                    <h2 style={{color: '#055a57'}}>New Training Request</h2>
+                    <h2 style={{ color: '#055a57' }}>New Training Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
                             className={styles.stdButton}
-                            style={{width: '171px'}}
+                            style={{ width: '171px' }}
                             onClick={() => { setConfirmAction('save'); setConfirmOpen(true); }}
                         >
                             Draft
@@ -214,7 +232,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
                         <button
                             className={styles.stdButton}
-                            style={{width: '171px'}}
+                            style={{ width: '171px' }}
                             onClick={() => { setConfirmAction('send'); setConfirmOpen(true); }}
                         >
                             Send for approval
@@ -222,7 +240,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
                         <button
                             className={styles.stdButton}
-                            style={{width: '171px'}}
+                            style={{ width: '171px' }}
                             disabled={isSaving}
                             onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); }}
                             title="Discard"
@@ -232,7 +250,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                     </div>
                 </div>
 
-                <div className={newRequestStyles.newRequestContainer}>                    
+                <div className={newRequestStyles.newRequestContainer}>
                     <div className={requestDetailsStyles.details}>
                         <div className={requestDetailsStyles.titleContainer}>
                             <h3 className={requestDetailsStyles.panelHeader}>General Information</h3>
@@ -255,23 +273,23 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                             <div className={styles.formItemShort}>
                                 <label className={styles.formRowLabel}>Team Coach</label>
                                 <div className={newRequestStyles.unchangeable}>
-                                {teamCoach ? teamCoach.title : 'Loading...'}
+                                    {teamCoach ? teamCoach.title : 'Loading...'}
                                 </div>
                             </div>
-                            
+
                             <div className={styles.formItemShort}>
                                 <label className={styles.formRowLabel}>Team</label>
                                 <div className={newRequestStyles.unchangeable}>
-                                {team ? team : 'Loading'}
+                                    {team ? team : 'Loading'}
                                 </div>
                             </div>
 
                             <div className={styles.formItemShort}>
                                 <label className={styles.formRowLabel}>Approver</label>
                                 <div className={newRequestStyles.unchangeable}>
-                                {approver
-                                    ? allApprovers.find(a => a.Id === approver)?.PracticeLead?.Title
-                                    : 'Loading'}
+                                    {approver
+                                        ? allApprovers.find(a => a.Id === approver)?.PracticeLead?.Title
+                                        : 'Loading'}
                                 </div>
                             </div>
                         </div>
@@ -286,12 +304,12 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
                     <div className={requestDetailsStyles.items}>
                         <div className={requestDetailsStyles.titleContainer}>
-                            <h3 className={requestDetailsStyles.panelHeader}>Items</h3>      
+                            <h3 className={requestDetailsStyles.panelHeader}>Items</h3>
                         </div>
                         <div>
-                            <TrainingForm 
+                            <TrainingForm
                                 ref={trainingFormRef}
-                                context={context} 
+                                context={context}
                                 initialData={undefined}
                                 showCheckbox={true}
                                 inline={true}
@@ -309,7 +327,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
 
                             {showInlineReturnTravel && showInlineTravel && (
                                 <div style={{ marginTop: '18px' }}>
-                                    <TravelForm ref={travelFormRef} returning={true} context={context} inline={true} initialData={undefined}/>
+                                    <TravelForm ref={travelFormRef} returning={true} context={context} inline={true} initialData={undefined} />
                                 </div>
                             )}
 

@@ -300,7 +300,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                         <div className={requestDetailsStyles.fieldGroup}>
                             <span className={requestDetailsStyles.fieldLabel}>Link:</span>
                             <a href={item.Link} target="_blank" rel="noopener noreferrer" className={requestDetailsStyles.link}>
-                                {item.Link.length > 40 ? `${item.Link.substring(0, 40)}...` : item.Link}
+                                {item.Link.length > 80 ? `${item.Link.substring(0, 80)}...` : item.Link}
                             </a>
                         </div>
                     )}

@@ -4,6 +4,8 @@ export interface UserRequest {
     TotalCost: string;
     SubmissionDate?: Date;
     ApprovedByCEO?: boolean;
+    DeadlineDate?: Date;
+    TeamCoachApproval?: boolean;
     RequestItemID: {
         Id: number;
     }[];

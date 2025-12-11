@@ -5,7 +5,7 @@ import { HeaderProps } from "./HeaderComponentProps";
 import dashStyles from "../Dashboard/TtlWebpart.module.scss";
 
 const HeaderComponent: React.FC<HeaderProps> = ({view, isHR, isCEO, allApprovers, loggedInUser, onViewClick}) => {
-    const canShowApprover = !!(loggedInUser && allApprovers && allApprovers.some(approver => approver.PracticeLead?.EMail === loggedInUser.Email));
+    const canShowApprover = !!(loggedInUser && allApprovers && allApprovers.some(approver => approver.PracticeLead?.EMail || approver.TeamCoach.EMail === loggedInUser.Email));
 
     return (
       <>

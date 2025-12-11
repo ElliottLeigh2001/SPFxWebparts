@@ -23,6 +23,7 @@ export interface RequestDetailsProps {
   error?: string | null;
   context: WebPartContext;
   isCEO?: boolean;
+  isApprover?: boolean;
 }
 
 export interface EditRequestFormProps {

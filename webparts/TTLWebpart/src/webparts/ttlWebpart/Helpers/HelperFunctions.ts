@@ -41,7 +41,7 @@ export const validateLink = (link: any): any => {
 }
 
 // Format dates to something more sane than mm/dd/yyyy (dd-mm-yyyy)
-export const formatDate = (dateString: string | Date): string => {
+export const formatDate = (dateString: string | Date | undefined): string => {
   if (!dateString) return "-";
 
   const dateObj = typeof dateString === "string" ? new Date(dateString) : dateString;
@@ -236,34 +236,34 @@ export const goBack = (args: {
 
   // Get user's team coach
 export const getUserAndManager = async (approversList: Approver[], context: WebPartContext) => {
-    try {
-      const user = await loadUserProfile(context);
-      const manager = await getManager(context, user.managerAccount);
-      
-      // Find the manager in the approvers list
-      const teamCoachRow = approversList.find(app => 
-        app.TeamCoach?.Title === manager.name
-      );
+  try {
+    const user = await loadUserProfile(context);
+    const manager = await getManager(context, user.managerAccount);
     
-      // Set the team coach
-      const teamCoach = ({
-        id: teamCoachRow!.Id,
-        title: teamCoachRow?.TeamCoach.Title!
-      });
-      
-      // Filter teams and approvers for this team coach
-      const teamsForCoach = approversList.filter(a => 
-        a.TeamCoach?.Title === manager.name
-      );
-      
-      // If there's only one team for this coach, auto-select it
-      const singleTeam = teamsForCoach[0];
-      const team = singleTeam.Team0;
-      const approver = singleTeam.Id;
+    // Find the manager in the approvers list
+    const teamCoachRow = approversList.find(app => 
+      app.TeamCoach?.Title === manager.name
+    );
+  
+    // Set the team coach
+    const teamCoach = ({
+      id: teamCoachRow!.Id,
+      title: teamCoachRow?.TeamCoach.Title!
+    });
+    
+    // Filter teams and approvers for this team coach
+    const teamsForCoach = approversList.filter(a => 
+      a.TeamCoach?.Title === manager.name
+    );
+    
+    // If there's only one team for this coach, auto-select it
+    const singleTeam = teamsForCoach[0];
+    const team = singleTeam.Team0;
+    const approver = singleTeam.Id;
 
-      return {teamCoach, team, approver}
+    return {teamCoach, team, approver}
 
-    } catch (err) {
-      console.error("Error getting user and manager:", err);
-    }
-  };
+  } catch (err) {
+    console.error("Error getting user and manager:", err);
+  }
+};

@@ -96,7 +96,7 @@ export const getRequestsData = async (
 ): Promise<UserRequest[]> => {
   try {
     // Base query
-    let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,Team&$expand=RequestItemID,Author,ApproverID`;
+    let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,DeadlineDate,TeamCoachApproval,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,Team&$expand=RequestItemID,Author,ApproverID`;
 
     // Add optional $orderby if provided
     if (orderBy) {
@@ -263,7 +263,9 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
     ApproverIDId: Number(request.ApproverID) || null,
     RequestStatus: type || 'Draft',
     TotalCost: request.TotalCost || 0,
-    SubmissionDate: submissionDate
+    SubmissionDate: submissionDate,
+    DeadlineDate: request.DeadlineDate,
+    TeamCoachApproval: request.TeamCoachApproval || false,
   });
   const requestId = (reqAdd && (reqAdd.Id ?? reqAdd.ID)) as number | undefined;
   if (!requestId) {
@@ -386,6 +388,25 @@ export const updateRequest = async (context: WebPartContext, requestId: number, 
   }
 
   await list.items.getById(requestId).update(updateData);
+};
+
+// Update only the DeadlineDate field for a request
+export const updateRequestDeadline = async (
+  context: WebPartContext,
+  requestId: number,
+  deadlineDate: string | Date | null
+): Promise<void> => {
+  const sp = getSP(context);
+  const requestsList = sp.web.lists.getByTitle('TTL_Requests');
+
+  try {
+    await requestsList.items.getById(requestId).update({
+      DeadlineDate: deadlineDate || null
+    });
+  } catch (error) {
+    console.error('Error updating DeadlineDate for request:', error);
+    throw error;
+  }
 };
 
 // Update a request item in the TTL_RequestItem list

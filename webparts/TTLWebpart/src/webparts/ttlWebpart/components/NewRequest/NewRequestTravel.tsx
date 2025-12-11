@@ -134,6 +134,9 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
         if (!collectedItems) return; // Validation failed inside inline forms
 
         let totalCost = collectedItems.reduce((sum, x) => sum + Number(x.Cost || 0), 0);
+        const earliest = collectedItems.reduce(
+        (min, item) => new Date(item.StartDate!) < new Date(min.StartDate!) ? item : min
+        );
 
         setIsSaving(true);
         setError(null);
@@ -145,8 +148,9 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
                     Title: title,
                     Goal: goal,
                     Project: project,
-                    TeamID: team,
+                    Team: team,
                     ApproverID: approver,
+                    DeadlineDate: earliest.StartDate,
                     TotalCost: totalCost
                 },
                 collectedItems,
@@ -157,7 +161,21 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.PracticeLead?.EMail;
                 const approverTitle = approverData.PracticeLead?.Title;
-                sendEmail({ emailType: "new request", requestId: requestId.toString(), title: title, approver: approverEmail, approverTitle: approverTitle, authorEmail: loggedInUser.Email, authorName: loggedInUser.Title, totalCost: totalCost.toString(), typeOfRequest: 'Training / Travel'});
+                const directorEmail = approverData.CEO?.Email;
+                const directorTitle = approverData.CEO?.Title
+                sendEmail({ 
+                    emailType: "new request", 
+                    requestId: requestId.toString(), 
+                    title: title, 
+                    approverEmail: approverEmail,
+                    approverTitle: approverTitle,
+                    directorTitle: directorTitle,
+                    directorEmail: directorEmail, 
+                    authorEmail: loggedInUser.Email, 
+                    authorName: loggedInUser.Title, 
+                    totalCost: totalCost.toString(), 
+                    typeOfRequest: 'Travel'
+                });
             }
 
             onSave();

@@ -181,18 +181,22 @@ const TravelForm = forwardRef<TravelFormHandle, FormProps &
         </div>
       ) : (
       <>
-        {ref && returning ? (
-          <div className={requestDetailsStyles.cardHeader}>
-            <div className={requestDetailsStyles.cardTitle}>
-              <h3>Travel details - Return Journey</h3>
+        {ref && (
+          <>
+          {returning ? (
+            <div className={requestDetailsStyles.cardHeader}>
+              <div className={requestDetailsStyles.cardTitle}>
+                <h3>Travel details - Return Journey</h3>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className={requestDetailsStyles.cardHeader}>
-            <div className={requestDetailsStyles.cardTitle}>
-              <h3>Travel details</h3>
+          ) : (
+            <div className={requestDetailsStyles.cardHeader}>
+              <div className={requestDetailsStyles.cardTitle}>
+                <h3>Travel details</h3>
+              </div>
             </div>
-          </div>
+          )}
+          </>
         )}
          <div className={styles.formRow}>
           <div className={styles.formItem}>
@@ -231,7 +235,7 @@ const TravelForm = forwardRef<TravelFormHandle, FormProps &
             </div>
           </div>
 
-          {!returning && !initialData && (
+          {!returning && !initialData && ref && (
             <div style={{ marginTop: '20px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {travelRequest && (
