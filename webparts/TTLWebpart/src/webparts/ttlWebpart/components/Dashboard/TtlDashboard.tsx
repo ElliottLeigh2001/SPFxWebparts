@@ -11,6 +11,7 @@ import DirectorDashboard from './DirectorDashboard';
 import ChooseNewRequest from '../NewRequest/ChooseNewRequest';
 import { ITtlWebpartProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
+import DeliveryDirectorDashboard from './DeliveryDirectorDashboard';
 
 const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -25,10 +26,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   const [showApproversDashboad, setShowApproverDashboard] = useState(false);
   const [showHRDashboad, setShowHRDashboard] = useState(false);
   const [showDirectorDashboad, setShowDirectorDashboard] = useState(false);
+  const [showDeliveryDirectorDashboard, setShowDeliveryDirectorDashboard] = useState(false);
   const [isCEO, setIsCEO] = useState<boolean>(false);
   const [isHR, setIsHR] = useState(false);
   const [isApprover, setIsApprover] = useState(false);
   const [isTeamCoach, setIsTeamCoach] = useState(false);
+  const [isDeliveryDirector, setIsDeliveryDirector] = useState(false);
 
   // Get data from SharePoint lists
   const fetchData = async (): Promise<void> => {
@@ -59,7 +62,9 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       setIsApprover(_approvers.some(app => app.PracticeLead.EMail === user?.Email))
 
       // Check if the user is a team coach
-      setIsTeamCoach(_approvers.some(app=>app.TeamCoach.EMail === user?.Email));
+      setIsTeamCoach(_approvers.some(app => app.TeamCoach.EMail === user?.Email));
+
+      setIsDeliveryDirector(_approvers.some(app => app.DeliveryDirector.EMail === user?.Email))
 
       setAllApprovers(_approvers);
       // Check if the user is the director
@@ -123,6 +128,8 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
           // The HRDashboard will handle the requestId internally
         } else if (view === 'director') {
           setShowDirectorDashboard(true)
+        } else if (view === 'deliveryDirector') {
+          setShowDeliveryDirectorDashboard(true)
         }
       } 
       // Handle individual parameters
@@ -134,6 +141,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         setShowApproverDashboard(false);
         setShowHRDashboard(false);
         setShowDirectorDashboard(false)
+        setShowDeliveryDirectorDashboard(false);
         
           if (requests.length > 0) {
             const request = requests.find(req => req.ID === parseInt(requestId));
@@ -156,6 +164,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         setShowApproverDashboard(false);
       } else if (view === "director") {
         setShowDirectorDashboard(true);
+        setSelectedRequest(null);
+        setRequestItems([]);
+        setNewRequest(false);
+        setShowApproverDashboard(false);
+      } else if (view === "deliveryDirector") {
+        setShowDeliveryDirectorDashboard(true);
         setSelectedRequest(null);
         setRequestItems([]);
         setNewRequest(false);
@@ -245,6 +259,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     setShowApproverDashboard(false);
     setShowHRDashboard(false);
     setShowDirectorDashboard(false)
+    setShowDeliveryDirectorDashboard(false);
     setNewRequest(false);
     setError(null);
     setRefreshTrigger(prev => prev + 1);
@@ -268,6 +283,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     setShowApproverDashboard(false);
     setShowHRDashboard(false);
     setShowDirectorDashboard(false)
+    setShowDeliveryDirectorDashboard(false);
 
     switch(view) {
       case 'new':
@@ -281,6 +297,9 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         break;
       case 'director':
         setShowDirectorDashboard(true);
+        break;
+      case 'deliveryDirector':
+        setShowDeliveryDirectorDashboard(true);
         break;
     }
     // Push the url to include the appropriate view
@@ -346,6 +365,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     );
   }
 
+  if (showDeliveryDirectorDashboard) {
+    return (
+      <DeliveryDirectorDashboard context={context} onBack={handleBackClick} isDeliveryDirector={isDeliveryDirector}/>
+    );
+  }
+
   if (showHRDashboad) {
     return (
       <HRDashboard 
@@ -354,7 +379,6 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         isHR={isHR} 
         isCEO={isCEO}
         allApprovers={allApprovers}
-        loggedInUser={loggedInUser}
         onViewClick={handleViewClick}
         />
     );
@@ -372,6 +396,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         view='My Requests'
         isHR={isHR}
         isCEO={isCEO}
+        isDeliveryDirector={isDeliveryDirector}
         allApprovers={allApprovers}
         loggedInUser={loggedInUser}
         onViewClick={handleViewClick}

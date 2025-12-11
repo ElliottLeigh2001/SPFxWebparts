@@ -8,7 +8,7 @@ export interface RequestItemsListProps {
   onAdd: () => void;
   showActions: boolean;
   request: UserRequest;
-  view: "approvers" | "myView" | "HR" | "director";
+  view: "approvers" | "myView" | "HR" | "director" | "deliveryDirector";
   context?: WebPartContext;
   onDocumentUploaded?: () => void;
 }
@@ -16,7 +16,7 @@ export interface RequestItemsListProps {
 export interface RequestDetailsProps {
   request: UserRequest;
   items: UserRequestItem[];
-  view: 'myView' | 'approvers' | 'HR' | 'director';
+  view: 'myView' | 'approvers' | 'HR' | 'director' | 'deliveryDirector';
   HRTab?: string;
   onBack: () => void;
   onUpdate: () => void;
@@ -24,6 +24,7 @@ export interface RequestDetailsProps {
   context: WebPartContext;
   isCEO?: boolean;
   isApprover?: boolean;
+  isTeamCoach?: boolean;
 }
 
 export interface EditRequestFormProps {

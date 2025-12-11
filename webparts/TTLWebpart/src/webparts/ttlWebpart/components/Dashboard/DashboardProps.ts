@@ -12,7 +12,7 @@ export interface ApproversDashboardProps {
 export interface DashboardComponentProps {
   onClick: (request: any, pushState: any) => void;
   requests: any[];
-  view: "approvers" | "myView" | "HR" | "director";
+  view: "approvers" | "myView" | "HR" | "director" | "deliveryDirector";
 }
 
 export interface DirectorDashboardProps {
@@ -22,13 +22,18 @@ export interface DirectorDashboardProps {
   isCEO: boolean;
 }
 
+export interface DeliveryDirectorDashboardProps {
+  context: WebPartContext;
+  onBack: () => void;
+  isDeliveryDirector: boolean;
+}
+
 export interface HRDashboardProps {
   context: WebPartContext;
   onBack: () => void;
   isHR: boolean;
   isCEO: boolean;
   allApprovers?: Approver[];
-  loggedInUser?: any;
   onViewClick?: (view: string) => void;
 }
 

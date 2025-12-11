@@ -4,7 +4,7 @@ import * as React from "react";
 import { HeaderProps } from "./HeaderComponentProps";
 import dashStyles from "../Dashboard/TtlWebpart.module.scss";
 
-const HeaderComponent: React.FC<HeaderProps> = ({view, isHR, isCEO, allApprovers, loggedInUser, onViewClick}) => {
+const HeaderComponent: React.FC<HeaderProps> = ({view, isHR, isCEO, isDeliveryDirector, allApprovers, loggedInUser, onViewClick}) => {
     const canShowApprover = !!(loggedInUser && allApprovers && allApprovers.some(approver => approver.PracticeLead?.EMail || approver.TeamCoach.EMail === loggedInUser.Email));
 
     return (
@@ -27,6 +27,10 @@ const HeaderComponent: React.FC<HeaderProps> = ({view, isHR, isCEO, allApprovers
 
             {isHR && (
               <button onClick={() => onViewClick && onViewClick('HR')} style={{width: '110px'}} className={dashStyles.stdButton}>HR</button>
+            )}
+
+            {isDeliveryDirector && (
+              <button onClick={() => onViewClick && onViewClick('deliveryDirector')} style={{width: '160px'}} className={dashStyles.stdButton}>Delivery Director</button>
             )}
 
             {isCEO && (

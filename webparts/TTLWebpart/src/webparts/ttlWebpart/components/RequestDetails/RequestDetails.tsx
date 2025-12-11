@@ -19,7 +19,7 @@ import { TTLComment } from '../../Interfaces/TTLCommentInterface';
 import { RequestDetailsProps } from './RequestDetailsProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover, isTeamCoach }) => {
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
   const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
@@ -397,7 +397,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             {view === 'HR' && (
                 <span><strong>Deadline Date:</strong> {formatDate(displayedRequest.DeadlineDate) || '/'}</span>
             )}
-            <span><strong>Status:</strong> <span className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
+            <span><strong>Status:</strong> <span style={{marginLeft: '0'}} className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
             <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
           </div>
   
@@ -512,7 +512,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                     }
                   }
                   // If the approver is a practice lead
-                  else if (view === 'approvers') {
+                  else if (view === 'approvers' || view === 'deliveryDirector') {
                     // Define nextStatus used to determine the next status 
                     // based on price or if the director has already approved
                     let nextStatus;
@@ -537,7 +537,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   else if (view === 'HR') {
                     await updateRequestApprover('HR Processing', false, true)
                   }
-                } 
+                }
                 // If a request is denied
                 else if (confirmAction === 'deny') {
                   // Update status
@@ -592,7 +592,10 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         />
     </div>
       <div className={styles.newRequestButtonContainer}>
-        {((view === 'approvers' && isApprover) || view === 'director') && (
+        {isTeamCoach && !isApprover && (
+          <p>Teamcoach functionality placeholder</p>
+        )}
+        {((view === 'approvers' && isApprover) || view === 'director' || view === 'deliveryDirector') && (
           <div style={{display: 'flex', gap: '20px'}}>
             <button 
               onClick={() => {setConfirmAction('deny'); setShowConfirmActionDialog(true)}}
