@@ -234,7 +234,7 @@ export const goBack = (args: {
   }
 };
 
-  // Get user's team coach
+// Get user's team coach
 export const getUserAndManager = async (approversList: Approver[], context: WebPartContext) => {
   try {
     const user = await loadUserProfile(context);

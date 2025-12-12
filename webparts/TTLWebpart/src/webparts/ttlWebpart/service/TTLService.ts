@@ -2,7 +2,7 @@ import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
 import { spfi, SPFI } from "@pnp/sp";
 import { SPFx } from "@pnp/sp/presets/all";
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { Approver, UserRequest, UserRequestItem } from "../Interfaces/TTLInterfaces";
+import { Approver, UserRequest, UserRequestItem, Budget } from "../Interfaces/TTLInterfaces";
 import { calculateSoftwareLicenseCost } from "../Helpers/HelperFunctions";
 
 // Define spfi for CRUD operations to lists
@@ -265,8 +265,8 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
     TotalCost: request.TotalCost || 0,
     SubmissionDate: submissionDate,
     DeadlineDate: request.DeadlineDate,
-    TeamCoachApproval: request.TeamCoachApproval || false,
   });
+
   const requestId = (reqAdd && (reqAdd.Id ?? reqAdd.ID)) as number | undefined;
   if (!requestId) {
     throw new Error('Failed to create request');
@@ -594,7 +594,107 @@ const getUserIds = async (sp: SPFI, users: any[]): Promise<number[]> => {
   return ids;
 };
 
-// FOR APPROVERS AND HR
+export const getBudgetforApprover = async (context: WebPartContext, teamCoachEmail: string, year: string): Promise<Budget | null> => {
+  try {
+    const sp = getSP(context);
+    const list = sp.web.lists.getByTitle('TTL_Budget');
+
+    const budgets: any[] = await list.items
+      .select('*,TeamCoach/EMail,TeamCoach/Title')
+      .expand('TeamCoach')
+      .filter(`TeamCoach/EMail eq '${teamCoachEmail}' and Year eq '${year}'`)();
+
+    if (budgets && budgets.length > 0) {
+      const b = budgets[0];
+      return {
+        ID: b.Id,
+        Title: b.Title,
+        TeamCoach: {
+          Id: b.TeamCoach?.Id,
+          Title: b.TeamCoach?.Title,
+          EMail: b.TeamCoach?.EMail
+        },
+        Team: b.Team,
+        Budget: b.Budget || 0,
+        Availablebudget: b.Availablebudget || 0,
+        Year: b.Year
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching budget for approver:', error);
+    return null;
+  }
+};
+
+// Get all budgets for team coaches under a specific practice lead
+export const getBudgetsForPracticeLead = async (context: WebPartContext, practiceLeadEmail: string, year: string): Promise<Budget[]> => {
+  try {
+    const sp = getSP(context);
+
+    const approversList = sp.web.lists.getByTitle('TTL_Approver');
+    const approvers: any[] = await approversList.items
+      .select('*,TeamCoach/Id,TeamCoach/EMail,TeamCoach/Title')
+      .expand('TeamCoach')
+      .filter(`PracticeLead/EMail eq '${practiceLeadEmail}'`)();
+
+    if (!approvers.length) return [];
+
+    const teamCoachEmails = approvers
+      .map(a => a.TeamCoach?.EMail)
+      .filter((email): email is string => !!email);
+
+    if (!teamCoachEmails.length) return [];
+
+    const budgetList = sp.web.lists.getByTitle('TTL_Budget');
+    const filterConditions = teamCoachEmails
+      .map(email => `(TeamCoach/EMail eq '${email}' and Year eq '${year}')`)
+      .join(' or ');
+
+    const budgets: any[] = await budgetList.items
+      .select('*,TeamCoach/Id,TeamCoach/EMail,TeamCoach/Title')
+      .expand('TeamCoach')
+      .filter(filterConditions)();
+
+    return budgets.map(b => ({
+      ID: b.Id,
+      Title: b.Title,
+      TeamCoach: {
+        Id: b.TeamCoach?.Id,
+        Title: b.TeamCoach?.Title,
+        EMail: b.TeamCoach?.EMail
+      },
+      Team: b.Team,
+      Budget: b.Budget || 0,
+      Availablebudget: b.Availablebudget || 0,
+      Year: b.Year
+    }));
+  } catch (error) {
+    console.error('Error fetching budgets for practice lead:', error);
+    return [];
+  }
+};
+
+// Deduct an amount from a team coach's available budget
+export const deductFromBudget = async (context: WebPartContext, budgetId: number, amount: number): Promise<void> => {
+  try {
+    const sp = getSP(context);
+    const budgetList = sp.web.lists.getByTitle('TTL_Budget');
+
+    // Get current budget
+    const budget: any = await budgetList.items.getById(budgetId).select('Availablebudget')();
+    const newAvailableBudget = Math.max(0, (budget.Availablebudget || 0) - amount);
+
+    // Update the available budget
+    await budgetList.items.getById(budgetId).update({
+      Availablebudget: newAvailableBudget
+    });
+  } catch (error) {
+    console.error('Error deducting from budget:', error);
+    // Don't throw - we don't want budget deduction to fail the entire request completion
+  }
+}
 
 // Update the status of a request
 // Also add a comment to the request if one was provided
@@ -615,3 +715,10 @@ export const updateRequestStatus = async (
     ApprovedByCEO: setApprovedByCEO
   });
 };
+
+export const updateTeamCoachApproval = async (context: WebPartContext, requestId: number, decision: string) => {
+  const sp = getSP(context);
+  const list = sp.web.lists.getByTitle('TTL_Requests');
+
+  await list.items.getById(requestId).update({TeamCoachApproval: decision})
+}

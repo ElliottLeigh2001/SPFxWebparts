@@ -113,7 +113,7 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
             }}
           />
       </div>
-      <div style={{ height: "572px" }}>
+      <div style={{height: "572px" }}>
         <div className={styles.tableContainer}>
           <div className={styles.tableWrapper}>
             <table className={styles.requestsTable}>

@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { UserRequest, UserRequestItem, Approver } from '../../Interfaces/TTLInterfaces';
-import { getRequestsData, getRequestItemsByRequestId, getApprovers } from '../../service/TTLService';
+import { UserRequest, UserRequestItem, Approver, Budget } from '../../Interfaces/TTLInterfaces';
+import { getRequestsData, getRequestItemsByRequestId, getApprovers, getBudgetsForPracticeLead, getSP } from '../../service/TTLService';
+import DonutChart from './DonutChart';
 import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
@@ -15,6 +16,30 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [teamCoachBudgets, setTeamCoachBudgets] = useState<Budget[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+
+
+  useEffect(() => {
+    const loadYears = async () => {
+      try {
+        const sp = getSP(context);
+        const list = sp.web.lists.getByTitle('TTL_Budget');
+
+        // Query distinct years
+        const items = await list.items.select('Year').top(5000)();
+
+        const years = Array.from(new Set(items.map(i => i.Year))).sort().reverse();
+
+        setAvailableYears(years);
+      } catch (e) {
+        console.error("Error loading years:", e);
+      }
+    };
+
+    loadYears();
+  }, [context]);
 
   // Get all requests for approvers and team coaches
   const fetchData = async (requestId?: number): Promise<void> => {
@@ -78,8 +103,17 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
   }, [requests, selectedRequest]);
 
   useEffect(() => {
-    fetchData();
-  }, [context]);
+    // Fetch budget data for the logged in user
+    const fetchBudget = async () => {      
+    if (isApprover || isTeamCoach) {
+        // Practice lead sees all their team coach budgets
+        const budgetsData = await getBudgetsForPracticeLead(context, loggedInUser.Email, selectedYear);
+        setTeamCoachBudgets(budgetsData);
+      }   
+    };
+    
+    fetchBudget();
+  }, [context, selectedYear]);
 
   // Handle a click on a request
   const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
@@ -154,12 +188,82 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
             <p>{error}</p>
           </div>
         )}
-  
+
         <DashboardComponent
           onClick={handleRequestClick}
           requests={requests}
           view='approvers'
         />
+
+        {(isApprover || isTeamCoach) && (
+          <div className={styles.budgetCard}>
+            <div style={{ marginBottom: 16, justifySelf: 'center' }}>
+              <label style={{ marginRight: 8, fontWeight: 600}}>Budgets from</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                style={{ padding: 6, borderRadius: 4 }}
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {teamCoachBudgets && teamCoachBudgets.length > 0 ? (
+              <div style={{ display: "flex", gap: 20, justifyContent: 'center' }}>
+                {teamCoachBudgets.map((b) => {
+                  const usedAmount = b.Budget - b.Availablebudget;
+                  const usedPercentage = b.Budget > 0 ? (usedAmount / b.Budget) * 100 : 0;
+
+                  return (
+                    <div
+                      key={b.ID}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 20,
+                        padding: 20,
+                        borderRadius: 3,
+                        backgroundColor: "#fff",
+                        border: "1px solid #ddd",
+                        flexWrap: "wrap"
+                      }}
+                    >
+                      <DonutChart
+                        total={b.Budget}
+                        available={b.Availablebudget}
+                        size={100}
+                        strokeWidth={10}
+                        label={`${usedPercentage.toFixed(0)}%`}
+                      />
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <h3 style={{ margin: 0 }}>{b.TeamCoach?.Title}</h3>
+
+                        <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+
+                        <div>
+                          <strong>Available:</strong>{" "}
+                          <span style={{ color: b.Availablebudget > 0 ? "#107c10" : "#d83b01" }}>
+                            €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+
+                        <div><strong>Used:</strong> €{usedAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p>No budget data available for your team coaches.</p>
+            )}
+          </div>
+        )}
+
       </>
       ) : (
         <div style={{display: 'flex', justifyContent: 'center'}}>

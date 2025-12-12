@@ -162,7 +162,7 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                     Project: project,
                     Team: team,
                     ApproverID: approver,
-                    DeadlineDate: earliest,
+                    DeadlineDate: earliest.StartDate,
                     TotalCost: totalCost
                 },
                 collectedItems,

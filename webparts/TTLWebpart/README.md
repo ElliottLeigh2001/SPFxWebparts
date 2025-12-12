@@ -34,12 +34,13 @@ Request is approved by all required approvers: requester is informed that their 
 - AutomateService.ts: service file for sending data to the Power Automate flow
 
 - TTLInterfaces.ts: interface file for maintaining types
-- HelperFunctions.ts: file with functions that are used in multiple components
+- HelperFunctions.ts: file with functions that are used in multiple components or that otherwise improve code readability
 
 - TtlDashboard.tsx: Dashboard that shows the requests of the logged in user
 - ApproversDashboard.tsx: Dashboard that shows requests that are 'Submitted' or 'sent for reapproval' and are       attached to the logged in approver (only visible for approvers)
 - HRDashboard.tsx: Dashboard that shows requests that are 'in process by HR'
 - DirectorDashboard.tsx: Dashboard that shows requests that are 'Submitted' and exceed 5000 EUR
+- DeliveryDirectorDashboard.tsx: Dashboard that shows all pending requests. This dashboard is used if an approver is out of office and the delivery director (who is the back up) needs to approve instead.
 - DashboardComponent.tsx: Component that contains the table with requests, tailored for each type of dashboard
 
 - ChooseNewRequest.tsx: Component where the user is prompted to choose the kind of request they want to make
@@ -61,7 +62,7 @@ Request is approved by all required approvers: requester is informed that their 
 - ConfirmActionDialog.tsx: Dialog to confirm actions like deleting items, sending requests for approval, approving requests etc.
 
 
-***Each component also has an interface and scss file for modularity and readability***
+***Most components also have an interface and scss file for modularity and readability***
 
 ## Setup
 
@@ -72,9 +73,9 @@ Request is approved by all required approvers: requester is informed that their 
   - ```gulp serve```
 
 To import into SharePoint site collection:
-  - ```gulp bundle```
-  - ```gulp package-solution```
-  - Navigate to apps inside the SharePoint admin centre and import the sppkg file that is found in the sharepoint/solution folder
+  - ```gulp bundle --ship```
+  - ```gulp package-solution --ship```
+  - Navigate to apps inside the SharePoint admin centre and import the sppkg file that is found in the sharepoint/solution folder (admin role needed)
   - When added to your apps, you can use the webpart in any modern page on your site collection
 
 ## Features

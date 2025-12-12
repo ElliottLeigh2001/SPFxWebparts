@@ -5,7 +5,7 @@ export interface UserRequest {
     SubmissionDate?: Date;
     ApprovedByCEO?: boolean;
     DeadlineDate?: Date;
-    TeamCoachApproval?: boolean;
+    TeamCoachApproval?: string;
     RequestItemID: {
         Id: number;
     }[];
@@ -87,4 +87,18 @@ export interface Approver {
         EMail?: string;
     }
     Team0?: string;
+}
+
+export interface Budget {
+    ID: number;
+    Title: string;
+    TeamCoach: {
+        Id?: number;
+        Title?: string;
+        EMail?: string;
+    }
+    Team: string;
+    Budget: number;
+    Availablebudget: number;
+    Year: string;
 }

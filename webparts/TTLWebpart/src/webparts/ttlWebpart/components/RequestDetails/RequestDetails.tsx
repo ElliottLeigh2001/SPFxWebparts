@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import EditRequestForm from './EditRequestForm';
-import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById, updateRequestDeadline } from '../../service/TTLService';
+import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById, updateRequestDeadline, updateTeamCoachApproval, getBudgetforApprover, deductFromBudget, getApprovers } from '../../service/TTLService';
 import RequestItemsList from './RequestItemsList';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { Modal } from '@fluentui/react';
@@ -359,67 +359,83 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       )}
       <HeaderComponent view={request.Title}/>
       {!isUpdatingStatus ? (
-
-        <div className={requestDetailsStyles.detailsContainer}>
-  
-          <div className={requestDetailsStyles.details}>
-            <div className={requestDetailsStyles.titleContainer}>
-              <h3 className={requestDetailsStyles.panelHeader}>Details</h3>
-              {view === 'myView' && (request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && (
-                <button
-                  className={requestDetailsStyles.iconButton}
-                  onClick={() => setEditingRequest(true)}
-                  title="Edit"
-                >
-                  <i className="fa fa-pencil" aria-hidden="true"></i>
-                </button>
-              )}
-            </div>
-            {view !== 'myView' && (
-              <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
-            )}
-            <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
-            {displayedItems[0].RequestType !== 'Software' ? (
-              <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
-            ) : (
+        <>
+          <div style={{display: 'flex', justifySelf: 'center', width: '96%'}}>
+            {isApprover && !isTeamCoach && (
               <>
-                {displayedItems[0].Licensing === 'One-time' ? (
-                  <span><strong>Total Cost (one-time):</strong> € {displayedRequest.TotalCost}</span>
+                {request.TeamCoachApproval ? (
+                  <>
+                  {request.TeamCoachApproval === 'Approve' ? (
+                    <p>Team Coach approves</p>
+                  ) : (
+                    <p>Team Coach disapproves</p>
+                  )}
+                  </>
                 ) : (
-  
-                  <span><strong>Total Cost (yearly):</strong> € {displayedRequest.TotalCost}</span>
+                  <p>Team coach has not yet reviewed</p>
                 )}
               </>
             )}
-            <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
-            <span><strong>Team:</strong> {displayedRequest.Team || '/'}</span>
-            <span><strong>Submission Date:</strong> {formatDate(displayedRequest.SubmissionDate) || '/'}</span>
-            {view === 'HR' && (
-                <span><strong>Deadline Date:</strong> {formatDate(displayedRequest.DeadlineDate) || '/'}</span>
-            )}
-            <span><strong>Status:</strong> <span style={{marginLeft: '0'}} className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
-            <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
-          </div>
-  
-          <div className={requestDetailsStyles.items}>
-            <div className={requestDetailsStyles.titleContainer}>
-              <h3 className={requestDetailsStyles.panelHeader}>Items ({displayedItems.length})</h3>
-            </div>
-            <RequestItemsList
-              items={displayedItems}
-              onEdit={handleEditItem}
-              onDelete={handleDeleteItem}
-              onAdd={() => setShowAddModal(true)}
-              showActions={((displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') || 
-                (view === 'HR' && displayedRequest.RequestStatus === 'HR Processing'))}
-                view={view}
-                request={displayedRequest}
-                context={context}
-                onDocumentUploaded={() => onUpdate()}
-                />
-            </div>
           </div>
 
+          <div className={requestDetailsStyles.detailsContainer}>
+              <div className={requestDetailsStyles.details}>
+                <div className={requestDetailsStyles.titleContainer}>
+                  <h3 className={requestDetailsStyles.panelHeader}>Details</h3>
+                  {view === 'myView' && (request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && (
+                    <button
+                      className={requestDetailsStyles.iconButton}
+                      onClick={() => setEditingRequest(true)}
+                      title="Edit"
+                    >
+                      <i className="fa fa-pencil" aria-hidden="true"></i>
+                    </button>
+                  )}
+                </div>
+                {view !== 'myView' && (
+                  <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
+                )}
+                <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
+                {displayedItems[0].RequestType !== 'Software' ? (
+                  <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
+                ) : (
+                  <>
+                    {displayedItems[0].Licensing === 'One-time' ? (
+                      <span><strong>Total Cost (one-time):</strong> € {displayedRequest.TotalCost}</span>
+                    ) : (
+
+                      <span><strong>Total Cost (yearly):</strong> € {displayedRequest.TotalCost}</span>
+                    )}
+                  </>
+                )}
+                <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
+                <span><strong>Team:</strong> {displayedRequest.Team || '/'}</span>
+                <span><strong>Submission Date:</strong> {formatDate(displayedRequest.SubmissionDate) || '/'}</span>
+                {view === 'HR' && (
+                  <span><strong>Deadline Date:</strong> {formatDate(displayedRequest.DeadlineDate) || '/'}</span>
+                )}
+                <span><strong>Status:</strong> <span style={{ marginLeft: '0' }} className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
+                <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
+              </div>
+
+              <div className={requestDetailsStyles.items}>
+                <div className={requestDetailsStyles.titleContainer}>
+                  <h3 className={requestDetailsStyles.panelHeader}>Items ({displayedItems.length})</h3>
+                </div>
+                <RequestItemsList
+                  items={displayedItems}
+                  onEdit={handleEditItem}
+                  onDelete={handleDeleteItem}
+                  onAdd={() => setShowAddModal(true)}
+                  showActions={((displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') ||
+                    (view === 'HR' && displayedRequest.RequestStatus === 'HR Processing'))}
+                  view={view}
+                  request={displayedRequest}
+                  context={context}
+                  onDocumentUploaded={() => onUpdate()} />
+              </div>
+            </div>
+          </>
       ) : (
         <p>loading...</p>
       )}
@@ -514,7 +530,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   // If the approver is a practice lead
                   else if (view === 'approvers' || view === 'deliveryDirector') {
                     // Define nextStatus used to determine the next status 
-                    // based on price or if the director has already approved
+                    // The status is based on price or if the director has already approved
                     let nextStatus;
                     // If the total cost exceeds 5000 euro (so director approval is also needed)
                     if (Number(request.TotalCost) > 5000) {
@@ -575,6 +591,24 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                 else if (confirmAction === 'completed') {
                   // Update status
                   await updateRequestApprover('Completed', false, false)
+                  
+                  // Deduct the cost from the team coach's budget
+                  if (request.ApproverID?.Id && request.TotalCost) {
+                    try {
+                      const approversList = await getApprovers(context);
+                      const approver = approversList.find(a => a.Id === request.ApproverID?.Id);
+                      
+                      if (approver?.TeamCoach?.EMail) {
+                        const budget = await getBudgetforApprover(context, approver.TeamCoach.EMail, new Date().getFullYear().toString());
+                        if (budget) {
+                          await deductFromBudget(context, budget.ID, Number(request.TotalCost));
+                        }
+                      }
+                    } catch (budgetError) {
+                      console.error('Error deducting from budget:', budgetError);
+                      // Don't fail the request completion due to budget error
+                    }
+                  }
                 }
               success = true;
             } finally {
@@ -593,7 +627,26 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     </div>
       <div className={styles.newRequestButtonContainer}>
         {isTeamCoach && !isApprover && (
-          <p>Teamcoach functionality placeholder</p>
+          <div style={{display: 'flex', gap: '20px'}}>
+            <button onClick={() => {
+              setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Disapprove' }));
+              updateTeamCoachApproval(context, request.ID, 'Disapprove');
+            }} 
+              className={`${displayedRequest.TeamCoachApproval === 'Disapprove' ? 
+              requestDetailsStyles.approveButton : 
+              requestDetailsStyles.declineButton}`}>
+              {`${displayedRequest.TeamCoachApproval === 'Disapprove' ? 'Disapproved' : 'Disapprove'}`}
+            </button>
+            <button onClick={() => {
+              setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Approve' }));
+              updateTeamCoachApproval(context, request.ID, 'Approve');
+            }}  
+              className={`${displayedRequest.TeamCoachApproval === 'Approve' ? 
+              requestDetailsStyles.approveButton : 
+              requestDetailsStyles.declineButton}`}>
+                {`${displayedRequest.TeamCoachApproval === 'Approve' ? 'Approved' : 'Approve'}`}
+            </button>
+          </div>
         )}
         {((view === 'approvers' && isApprover) || view === 'director' || view === 'deliveryDirector') && (
           <div style={{display: 'flex', gap: '20px'}}>
