@@ -42,6 +42,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   const [changedByHR, setChangedByHR] = useState(false);
   const [typeOfRequest, setTypeOfRequest] = useState('');
   const [deadlineWarning, setDeadlineWarning] = useState(false);
+  const [isOverBudget, setIsOverBudget] = useState(false);
+  const [teamCoach, setTeamCoach] = useState('');
 
   // Set the items to display after an update, deletion, add...
   useEffect(() => {
@@ -51,7 +53,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   // Check if the request is of type software or training/travel
   // This state is used in the Power Automate flow
   useEffect(() => {
-    if (items[0].RequestType === 'Software') {
+    if (items && items.length > 0 && items[0].RequestType === 'Software') {
       setTypeOfRequest('Software License');
     } else {
       setTypeOfRequest('Training / Travel')
@@ -61,7 +63,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         setDeadlineWarning(true);
       }
     }
-    console.log(deadlineWarning);
+    getBudgetForTeamcoach();
   }, []);
 
   // If the request was changed by HR, set the state accordingly
@@ -75,6 +77,23 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     setEditingItem(item);
     setActiveForm(item.RequestType?.toLowerCase() as any);
     setActiveFormName(item.RequestType?.toLowerCase() as any);
+  };
+
+  const getBudgetForTeamcoach = async () => {
+    const appr = await getApproverById(context, request.ApproverID!.Id!);
+    const teamCoachEmail = appr.TeamCoach.EMail;
+    const teamCoachTitle = appr.TeamCoach.Title;
+
+    setTeamCoach(teamCoachTitle);
+
+    const year = new Date(request.DeadlineDate!).getFullYear().toString();
+
+    const teamCoachBudget = await getBudgetforApprover(context, teamCoachEmail, year);
+
+    if (teamCoachBudget) {
+      const overBudget = teamCoachBudget.Availablebudget < Number(request.TotalCost);
+      setIsOverBudget(overBudget);
+    }
   };
 
   // Function to add a requestitem to a request
@@ -396,7 +415,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                   <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
                 )}
                 <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
-                {displayedItems[0].RequestType !== 'Software' ? (
+                <span><strong>Team Coach:</strong> {teamCoach|| '/'}</span>
+                {displayedItems.length === 0 || displayedItems[0].RequestType !== 'Software' ? (
                   <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
                 ) : (
                   <>
@@ -628,7 +648,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       <div className={styles.newRequestButtonContainer}>
         {isTeamCoach && !isApprover && (
           <div style={{display: 'flex', gap: '20px'}}>
-            <button onClick={() => {
+            <button style={{width: '130px'}} onClick={() => {
               setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Disapprove' }));
               updateTeamCoachApproval(context, request.ID, 'Disapprove');
             }} 
@@ -637,7 +657,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
               requestDetailsStyles.declineButton}`}>
               {`${displayedRequest.TeamCoachApproval === 'Disapprove' ? 'Disapproved' : 'Disapprove'}`}
             </button>
-            <button onClick={() => {
+            <button style={{width: '130px'}} onClick={() => {
               setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Approve' }));
               updateTeamCoachApproval(context, request.ID, 'Approve');
             }}  
@@ -649,6 +669,10 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
           </div>
         )}
         {((view === 'approvers' && isApprover) || view === 'director' || view === 'deliveryDirector') && (
+          <div style={{justifyItems: 'center'}}>
+          {isOverBudget && (
+            <p style={{color: 'red', textDecoration: 'underline', fontWeight: '600'}}>WARNING: This request exceeds the team coach's budget!</p>
+          )}
           <div style={{display: 'flex', gap: '20px'}}>
             <button 
               onClick={() => {setConfirmAction('deny'); setShowConfirmActionDialog(true)}}
@@ -670,6 +694,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             {statusActionError && (
               <p>{statusActionError}</p>
             )}
+          </div>
           </div>
         )}
         {view === 'HR' && request.RequestStatus === 'HR Processing' && (
@@ -699,14 +724,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       <div className={requestDetailsStyles.detailsActions}>
         {(displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') && view === 'myView' && (
           <>
-            <button
-              className={styles.stdButton}
-              onClick={() => { setConfirmAction('send'); setShowConfirmActionDialog(true); } }
-              style={{width: '171px'}}
-            >
-              Send for approval
-            </button>
-        
           <button
             className={styles.stdButton}
             onClick={() => setShowDeleteConfirm(true)}
@@ -714,6 +731,14 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
           >
             Discard
           </button>
+
+            <button
+              className={styles.stdButton}
+              onClick={() => { setConfirmAction('send'); setShowConfirmActionDialog(true); } }
+              style={{width: '171px'}}
+            >
+              Send for approval
+            </button>
           </>
         )}
       </div>

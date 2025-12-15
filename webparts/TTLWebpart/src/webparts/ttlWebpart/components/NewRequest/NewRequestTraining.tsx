@@ -225,6 +225,16 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                         <button
                             className={styles.stdButton}
                             style={{ width: '171px' }}
+                            disabled={isSaving}
+                            onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); }}
+                            title="Discard"
+                        >
+                            Discard
+                        </button>
+                        
+                        <button
+                            className={styles.stdButton}
+                            style={{ width: '171px' }}
                             onClick={() => { setConfirmAction('save'); setConfirmOpen(true); }}
                         >
                             Draft
@@ -238,15 +248,6 @@ const NewRequestTraining: React.FC<NewRequestProps> = ({ context, onCancel, onSa
                             Send for approval
                         </button>
 
-                        <button
-                            className={styles.stdButton}
-                            style={{ width: '171px' }}
-                            disabled={isSaving}
-                            onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); }}
-                            title="Discard"
-                        >
-                            Discard
-                        </button>
                     </div>
                 </div>
 

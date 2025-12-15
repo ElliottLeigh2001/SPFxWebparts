@@ -1,4 +1,5 @@
 import * as React from "react";
+import budgetStyles from './Budgets.module.scss';
 
 export interface DonutChartProps {
   total: number;
@@ -65,15 +66,8 @@ const DonutChart: React.FC<DonutChartProps> = ({
       </svg>
 
       <div
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          fontWeight: 700,
-          fontSize: size * 0.14,
-        }}
-      >
+        className={budgetStyles.donutPercentage}
+        style={{fontSize: size * 0.14}}>
         {animatedPercent}%
       </div>
     </div>

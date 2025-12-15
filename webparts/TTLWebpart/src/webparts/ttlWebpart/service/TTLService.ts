@@ -565,7 +565,7 @@ export const getApproverById = async (
   const approversList = sp.web.lists.getByTitle('TTL_Approver');
 
   try {
-    const res = await approversList.items.getById(approverId).select('PracticeLead/EMail, PracticeLead/Title').expand('PracticeLead')();
+    const res = await approversList.items.getById(approverId).select('PracticeLead/EMail, PracticeLead/Title, TeamCoach/EMail, TeamCoach/Title').expand('PracticeLead, TeamCoach')();
 
     return res;
 

@@ -340,7 +340,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                         <div className={styles.noData}>No request items found for this request</div>
                     )}
 
-                    {view === 'myView' && request.RequestStatus === 'Draft' && items[0].RequestType !== "Software" && (
+                    {view === 'myView' && request.RequestStatus === 'Draft' && items.length > 0 && items[0].RequestType !== "Software" && (
                         <div className={requestDetailsStyles.addButtonContainer}>
                             <button onClick={onAdd} className={requestDetailsStyles.addNewItem}>
                                 <i className="fa-solid fa-plus"></i>

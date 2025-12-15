@@ -199,16 +199,17 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
         <h2 style={{color: '#055a57'}}>New Software License Request</h2>
 
         <div className={newRequestStyles.newRequestActions}>
+
+          <button style={{ width: '171px' }} disabled={isSaving} onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); } } className={styles.stdButton}>
+            Discard
+          </button>
+          
           <button style={{ width: '171px' }} onClick={() => { setConfirmAction('save'); setConfirmOpen(true); } } className={styles.stdButton}>
             Draft
           </button>
 
           <button style={{ width: '171px' }} onClick={() => { setConfirmAction('send'); setConfirmOpen(true); } } className={styles.stdButton}>
             Send for approval
-          </button>
-
-          <button style={{ width: '171px' }} disabled={isSaving} onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); } } className={styles.stdButton}>
-            Discard
           </button>
         </div>
       </div>
