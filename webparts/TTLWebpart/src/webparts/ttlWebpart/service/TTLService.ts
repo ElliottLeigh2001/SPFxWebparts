@@ -617,6 +617,7 @@ export const getBudgetforApprover = async (context: WebPartContext, teamCoachEma
         Team: b.Team,
         Budget: b.Budget || 0,
         Availablebudget: b.Availablebudget || 0,
+        PendingBudget: b.PendingBudget || 0,
         Year: b.Year
       };
     }
@@ -668,6 +669,7 @@ export const getBudgetsForPracticeLead = async (context: WebPartContext, practic
       Team: b.Team,
       Budget: b.Budget || 0,
       Availablebudget: b.Availablebudget || 0,
+      PendingBudget: b.PendingBudget || 0,
       Year: b.Year
     }));
   } catch (error) {
@@ -677,14 +679,34 @@ export const getBudgetsForPracticeLead = async (context: WebPartContext, practic
 };
 
 // Deduct an amount from a team coach's available budget
-export const deductFromBudget = async (context: WebPartContext, budgetId: number, amount: number): Promise<void> => {
+export const deductFromBudget = async (context: WebPartContext, budgetId: number, amount: number, type: string): Promise<void> => {
   try {
     const sp = getSP(context);
     const budgetList = sp.web.lists.getByTitle('TTL_Budget');
 
     // Get current budget
-    const budget: any = await budgetList.items.getById(budgetId).select('Availablebudget')();
-    const newAvailableBudget = Math.max(0, (budget.Availablebudget || 0) - amount);
+    const budget: any = await budgetList.items.getById(budgetId).select(type)();
+    const newAvailableBudget = budget.Availablebudget - amount;
+
+    // Update the available budget
+    await budgetList.items.getById(budgetId).update({
+      Availablebudget: newAvailableBudget
+    });
+  } catch (error) {
+    console.error('Error deducting from budget:', error);
+    // Don't throw - we don't want budget deduction to fail the entire request completion
+  }
+}
+
+// Add an amount to a team coach's budget
+export const addToBudget = async (context: WebPartContext, budgetId: number, amount: number): Promise<void> => {
+  try {
+    const sp = getSP(context);
+    const budgetList = sp.web.lists.getByTitle('TTL_Budget');
+
+    // Get current budget
+    const budget: any = await budgetList.items.getById(budgetId).select('PendingBudget')();
+    const newAvailableBudget = budget.Availablebudget + amount;
 
     // Update the available budget
     await budgetList.items.getById(budgetId).update({

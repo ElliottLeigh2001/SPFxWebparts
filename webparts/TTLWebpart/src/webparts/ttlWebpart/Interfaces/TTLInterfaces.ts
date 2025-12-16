@@ -100,5 +100,6 @@ export interface Budget {
     Team: string;
     Budget: number;
     Availablebudget: number;
+    PendingBudget: number;
     Year: string;
 }

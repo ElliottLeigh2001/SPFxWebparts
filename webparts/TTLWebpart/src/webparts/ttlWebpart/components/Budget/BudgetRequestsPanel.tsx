@@ -9,11 +9,17 @@ interface Props {
   context: WebPartContext;
   budget: Budget;
   onClose: () => void;
-  onRequestClick: (request: UserRequest) => void;
 }
 
-const BudgetRequestsPanel: React.FC<Props> = ({ context, budget, onClose, onRequestClick }) => {
-  const [requests, setRequests] = useState<UserRequest[]>([]);
+interface RequestsByRequester {
+  requester: string;
+  totalCost: number;
+  requests: UserRequest[];
+}
+
+
+const BudgetRequestsPanel: React.FC<Props> = ({ context, budget, onClose }) => {
+  const [groupedRequests, setGroupedRequests] = useState<RequestsByRequester[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,9 +42,9 @@ const BudgetRequestsPanel: React.FC<Props> = ({ context, budget, onClose, onRequ
           }
         });
 
-        // Filter requests where the ApproverID lookup references one of the approver ids
+        // Filter completed requests where the ApproverID lookup references one of the approver ids
         const filtered = allRequests.filter(r => {
-          const approverId = (r as any).ApproverID?.Id || (r as any).ApproverID?.Id === 0 ? (r as any).ApproverID.Id : undefined;
+          const approverId = r.ApproverID?.Id || r.ApproverID?.Id === 0 ? r.ApproverID.Id : undefined;
           if (!approverId) return false;
           if (!approverIdsForCoach.has(approverId)) return false;
 
@@ -48,10 +54,34 @@ const BudgetRequestsPanel: React.FC<Props> = ({ context, budget, onClose, onRequ
             if (String(sub.getFullYear()) !== String(budget.Year)) return false;
           }
 
+          if (r.RequestStatus !== 'Completed') return false;
+
           return true;
         });
 
-        setRequests(filtered);
+        const groupedMap = new Map<string, RequestsByRequester>();
+
+        filtered.forEach(r => {
+          const requesterName = r.Author?.Title ?? 'Unknown';
+          const cost = Number(r.TotalCost || 0);
+
+          if (!groupedMap.has(requesterName)) {
+            groupedMap.set(requesterName, {
+              requester: requesterName,
+              totalCost: 0,
+              requests: []
+            });
+          }
+
+          const entry = groupedMap.get(requesterName)!;
+          entry.totalCost += cost;
+          entry.requests.push(r);
+        });
+
+        const groupedArray = Array.from(groupedMap.values());
+
+        setGroupedRequests(groupedArray as any);
+
       } catch (e) {
         console.error('Error loading budget requests:', e);
         setError('Failed to load requests for this budget');
@@ -68,7 +98,7 @@ const BudgetRequestsPanel: React.FC<Props> = ({ context, budget, onClose, onRequ
       <div className={budgetStyles.budgetDetailsContainer}>
         <div className={budgetStyles.budgetDetailsTitleWrapper}>
           <h3 style={{ margin: 0 }}>Requests for {budget.TeamCoach?.Title} — {budget.Year}</h3>
-          <button onClick={onClose}>Close</button>
+          <button className={budgetStyles.closeButton} onClick={onClose}>✕</button>
         </div>
 
         {isLoading && <div>Loading...</div>}
@@ -76,30 +106,26 @@ const BudgetRequestsPanel: React.FC<Props> = ({ context, budget, onClose, onRequ
 
         {!isLoading && !error && (
           <div>
-            {requests.length === 0 ? (
-              <div>No requests found for this team coach and year.</div>
+            {groupedRequests.length === 0 ? (
+              <div>No completed requests found for this team coach and year.</div>
             ) : (
               <table className={budgetStyles.budgetDetailsTable}>
                 <thead>
                   <tr>
-                    <th>Title</th>
                     <th>Requester</th>
-                    <th>Submission Date</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th style={{ padding: '8px', borderBottom: '1px solid #ddd' }}></th>
+                    <th>Number of Requests</th>
+                    <th>Total Cost</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.map(r => (
-                    <tr key={(r as any).ID || (r as any).Id}>
-                      <td>{r.Title}</td>
-                      <td>{r.Author?.Title || (r as any).Author?.Title}</td>
-                      <td>{r.SubmissionDate ? new Date(r.SubmissionDate as any).toLocaleDateString() : ''}</td>
-                      <td>€{Number(r.TotalCost || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                      <td>{r.RequestStatus}</td>
+                  {groupedRequests.map(group => (
+                    <tr key={group.requester}>
+                      <td>{group.requester}</td>
+                      <td>{group.requests.length}</td>
                       <td>
-                        <button onClick={() => onRequestClick(r)}>View</button>
+                        €{group.totalCost.toLocaleString('en-US', {
+                          minimumFractionDigits: 2
+                        })}
                       </td>
                     </tr>
                   ))}

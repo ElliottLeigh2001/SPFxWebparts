@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { UserRequest, UserRequestItem, Approver, Budget } from '../../Interfaces/TTLInterfaces';
-import { getRequestsData, getRequestItemsByRequestId, getApprovers, getBudgetsForPracticeLead, getSP } from '../../service/TTLService';
-import BudgetRequestsPanel from './BudgetRequestsPanel';
-import DonutChart from './DonutChart';
+import { getRequestsData, getRequestItemsByRequestId, getApprovers, getBudgetsForPracticeLead, getSP, getBudgetforApprover } from '../../service/TTLService';
+import BudgetRequestsPanel from '../Budget/BudgetRequestsPanel';
+import DonutChart from '../Budget/DonutChart';
 import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
@@ -11,6 +11,7 @@ import DashboardComponent from './DashboardComponent';
 import { ApproversDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
 import budgetStyles from './Budgets.module.scss'
+import { TooltipHost, Icon } from '@fluentui/react';
 
 const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover, isTeamCoach }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -19,6 +20,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [teamCoachBudgets, setTeamCoachBudgets] = useState<Budget[]>([]);
+  const [myBudget, setMyBudget] = useState<Budget>();
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [availableYears, setAvailableYears] = useState<string[]>([]);
@@ -94,7 +96,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
     }
   };
 
-  // Attach URL handlers that sync selection with `?view=approvers&requestId=...`
+  // Attach URL handlers that sync selection with ?view=approvers&requestId=...
   useEffect(() => {
     return attachUrlHandlers({
       viewName: 'approvers',
@@ -108,11 +110,17 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
   useEffect(() => {
     // Fetch budget data for the logged in user
     const fetchBudget = async () => {      
-    if (isApprover || isTeamCoach) {
-        // Practice lead sees all their team coach budgets
-        const budgetsData = await getBudgetsForPracticeLead(context, loggedInUser.Email, selectedYear);
-        setTeamCoachBudgets(budgetsData);
-      }   
+      if (isApprover) {
+          // Practice lead sees all their team coach budgets
+          const budgetsData = await getBudgetsForPracticeLead(context, loggedInUser.Email, selectedYear);
+          setTeamCoachBudgets(budgetsData);
+        }   
+      else if (isTeamCoach && !isApprover) {
+        const budgetsData = await getBudgetforApprover(context, loggedInUser.Email, selectedYear);
+        if (budgetsData) {
+          setMyBudget(budgetsData);
+        }
+      }
     };
     
     fetchBudget();
@@ -179,84 +187,186 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
     );
   }
 
+  const usedBudget =
+  myBudget ? myBudget.Budget - myBudget.Availablebudget : 0;
+
   return (
     <div className={styles.ttlDashboard}>
       <HeaderComponent view='Approver Dashboard'/>
-      
-      
-            {(isApprover || isTeamCoach) && (
-              <>
-                <div className={budgetStyles.budgetCard}>
-                  <div className={budgetStyles.budgetYearWrapper}>
-                    <label>Budgets from</label>
-                    <select
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(e.target.value)}
-                    >
-                      {availableYears.map(year => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-      
-                  {teamCoachBudgets && teamCoachBudgets.length > 0 ? (
-                    <div className={budgetStyles.budgetContainer}>
-                      {teamCoachBudgets.map((b) => {
-                        const usedAmount = b.Budget - b.Availablebudget;
-                        const usedPercentage = b.Budget > 0
-                          ? (usedAmount / b.Budget) * 100
-                          : 0;
-      
-                        return (
-                          <div
-                            key={b.ID}
-                            onClick={() => setSelectedBudget(b)}
-                            role="button"
-                            tabIndex={0}
-                            className={budgetStyles.budgetWrapper}
-                          >
-                            <DonutChart
-                              total={b.Budget}
-                              available={b.Availablebudget}
-                              size={100}
-                              strokeWidth={10}
-                              label={`${usedPercentage.toFixed(0)}%`}
-                            />
-      
-                            <div className={budgetStyles.budgetInfo}>
-                              <h3 style={{ margin: 0 }}>{b.TeamCoach?.Title}</h3>
-                              <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-                              <div>
-                                <strong>Available:</strong>{" "}
-                                <span style={{ color: b.Availablebudget > 0 ? "#107c10" : "#d83b01" }}>
-                                  €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
-                              </div>
-                              <div><strong>Used:</strong> €{usedAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p style={{justifySelf: 'center'}}>No budget data available for your team coaches in {selectedYear}.</p>
-                  )}
-                </div>
-      
-                {selectedBudget && (
-                  <BudgetRequestsPanel
-                    context={context}
-                    budget={selectedBudget}
-                    onClose={() => setSelectedBudget(null)}
-                    onRequestClick={(r: UserRequest) => {
-                      setSelectedBudget(null);
-                      handleRequestClick(r, true);
-                    }}
+
+      {(isTeamCoach && !isApprover) && (
+        <>
+          <div className={budgetStyles.budgetCard}>
+            <div className={budgetStyles.budgetYearWrapper}>
+              <label>Your budget for</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {myBudget ? (
+
+              <div className={budgetStyles.budgetContainer}>
+
+                <div
+                  onClick={() => setSelectedBudget(myBudget)}
+                  role="button"
+                  tabIndex={0}
+                  className={budgetStyles.budgetWrapper}
+                >
+                  <DonutChart
+                    total={myBudget.Budget}
+                    available={myBudget.Availablebudget}
+                    pending={myBudget.PendingBudget}
+                    size={100}
+                    strokeWidth={10}
                   />
-                )}
-              </>
+
+                  <div className={budgetStyles.budgetInfo}>
+                    <div><strong>Total Budget:</strong> €{myBudget.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                    <div>
+                      <strong>
+                        Available{" "}
+                        <TooltipHost content="Budget remaining after completed and booked requests have been deducted. 
+                        This amount can still be used for new approvals.">
+                          <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                        </TooltipHost>
+                        :
+                      </strong>{" "}
+                      <span style={{ color: myBudget.Availablebudget > 0 ? "#50bec0ff" : "#d83b01" }}>
+                        €{myBudget.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+
+                    <div>
+                      <strong>
+                        Reserved{" "}
+                        <TooltipHost content="Budget including completed, booked, and in-process requests. 
+                        This reflects budget that is already used or temporarily held by pending requests.">
+                          <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                        </TooltipHost>
+                        :
+                      </strong>{" "}
+                      <span style={{ color: myBudget.PendingBudget > 0 ? "#2f8183" : "#d83b01" }}>
+                        €{myBudget.PendingBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div><strong>Used:</strong> €{usedBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                  </div>
+                </div>
+
+              </div>
+            ) : (
+              <p style={{justifySelf: 'center'}}>No budget data available in {selectedYear}.</p>
             )}
+          </div>
+
+          {selectedBudget && (
+            <BudgetRequestsPanel
+              context={context}
+              budget={selectedBudget}
+              onClose={() => setSelectedBudget(null)}
+            />
+          )}
+        </>
+      )}
+
+      {(isApprover) && (
+        <>
+          <div className={budgetStyles.budgetCard}>
+            <div className={budgetStyles.budgetYearWrapper}>
+              <label>Budgets for</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {teamCoachBudgets && teamCoachBudgets.length > 0 ? (
+              <div className={budgetStyles.budgetContainer}>
+                {teamCoachBudgets.map((b) => {
+                  const usedAmount = b.Budget - b.Availablebudget;
+
+                  return (
+                    <div
+                      key={b.ID}
+                      onClick={() => setSelectedBudget(b)}
+                      role="button"
+                      tabIndex={0}
+                      className={budgetStyles.budgetWrapper}
+                    >
+                      <DonutChart
+                        total={b.Budget}
+                        available={b.Availablebudget}
+                        pending={b.PendingBudget}
+                        size={100}
+                        strokeWidth={10}
+                      />
+
+                      <div className={budgetStyles.budgetInfo}>
+                        <h3 style={{ margin: 0 }}>{b.TeamCoach?.Title}</h3>
+                        <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                        <div>
+                          <strong>
+                            Available{" "}
+                            <TooltipHost content="Budget remaining after completed and booked requests have been deducted. 
+                            This amount can still be used for new approvals.">
+                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                            </TooltipHost>
+                            :
+                          </strong>{" "}
+                          <span style={{ color: b.Availablebudget > 0 ? "#50bec0ff" : "#d83b01" }}>
+                            €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+
+                        <div>
+                          <strong>
+                            Reserved{" "}
+                            <TooltipHost content="Budget including completed, booked, and in-process requests. 
+                            This reflects budget that is already used or temporarily held by pending requests.">
+                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                            </TooltipHost>
+                            :
+                          </strong>{" "}
+                          <span style={{ color: b.PendingBudget > 0 ? "#2f8183" : "#d83b01" }}>
+                            €{b.PendingBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div><strong>Used:</strong> €{usedAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p style={{justifySelf: 'center'}}>No budget data available for your team coaches in {selectedYear}.</p>
+            )}
+          </div>
+
+          {selectedBudget && (
+            <BudgetRequestsPanel
+              context={context}
+              budget={selectedBudget}
+              onClose={() => setSelectedBudget(null)}
+            />
+          )}
+        </>
+      )}
+      
       {(isApprover || isTeamCoach) ? (
         <>
 

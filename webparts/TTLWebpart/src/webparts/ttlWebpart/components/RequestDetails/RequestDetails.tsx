@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import EditRequestForm from './EditRequestForm';
-import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById, updateRequestDeadline, updateTeamCoachApproval, getBudgetforApprover, deductFromBudget, getApprovers } from '../../service/TTLService';
+import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById, updateRequestDeadline, updateTeamCoachApproval, getBudgetforApprover, deductFromBudget, getApprovers, addToBudget } from '../../service/TTLService';
 import RequestItemsList from './RequestItemsList';
 import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { Modal } from '@fluentui/react';
@@ -364,6 +364,198 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     }, 1000)
   };
 
+  // Handle approve action in confirm dialog
+  const handleConfirmApprove = async (comment: string | undefined): Promise<void> => {
+    if (!isCEO && view !== 'approvers' && view !== 'deliveryDirector' && view !== 'HR') return;
+
+    // Add comment if provided
+    if (comment) {
+      await handleAddComment(comment);
+    }
+
+    // CEO approval logic
+    if (isCEO) {
+      await handleCEOApproval();
+    }
+    // Practice lead/delivery director approval logic
+    else if (view === 'approvers' || view === 'deliveryDirector') {
+      await handlePracticeLeadApproval();
+    }
+    // HR approval logic
+    else if (view === 'HR') {
+      await updateRequestApprover('HR Processing', false, true);
+    }
+  };
+
+  // Handle CEO approval logic
+  const handleCEOApproval = async (): Promise<void> => {
+    if (request.RequestStatus === 'Awaiting CEO approval') {
+      // Deduct from reserved budget
+      await deductReservedBudget();
+      // Send to HR
+      await updateRequestApprover('HR Processing', true, true);
+      // Notify HR
+      await sendEmail({
+        emailType: 'HR',
+        requestId: request.ID.toString(),
+        title: request.Title,
+        totalCost: request.TotalCost.toString(),
+        authorEmail: request.Author?.EMail,
+        authorName: request.Author?.Title,
+        approverTitle: request.ApproverID?.Title,
+        typeOfRequest: typeOfRequest
+      });
+    } else if (request.RequestStatus === 'Submitted' || request.RequestStatus === 'Resubmitted') {
+      await updateRequestApprover(request.RequestStatus, true, true);
+    }
+  };
+
+  // Handle practice lead/delivery director approval logic
+  const handlePracticeLeadApproval = async (): Promise<void> => {
+    const needsDirectorApproval = Number(request.TotalCost) > 5000;
+    const nextStatus = needsDirectorApproval && !request.ApprovedByCEO ? 'Awaiting CEO approval' : 'HR Processing';
+
+    await updateRequestApprover(nextStatus, false, true);
+
+    // Send email to HR only if request goes to HR Processing
+    if (nextStatus === 'HR Processing') {
+      await sendEmail({
+        emailType: 'HR',
+        requestId: request.ID.toString(),
+        title: request.Title,
+        authorEmail: request.Author?.EMail,
+        authorName: request.Author?.Title,
+        approverTitle: request.ApproverID?.Title,
+        typeOfRequest: typeOfRequest,
+      });
+    }
+  };
+
+  // Deduct from team coach's reserved budget
+  const deductReservedBudget = async (): Promise<void> => {
+    if (!request.ApproverID?.Id || !request.TotalCost) return;
+
+    try {
+      const approversList = await getApprovers(context);
+      const approver = approversList.find(a => a.Id === request.ApproverID?.Id);
+
+      if (approver?.TeamCoach?.EMail) {
+        const budget = await getBudgetforApprover(context, approver.TeamCoach.EMail, new Date().getFullYear().toString());
+        if (budget) {
+          await deductFromBudget(context, budget.ID, Number(request.TotalCost), 'PendingBudget');
+        }
+      }
+    } catch (budgetError) {
+      console.error('Error deducting from budget:', budgetError);
+    }
+  };
+
+  // Handle deny action in confirm dialog
+  const handleConfirmDeny = async (comment: string): Promise<void> => {
+    // Add back to budget
+    await addBackToTeamCoachBudget();
+    // Update status to rejected
+    await updateRequestApprover('Rejected', false, true);
+    // Add required comment
+    await handleAddComment(comment);
+    // Notify requester
+    await sendEmail({
+      emailType: 'deny',
+      title: request.Title,
+      authorEmail: request.Author?.EMail,
+      authorName: request.Author?.Title,
+      comment: comment,
+      typeOfRequest: typeOfRequest
+    });
+  };
+
+  // Add budget back to team coach's budget (used when denying)
+  const addBackToTeamCoachBudget = async (): Promise<void> => {
+    if (!request.ApproverID?.Id || !request.TotalCost) return;
+
+    try {
+      const approversList = await getApprovers(context);
+      const approver = approversList.find(a => a.Id === request.ApproverID?.Id);
+
+      if (approver?.TeamCoach?.EMail) {
+        const budget = await getBudgetforApprover(context, approver.TeamCoach.EMail, new Date().getFullYear().toString());
+        if (budget) {
+          await addToBudget(context, budget.ID, Number(request.TotalCost));
+        }
+      }
+    } catch (budgetError) {
+      console.error('Error adding back to budget:', budgetError);
+    }
+  };
+
+  // Handle send for approval action
+  const handleConfirmSend = async (): Promise<void> => {
+    await updateRequestApprover('Submitted', false, false);
+
+    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
+    const approverEmail = approverData?.PracticeLead?.EMail;
+    const approverTitle = approverData?.PracticeLead?.Title;
+
+    await sendEmail({
+      emailType: 'new request',
+      requestId: request.ID.toString(),
+      title: request.Title,
+      totalCost: request.TotalCost.toString(),
+      authorEmail: request.Author?.EMail,
+      authorName: request.Author?.Title,
+      approverEmail: approverEmail,
+      approverTitle: approverTitle,
+      typeOfRequest: typeOfRequest
+    });
+  };
+
+  // Handle reapprove action (HR sends back for re-approval)
+  const handleConfirmReapprove = async (comment: string): Promise<void> => {
+    await handleAddComment(comment);
+    await updateRequestApprover('Resubmitted', false, true);
+
+    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
+    const approverEmail = approverData?.PracticeLead?.EMail;
+    const approverTitle = approverData?.PracticeLead?.Title;
+
+    await sendEmail({
+      emailType: 'reapprove',
+      requestId: request.ID.toString(),
+      title: request.Title,
+      totalCost: request.TotalCost.toString(),
+      authorEmail: request.Author?.EMail,
+      authorName: request.Author?.Title,
+      approverEmail: approverEmail,
+      approverTitle: approverTitle,
+      typeOfRequest: typeOfRequest
+    });
+  };
+
+  // Handle completed action (HR marks request as completed)
+  const handleConfirmCompleted = async (): Promise<void> => {
+    await updateRequestApprover('Completed', false, false);
+    await deductFromTeamCoachBudget();
+  };
+
+  // Deduct cost from team coach's available budget
+  const deductFromTeamCoachBudget = async (): Promise<void> => {
+    if (!request.ApproverID?.Id || !request.TotalCost) return;
+
+    try {
+      const approversList = await getApprovers(context);
+      const approver = approversList.find(a => a.Id === request.ApproverID?.Id);
+
+      if (approver?.TeamCoach?.EMail) {
+        const budget = await getBudgetforApprover(context, approver.TeamCoach.EMail, new Date().getFullYear().toString());
+        if (budget) {
+          await deductFromBudget(context, budget.ID, Number(request.TotalCost), 'AvailableBudget');
+        }
+      }
+    } catch (budgetError) {
+      console.error('Error deducting from budget:', budgetError);
+    }
+  };
+
   return (
     <>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
@@ -524,112 +716,17 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
             setIsProcessing(true);
             let success = false;
             try {
-                // If a request is approved
-                if (confirmAction === 'approve') {
-                  // Add comment to request if one was provided
-                  if (comment) {
-                    await handleAddComment(comment)
-                  }
-                  // If the approver is the director (or CEO)
-                  if (isCEO) {
-                    // If the other approver (practice lead) has already approved
-                    if (request.RequestStatus === 'Awaiting CEO approval') {
-                      // Send to HR
-                      await updateRequestApprover('HR Processing', true, true);
-                      // Send an email to HR to notify them that they need to approve next
-                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approverTitle: request.ApproverID?.Title, typeOfRequest: typeOfRequest})
-                      // If the other approver (practice lead) has not yet approved,
-                      // don't send to HR yet, but set the approvedByCEO column to true
-                    } else if (request.RequestStatus === 'Submitted') {
-                      await updateRequestApprover('Submitted', true, true);
-                      // Do the same for reapprovals
-                    } else if (request.RequestStatus === 'Resubmitted') {
-                      await updateRequestApprover('Resubmitted', true, true)
-                    }
-                  }
-                  // If the approver is a practice lead
-                  else if (view === 'approvers' || view === 'deliveryDirector') {
-                    // Define nextStatus used to determine the next status 
-                    // The status is based on price or if the director has already approved
-                    let nextStatus;
-                    // If the total cost exceeds 5000 euro (so director approval is also needed)
-                    if (Number(request.TotalCost) > 5000) {
-                      // If the director has already approved, send to HR, otherwise wait for director approval
-                      nextStatus = request.ApprovedByCEO ? 'HR Processing' : 'Awaiting CEO approval';
-                    } else {
-                      // If total cost is lower than 5000 euro (no director approval needed), just send straight to HR
-                      nextStatus = 'HR Processing'
-                    }
-                    // Update status
-                    await updateRequestApprover(nextStatus, false, true);
-                    
-                    // Send an email to HR to notify them that they need to approve next
-                    // This step only happens if all required approvers have approved
-                    if (nextStatus === 'HR Processing') {
-                      await sendEmail({emailType: 'HR', requestId: request.ID.toString(), title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approverTitle: request.ApproverID?.Title, typeOfRequest: typeOfRequest,})
-                    } 
-                  }
-                  // If the approver is HR and they approve, set status to HR Processing
-                  else if (view === 'HR') {
-                    await updateRequestApprover('HR Processing', false, true)
-                  }
-                }
-                // If a request is denied
-                else if (confirmAction === 'deny') {
-                  // Update status
-                  await updateRequestApprover('Rejected', false, true);
-                  // Add comment (it's required upon denial)
-                  await handleAddComment(comment!)
-                  // Inform requester that their request has been denied
-                  await sendEmail({emailType: "deny", title: request.Title, authorEmail: request.Author?.EMail, authorName: request.Author?.Title, comment: comment, typeOfRequest: typeOfRequest})
-                }
-                // When the requester sends their request for approval
-                else if (confirmAction === 'send') {
-                  // Update status
-                  await updateRequestApprover('Submitted', false, false)
-                  // Get data from the approver so it can be included in the email
-                  const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
-                  const approverEmail = approverData?.PracticeLead?.EMail;
-                  const approverTitle = approverData?.PracticeLead?.Title;
-                  // Send an email to the approver, HR and director if the price exceeds 5000 euro (handled by Power Automate flow)
-                  await sendEmail({ emailType: "new request", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approverEmail: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
-                }
-                // If the request is sent for reapproval by HR
-                else if (confirmAction === 'reapprove') {
-                  // Add comment (it's required upon reapproval)
-                  await handleAddComment(comment!)
-                  // Update status
-                  await updateRequestApprover('Resubmitted', false, true)
-                  // Get data from the approver so it can be included in the email
-                  const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
-                  const approverEmail = approverData?.PracticeLead?.EMail;
-                  const approverTitle = approverData?.PracticeLead?.Title;
-                  // Send email to approver that they need to reapprove the request
-                  await sendEmail({ emailType: "reapprove", requestId: request.ID.toString(), title: request.Title, totalCost: request.TotalCost.toString(), authorEmail: request.Author?.EMail, authorName: request.Author?.Title, approverEmail: approverEmail, approverTitle: approverTitle, typeOfRequest: typeOfRequest});
-                }
-                // If HR had booked the request and marked it as completed
-                else if (confirmAction === 'completed') {
-                  // Update status
-                  await updateRequestApprover('Completed', false, false)
-                  
-                  // Deduct the cost from the team coach's budget
-                  if (request.ApproverID?.Id && request.TotalCost) {
-                    try {
-                      const approversList = await getApprovers(context);
-                      const approver = approversList.find(a => a.Id === request.ApproverID?.Id);
-                      
-                      if (approver?.TeamCoach?.EMail) {
-                        const budget = await getBudgetforApprover(context, approver.TeamCoach.EMail, new Date().getFullYear().toString());
-                        if (budget) {
-                          await deductFromBudget(context, budget.ID, Number(request.TotalCost));
-                        }
-                      }
-                    } catch (budgetError) {
-                      console.error('Error deducting from budget:', budgetError);
-                      // Don't fail the request completion due to budget error
-                    }
-                  }
-                }
+              if (confirmAction === 'approve') {
+                await handleConfirmApprove(comment);
+              } else if (confirmAction === 'deny') {
+                await handleConfirmDeny(comment!);
+              } else if (confirmAction === 'send') {
+                await handleConfirmSend();
+              } else if (confirmAction === 'reapprove') {
+                await handleConfirmReapprove(comment!);
+              } else if (confirmAction === 'completed') {
+                await handleConfirmCompleted();
+              }
               success = true;
             } finally {
               setConfirmProcessing(false);
@@ -638,7 +735,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
               setConfirmAction(null);
               sessionStorage.removeItem(`changedByHR${request.ID}`)
               if (success) {
-                // Navigate back after successful action
                 onBack();
               }
             }

@@ -78,18 +78,71 @@
   margin-bottom: 5px;
 }
 
+.infoIcon {
+  display: inline-block;
+  margin-left: 6px;
+  cursor: pointer;
+  position: relative;
+  font-size: 13px;
+  color: #605e5c;
+}
+
+.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #323130;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+  z-index: 10;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.infoIcon:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
 .budgetAmount {
   font-size: 24px;
   font-weight: 700;
   color: rgb(47, 129, 131);
 }
 
-.donutPercentage {
+.donutPercentageAvailable {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  font-size: 12px;
+  color: #50bec0ff;
+}
+
+.donutPercentagePendingLarge {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-weight: 700;
+  font-size: 14px;
+  color: #2f8183;
+}
+
+.donutPercentagePending {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  font-size: 12px;
+  color: #2f8183;
 }
 
 .budgetDetailsWrapper {
@@ -106,8 +159,7 @@
   background: #fff; 
   padding: 20px; 
   border-radius: 4px; 
-  width: 90%; 
-  max-width: 900; 
+  min-width: 75%; 
   max-height: 85%; 
   overflow: auto
 }
@@ -132,5 +184,14 @@
   td {
     padding: 8px;
     border-bottom: 1px solid #f1f1f1;
+  }
+}
+
+.closeButton {
+  background: none;
+  border: none;
+
+  &:hover {
+    background-color: #ddd;
   }
 }
