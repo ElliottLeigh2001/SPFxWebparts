@@ -315,6 +315,23 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                     />
                   )}
 
+                  {event.PlusOne && (
+                    <PlusOneFormFields
+                      plusOne={formData.plusOne}
+                      setPlusOne={(value: any) => updateFormData('plusOne', value)}
+                      dietaryPrefsPlusOne={formData.dietaryPrefsPlusOne}
+                      setDietaryPrefsPlusOne={(value: any) =>
+                        updateFormData('dietaryPrefsPlusOne', value)
+                      }
+                      foodPlusOne={formData.foodPlusOne}
+                      setFoodPlusOne={(value: any) =>
+                        updateFormData('foodPlusOne', value)
+                      }
+                      disabled={loading}
+                      showFoodFields={event.FoodEvent}
+                    />
+                  )}
+
                   {event.EventTypes === 'Sinterklaas' && (
                     <SinterklaasFormFields
                       amountOfKids={formData.amountOfKids || 0}
@@ -350,23 +367,6 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
                       dietaryPrefs={formData.dietaryPrefs}
                       setDietaryPrefs={(value: any) => updateFormData('dietaryPrefs', value)}
                       disabled={loading}
-                    />
-                  )}
-
-                  {event.PlusOne && (
-                    <PlusOneFormFields
-                      plusOne={formData.plusOne}
-                      setPlusOne={(value: any) => updateFormData('plusOne', value)}
-                      dietaryPrefsPlusOne={formData.dietaryPrefsPlusOne}
-                      setDietaryPrefsPlusOne={(value: any) =>
-                        updateFormData('dietaryPrefsPlusOne', value)
-                      }
-                      foodPlusOne={formData.foodPlusOne}
-                      setFoodPlusOne={(value: any) =>
-                        updateFormData('foodPlusOne', value)
-                      }
-                      disabled={loading}
-                      showFoodFields={event.FoodEvent}
                     />
                   )}
 

@@ -47,23 +47,23 @@ export const getListData = async (context: WebPartContext): Promise<EventItem[]>
   
 // Fetch subscriptions for current user
 export const getMySubscriptions = async (context: WebPartContext): Promise<number[]> => {
-      // get current user's ID
-      const currentUserId = context.pageContext.legacyPageContext.userId;
-      // call the Subscriptions list
-      const subsResponse: SPHttpClientResponse = await context.spHttpClient.get(
-        `${context.pageContext.web.absoluteUrl}/_api/web/lists/GetByTitle('Subscriptions')/items?` +
-          `$select=EventId,Attendee/Id&$expand=Attendee&$filter=Attendee/Id eq ${currentUserId}`,
-        SPHttpClient.configurations.v1
-      );
-      const subsData = await subsResponse.json();
-      const subs: any[] = subsData.value;
-  
-      // extract the event IDs
-      const eventIds = subs
-        .map((s) => {
-          // Note: we assume EventId is the lookup id for the Event
-          return s.EventId as number;
-        })
-        .filter((id) => id != null);
-      return eventIds;
-    };
+  // get current user's ID
+  const currentUserId = context.pageContext.legacyPageContext.userId;
+  // call the Subscriptions list
+  const subsResponse: SPHttpClientResponse = await context.spHttpClient.get(
+    `${context.pageContext.web.absoluteUrl}/_api/web/lists/GetByTitle('Subscriptions')/items?` +
+      `$select=EventId,Attendee/Id&$expand=Attendee&$filter=Attendee/Id eq ${currentUserId}`,
+    SPHttpClient.configurations.v1
+  );
+  const subsData = await subsResponse.json();
+  const subs: any[] = subsData.value;
+
+  // extract the event IDs
+  const eventIds = subs
+    .map((s) => {
+      // Note: we assume EventId is the lookup id for the Event
+      return s.EventId as number;
+    })
+    .filter((id) => id != null);
+  return eventIds;
+};

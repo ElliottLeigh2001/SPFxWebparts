@@ -11,7 +11,7 @@
 :root {
   --main-bg-color: rgb(47, 129, 131);
   --dark-bg-color: rgb(39, 109, 110);
-  --light-grey: #b1b0b0;
+  --light-grey: rgb(47, 129, 131);
 }
 
 .mainContainer {
@@ -182,7 +182,7 @@
 }
 
 .eventItem {
-  background-color: #fff;
+  background-color: #eaf5f5;
   width: 300px;
   height: 300px;
   border-radius: 3px;

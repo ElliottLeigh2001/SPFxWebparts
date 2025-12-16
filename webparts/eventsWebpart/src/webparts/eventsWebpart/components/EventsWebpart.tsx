@@ -202,7 +202,13 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   };
 
   // Carousel arrows logic
-  // (handlers moved below so they can use computed `totalPages` / `pageIndex`)
+  const handlePrev = (): void => {
+    setCurrentIndex((prev) => Math.max(prev - itemsPerPage, 0));
+  };
+  const handleNext = (): void => {
+    const maxStart = Math.max(0, (totalPages - 1) * itemsPerPage);
+    setCurrentIndex((prev) => Math.min(prev + itemsPerPage, maxStart));
+  };
 
   if (loading) return <div>Loading events...</div>;
   if (selectedEvent) {
@@ -359,6 +365,16 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
 
         <main className={styles.mainContent}>
 
+          {items.length > itemsPerPage && (
+            <div className={styles.carouselControls}>
+              <div>
+                <button onClick={handlePrev} disabled={pageIndex === 0}>
+                  <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M12.35 15.85a.5.5 0 0 1-.7 0L6.16 10.4a.55.55 0 0 1 0-.78l5.49-5.46a.5.5 0 1 1 .7.7L7.2 10l5.16 5.15c.2.2.2.5 0 .7Z"></path></svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           {items.length > 0 ? (
             <div className={styles.eventViewport}>
               <div
@@ -423,16 +439,22 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
             </div>
           )}
 
+          {items.length > itemsPerPage && (
+            <div className={styles.carouselControls}>
+              <div>
+                <button
+                  onClick={handleNext}
+                  disabled={pageIndex >= totalPages - 1}
+                >
+                  <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7.65 4.15c.2-.2.5-.2.7 0l5.49 5.46c.21.22.21.57 0 .78l-5.49 5.46a.5.5 0 0 1-.7-.7L12.8 10 7.65 4.85a.5.5 0 0 1 0-.7Z"></path></svg>
+                </button>
+              </div>
+            </div>
+          )}
+
         </main>
           {totalPages > 1 && (
             <div className={styles.pagination}>
-              <button
-                className={styles.pageButton}
-                disabled={pageIndex === 0}
-                onClick={() => setCurrentIndex((pageIndex - 1) * itemsPerPage)}
-              >
-                Previous
-              </button>
 
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .filter((page) => {
@@ -469,13 +491,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                   )
                 )}
 
-              <button
-                className={styles.pageButton}
-                disabled={pageIndex >= totalPages - 1}
-                onClick={() => setCurrentIndex((pageIndex + 1) * itemsPerPage)}
-              >
-                Next
-              </button>
             </div>
           )}
       </div>
