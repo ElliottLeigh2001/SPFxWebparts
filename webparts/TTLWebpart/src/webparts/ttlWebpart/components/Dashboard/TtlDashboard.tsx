@@ -401,6 +401,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         loggedInUser={loggedInUser}
         onViewClick={handleViewClick}
       />
+      
+      <div className={styles.addNewRequestContainer}>
+        <div className={styles.addNewRequestWrapper}>
+          <button className={styles.stdButton} onClick={() => handleViewClick('new')}>Make New Request</button>
+        </div>
+      </div>
 
       {error && (
         <div className={styles.error}>
@@ -409,14 +415,12 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       )}
 
       <DashboardComponent
+        context={context}
         onClick={handleRequestClick}
         requests={requests}
         view='myView'
       />
 
-      <div className={styles.newRequestButtonContainer}>
-        <button className={styles.stdButton} onClick={() => handleViewClick('new')}>Make New Request</button>
-      </div>
     </div>
   );
 }

@@ -13,7 +13,9 @@
     border-radius: 3px;
     background-color: #fff;
     border: 1px solid #ddd;
+    flex: 0 0 280px;
 
+    
     &:hover {
       background-color: #f8f9fa;
     }
@@ -115,34 +117,21 @@
   color: rgb(47, 129, 131);
 }
 
-.donutPercentageAvailable {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-weight: 700;
-  font-size: 12px;
-  color: #50bec0ff;
-}
-
-.donutPercentagePendingLarge {
+.donutPercentage {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-weight: 700;
   font-size: 14px;
+}
+
+.green {
   color: #2f8183;
 }
 
-.donutPercentagePending {
-  position: absolute;
-  top: 60%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-weight: 700;
-  font-size: 12px;
-  color: #2f8183;
+.red {
+  color: #d83b01;
 }
 
 .budgetDetailsWrapper {
@@ -184,6 +173,32 @@
   td {
     padding: 8px;
     border-bottom: 1px solid #f1f1f1;
+  }
+
+}
+
+.innerTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  margin-bottom: 25px;
+
+  tbody {
+    background: #fafafa;
+  }
+
+  th {
+    text-align: left;
+    padding: 6px;
+    font-size: 12px;
+    color: #666;
+    border-bottom: 1px solid #ddd;
+    width: 25%;
+  }
+
+  td {
+    padding: 6px;
+    border-bottom: 1px solid #eee;
   }
 }
 

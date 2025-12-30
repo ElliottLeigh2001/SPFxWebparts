@@ -13,6 +13,7 @@ export interface DashboardComponentProps {
   onClick: (request: any, pushState: any) => void;
   requests: any[];
   view: "approvers" | "myView" | "HR" | "director" | "deliveryDirector";
+  context: WebPartContext;
 }
 
 export interface DirectorDashboardProps {

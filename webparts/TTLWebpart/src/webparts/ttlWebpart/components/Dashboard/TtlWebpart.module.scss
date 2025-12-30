@@ -48,6 +48,20 @@
   }
 }
 
+.addNewRequestContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.addNewRequestWrapper {
+  height: 32px;
+  position: absolute;
+  left: 2%;
+  bottom: -42px;
+  border-radius: 4px;
+}
+
 .tableContainer {
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

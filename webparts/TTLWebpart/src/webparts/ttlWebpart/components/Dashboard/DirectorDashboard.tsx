@@ -137,6 +137,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ context, onBack, 
           )}
 
           <DashboardComponent
+            context={context}
             onClick={handleRequestClick}
             requests={requests}
             view="director"

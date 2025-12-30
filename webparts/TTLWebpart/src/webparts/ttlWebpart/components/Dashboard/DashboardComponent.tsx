@@ -1,16 +1,18 @@
 import * as React from "react"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import styles from "./TtlWebpart.module.scss"
 import { formatDate, getRequestStatusStyling } from "../../Helpers/HelperFunctions"
 import { DashboardComponentProps } from "./DashboardProps"
+import { getApprovers } from '../../service/TTLService'
 
 const ITEMS_PER_PAGE = 10
 
-const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, requests, view }) => {
+const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, requests, view, context }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchFilter, setSearchfilter] = useState('');
   const [sortBy, setSortBy] = useState<null | 'totalCost' | 'submissionDate'>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [teamCoachesMap, setTeamCoachesMap] = useState<Record<string, string>>({});
 
   // Filter, sort and paginate requests
   const filteredRequests = useMemo(() => {
@@ -61,6 +63,32 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
 
     return arr
   }, [filteredRequests, sortBy, sortDir])
+
+  // Load approvers and map approver id -> team coach title for display
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const approvers = await getApprovers(context);
+        if (!mounted) return;
+        const map: Record<string, string> = {};
+        approvers.forEach(a => {
+          if (a && a.Id != null) {
+            map[String(a.Id)] = a.TeamCoach?.Title || '';
+          }
+        });
+        setTeamCoachesMap(map);
+      } catch (e) {
+        console.error('Error loading approvers for team coaches', e);
+      }
+    }
+
+    if (context) {
+      load();
+    }
+
+    return () => { mounted = false }
+  }, [context, requests])
 
   // Compute total pages based on filtered list
   const totalPages = Math.ceil(sortedRequests.length / ITEMS_PER_PAGE) || 1
@@ -122,6 +150,7 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
                   <th>Title</th>
                   {view !== "myView" && <th>Requester</th>}
                   {view === "HR" && <th>Approver</th>}
+                  {view !== 'myView' && <th>Team Coach</th>}
                   <th
                     className={`${styles.colTotalCost} ${styles.sortable}`}
                     onClick={() => toggleSort('totalCost')}
@@ -178,6 +207,7 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
                       <td>{request.Title}</td>
                       {view !== "myView" && <td>{request.Author?.Title || "-"}</td>}
                       {view === "HR" && <td>{request.ApproverID?.Title || "-"}</td>}
+                      {view !== "myView" && <td>{request.ApproverID?.Id ? (teamCoachesMap[String(request.ApproverID.Id)] || "-") : "-"}</td>}
                       <td>€ {request.TotalCost || "-"}</td>
                       <td>{request.Project || "-"}</td>
                       {view !== 'HR' && (

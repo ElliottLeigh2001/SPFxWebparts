@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { UserRequest, UserRequestItem, Approver, Budget } from '../../Interfaces/TTLInterfaces';
-import { getRequestsData, getRequestItemsByRequestId, getApprovers, getBudgetsForPracticeLead, getSP, getBudgetforApprover } from '../../service/TTLService';
+import { getRequestsData, getRequestItemsByRequestId, getApprovers, getSP, getBudgets } from '../../service/TTLService';
 import BudgetRequestsPanel from '../Budget/BudgetRequestsPanel';
 import DonutChart from '../Budget/DonutChart';
 import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
@@ -10,7 +10,7 @@ import styles from './TtlWebpart.module.scss';
 import DashboardComponent from './DashboardComponent';
 import { ApproversDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
-import budgetStyles from './Budgets.module.scss'
+import budgetStyles from '../Budget/Budgets.module.scss'
 import { TooltipHost, Icon } from '@fluentui/react';
 
 const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover, isTeamCoach }) => {
@@ -20,7 +20,11 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [teamCoachBudgets, setTeamCoachBudgets] = useState<Budget[]>([]);
-  const [myBudget, setMyBudget] = useState<Budget>();
+  const [teamBudget, setTeamBudget] = useState({
+    totalBudget: 0,
+    totalAvailable: 0
+  });
+  const [teamBudgetLoaded, setTeamBudgetLoaded] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [availableYears, setAvailableYears] = useState<string[]>([]);
@@ -62,7 +66,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
       const teamCoachForApproverIds = new Set<number>();
       if (isTeamCoach) {
         approversList.forEach((approver: Approver) => {
-          if (approver.TeamCoach?.Title === loggedInUser.Title) {
+          if (approver.TeamCoach?.EMail === loggedInUser.EMail) {
             teamCoachForApproverIds.add(approver.Id);
           }
         });
@@ -110,17 +114,22 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
   useEffect(() => {
     // Fetch budget data for the logged in user
     const fetchBudget = async () => {      
-      if (isApprover) {
-          // Practice lead sees all their team coach budgets
-          const budgetsData = await getBudgetsForPracticeLead(context, loggedInUser.Email, selectedYear);
-          setTeamCoachBudgets(budgetsData);
-        }   
-      else if (isTeamCoach && !isApprover) {
-        const budgetsData = await getBudgetforApprover(context, loggedInUser.Email, selectedYear);
-        if (budgetsData) {
-          setMyBudget(budgetsData);
-        }
-      }
+      if (isApprover || isTeamCoach) {
+        const budgetsData = await getBudgets(context, selectedYear, false, loggedInUser.Email);
+        setTeamCoachBudgets(budgetsData);
+        
+        const budgetForTeam = budgetsData.reduce(
+          (totals, b) => {
+            totals.totalBudget += b.Budget || 0;
+            totals.totalAvailable += b.Availablebudget || 0;
+            return totals;
+          },
+          { totalBudget: 0, totalAvailable: 0 }
+        );
+        
+        setTeamBudget(budgetForTeam);
+        setTeamBudgetLoaded(true);
+      }   
     };
     
     fetchBudget();
@@ -146,9 +155,23 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
     goBack({ setSelectedRequest, setRequestItems, setError, pushState, viewName: 'approvers' });
   };
 
-  // Handle status update and refresh the list
+  // Handle status update and refresh the list and budget
   const handleStatusUpdate = async (): Promise<void> => {
     await fetchData();
+    // Refresh budget after approval to reflect deductions
+    const budgetsData = await getBudgets(context, selectedYear, false, loggedInUser.Email);
+    setTeamCoachBudgets(budgetsData);
+    
+    const budgetForTeam = budgetsData.reduce(
+      (totals, b) => {
+        totals.totalBudget += b.Budget || 0;
+        totals.totalAvailable += b.Availablebudget || 0;
+        return totals;
+      },
+      { totalBudget: 0, totalAvailable: 0 }
+    );
+    
+    setTeamBudget(budgetForTeam);
   };
 
   if (isLoading) {
@@ -187,98 +210,13 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
     );
   }
 
-  const usedBudget =
-  myBudget ? myBudget.Budget - myBudget.Availablebudget : 0;
+  const teamUsed = teamBudget.totalBudget - teamBudget.totalAvailable;
 
   return (
     <div className={styles.ttlDashboard}>
       <HeaderComponent view='Approver Dashboard'/>
 
-      {(isTeamCoach && !isApprover) && (
-        <>
-          <div className={budgetStyles.budgetCard}>
-            <div className={budgetStyles.budgetYearWrapper}>
-              <label>Your budget for</label>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-              >
-                {availableYears.map(year => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {myBudget ? (
-
-              <div className={budgetStyles.budgetContainer}>
-
-                <div
-                  onClick={() => setSelectedBudget(myBudget)}
-                  role="button"
-                  tabIndex={0}
-                  className={budgetStyles.budgetWrapper}
-                >
-                  <DonutChart
-                    total={myBudget.Budget}
-                    available={myBudget.Availablebudget}
-                    pending={myBudget.PendingBudget}
-                    size={100}
-                    strokeWidth={10}
-                  />
-
-                  <div className={budgetStyles.budgetInfo}>
-                    <div><strong>Total Budget:</strong> €{myBudget.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-                    <div>
-                      <strong>
-                        Available{" "}
-                        <TooltipHost content="Budget remaining after completed and booked requests have been deducted. 
-                        This amount can still be used for new approvals.">
-                          <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
-                        </TooltipHost>
-                        :
-                      </strong>{" "}
-                      <span style={{ color: myBudget.Availablebudget > 0 ? "#50bec0ff" : "#d83b01" }}>
-                        €{myBudget.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-
-                    <div>
-                      <strong>
-                        Reserved{" "}
-                        <TooltipHost content="Budget including completed, booked, and in-process requests. 
-                        This reflects budget that is already used or temporarily held by pending requests.">
-                          <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
-                        </TooltipHost>
-                        :
-                      </strong>{" "}
-                      <span style={{ color: myBudget.PendingBudget > 0 ? "#2f8183" : "#d83b01" }}>
-                        €{myBudget.PendingBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div><strong>Used:</strong> €{usedBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-                  </div>
-                </div>
-
-              </div>
-            ) : (
-              <p style={{justifySelf: 'center'}}>No budget data available in {selectedYear}.</p>
-            )}
-          </div>
-
-          {selectedBudget && (
-            <BudgetRequestsPanel
-              context={context}
-              budget={selectedBudget}
-              onClose={() => setSelectedBudget(null)}
-            />
-          )}
-        </>
-      )}
-
-      {(isApprover) && (
+      {(isApprover || isTeamCoach) && (
         <>
           <div className={budgetStyles.budgetCard}>
             <div className={budgetStyles.budgetYearWrapper}>
@@ -296,62 +234,78 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
             </div>
 
             {teamCoachBudgets && teamCoachBudgets.length > 0 ? (
-              <div className={budgetStyles.budgetContainer}>
-                {teamCoachBudgets.map((b) => {
-                  const usedAmount = b.Budget - b.Availablebudget;
-
-                  return (
-                    <div
-                      key={b.ID}
-                      onClick={() => setSelectedBudget(b)}
-                      role="button"
-                      tabIndex={0}
-                      className={budgetStyles.budgetWrapper}
-                    >
-                      <DonutChart
-                        total={b.Budget}
-                        available={b.Availablebudget}
-                        pending={b.PendingBudget}
-                        size={100}
-                        strokeWidth={10}
-                      />
-
-                      <div className={budgetStyles.budgetInfo}>
-                        <h3 style={{ margin: 0 }}>{b.TeamCoach?.Title}</h3>
-                        <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-                        <div>
-                          <strong>
-                            Available{" "}
-                            <TooltipHost content="Budget remaining after completed and booked requests have been deducted. 
-                            This amount can still be used for new approvals.">
-                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
-                            </TooltipHost>
-                            :
-                          </strong>{" "}
-                          <span style={{ color: b.Availablebudget > 0 ? "#50bec0ff" : "#d83b01" }}>
-                            €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-
-                        <div>
-                          <strong>
-                            Reserved{" "}
-                            <TooltipHost content="Budget including completed, booked, and in-process requests. 
-                            This reflects budget that is already used or temporarily held by pending requests.">
-                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
-                            </TooltipHost>
-                            :
-                          </strong>{" "}
-                          <span style={{ color: b.PendingBudget > 0 ? "#2f8183" : "#d83b01" }}>
-                            €{b.PendingBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                        <div><strong>Used:</strong> €{usedAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+              <>
+              {teamBudgetLoaded && (
+                <div className={budgetStyles.budgetContainer} style={{marginBottom: '1rem'}}>
+                  <div className={budgetStyles.budgetWrapper}>
+                    <DonutChart
+                      total={teamBudget.totalBudget}
+                      available={teamBudget.totalAvailable}
+                      size={100}
+                      strokeWidth={10}
+                    />
+                    <div className={budgetStyles.budgetInfo}>
+                      <h3 style={{ margin: 0 }}>{teamCoachBudgets[0].Team}</h3>
+                      <div><strong>Total Budget:</strong> €{teamBudget.totalBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                      <div>
+                        <strong>
+                          Available{" "}
+                          <TooltipHost content="This reflects the budget that remains after prices of completed and in-process requests have been subtracted.">
+                            <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                          </TooltipHost>
+                          :
+                        </strong>{" "}
+                        <span style={{ color: teamBudget.totalAvailable > 0 ? "#2f8183" : "#d83b01" }}>
+                          €{teamBudget.totalAvailable.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                        </span>
                       </div>
+                      <div><strong>Used:</strong> €{teamUsed.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                </div>
+              )}
+
+                <div className={budgetStyles.budgetContainer}>
+                  {teamCoachBudgets.map((b) => {
+                    const usedAmount = b.Budget - b.Availablebudget;
+
+                    return (
+                      <div
+                        key={b.ID}
+                        onClick={() => setSelectedBudget(b)}
+                        role="button"
+                        tabIndex={0}
+                        className={budgetStyles.budgetWrapper}
+                      >
+                        <DonutChart
+                          total={b.Budget}
+                          available={b.Availablebudget}
+                          size={100}
+                          strokeWidth={10} 
+                        />
+
+                        <div className={budgetStyles.budgetInfo}>
+                          <h3 style={{ margin: 0 }}>{b.TeamCoach?.Title}</h3>
+                          <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                          <div>
+                            <strong>
+                              Available{" "}
+                              <TooltipHost content="This reflects the budget that remains after prices of completed and in-process requests have been subtracted.">
+                                <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                              </TooltipHost>
+                              :
+                            </strong>{" "}
+                            <span style={{ color: b.Availablebudget > 0 ? "#2f8183" : "#d83b01" }}>
+                              €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          <div><strong>Used:</strong> €{usedAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                </>
             ) : (
               <p style={{justifySelf: 'center'}}>No budget data available for your team coaches in {selectedYear}.</p>
             )}
@@ -377,6 +331,7 @@ const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack
         )}
 
         <DashboardComponent
+          context={context}
           onClick={handleRequestClick}
           requests={requests}
           view='approvers'

@@ -15,7 +15,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'awaitingApproval' | 'allRequests' | 'approved'>('allRequests');
+  const [activeTab, setActiveTab] = useState<'awaitingApproval' | 'allRequests' | 'approved'>('approved');
 
   // Get requests data
   const fetchRequests = async (requestId?: number): Promise<void> => {
@@ -188,6 +188,7 @@ const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
         {error && <div className={styles.error}><p>{error}</p></div>}
   
         <DashboardComponent
+          context={context}
           onClick={handleRequestClick}
           requests={filteredRequests}
           view='HR'

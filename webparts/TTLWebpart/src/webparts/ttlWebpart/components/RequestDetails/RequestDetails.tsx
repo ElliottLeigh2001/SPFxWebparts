@@ -391,7 +391,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   const handleCEOApproval = async (): Promise<void> => {
     if (request.RequestStatus === 'Awaiting CEO approval') {
       // Deduct from reserved budget
-      await deductReservedBudget();
+      await deductFromTeamCoachBudget();
       // Send to HR
       await updateRequestApprover('HR Processing', true, true);
       // Notify HR
@@ -419,6 +419,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
 
     // Send email to HR only if request goes to HR Processing
     if (nextStatus === 'HR Processing') {
+      await deductFromTeamCoachBudget();
+
       await sendEmail({
         emailType: 'HR',
         requestId: request.ID.toString(),
@@ -431,29 +433,12 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     }
   };
 
-  // Deduct from team coach's reserved budget
-  const deductReservedBudget = async (): Promise<void> => {
-    if (!request.ApproverID?.Id || !request.TotalCost) return;
-
-    try {
-      const approversList = await getApprovers(context);
-      const approver = approversList.find(a => a.Id === request.ApproverID?.Id);
-
-      if (approver?.TeamCoach?.EMail) {
-        const budget = await getBudgetforApprover(context, approver.TeamCoach.EMail, new Date().getFullYear().toString());
-        if (budget) {
-          await deductFromBudget(context, budget.ID, Number(request.TotalCost), 'PendingBudget');
-        }
-      }
-    } catch (budgetError) {
-      console.error('Error deducting from budget:', budgetError);
-    }
-  };
-
   // Handle deny action in confirm dialog
   const handleConfirmDeny = async (comment: string): Promise<void> => {
-    // Add back to budget
-    await addBackToTeamCoachBudget();
+    if (request.RequestStatus === 'Resubmitted') {
+      // Add back to budget
+      await addBackToTeamCoachBudget();
+    }
     // Update status to rejected
     await updateRequestApprover('Rejected', false, true);
     // Add required comment
@@ -534,7 +519,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   // Handle completed action (HR marks request as completed)
   const handleConfirmCompleted = async (): Promise<void> => {
     await updateRequestApprover('Completed', false, false);
-    await deductFromTeamCoachBudget();
   };
 
   // Deduct cost from team coach's available budget
@@ -548,7 +532,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       if (approver?.TeamCoach?.EMail) {
         const budget = await getBudgetforApprover(context, approver.TeamCoach.EMail, new Date().getFullYear().toString());
         if (budget) {
-          await deductFromBudget(context, budget.ID, Number(request.TotalCost), 'AvailableBudget');
+          await deductFromBudget(context, budget.ID, Number(request.TotalCost));
         }
       }
     } catch (budgetError) {
@@ -571,24 +555,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       <HeaderComponent view={request.Title}/>
       {!isUpdatingStatus ? (
         <>
-          <div style={{display: 'flex', justifySelf: 'center', width: '96%'}}>
-            {isApprover && !isTeamCoach && (
-              <>
-                {request.TeamCoachApproval ? (
-                  <>
-                  {request.TeamCoachApproval === 'Approve' ? (
-                    <p>Team Coach approves</p>
-                  ) : (
-                    <p>Team Coach disapproves</p>
-                  )}
-                  </>
-                ) : (
-                  <p>Team coach has not yet reviewed</p>
-                )}
-              </>
-            )}
-          </div>
-
           <div className={requestDetailsStyles.detailsContainer}>
               <div className={requestDetailsStyles.details}>
                 <div className={requestDetailsStyles.titleContainer}>
@@ -608,6 +574,24 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
                 )}
                 <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
                 <span><strong>Team Coach:</strong> {teamCoach|| '/'}</span>
+                <div style={{display: 'flex'}}>
+                  {(view === 'approvers' || view === 'deliveryDirector') && (
+                    <>
+                    <span><strong>Team Coach Approval:</strong></span>
+                      {request.TeamCoachApproval ? (
+                        <>
+                        {request.TeamCoachApproval === 'Approve' ? (
+                          <span style={{marginLeft: '3px'}}> Team Coach approves</span>
+                        ) : (
+                          <span style={{marginLeft: '3px'}}> Team Coach disapproves</span>
+                        )}
+                        </>
+                      ) : (
+                        <span style={{marginLeft: '3px'}}> Team coach has not yet reviewed</span>
+                      )}
+                    </>
+                  )}
+                </div>
                 {displayedItems.length === 0 || displayedItems[0].RequestType !== 'Software' ? (
                   <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
                 ) : (

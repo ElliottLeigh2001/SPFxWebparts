@@ -1,13 +1,17 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
-import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
+import { Budget, UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { getRequestsData, getRequestItemsByRequestId, getSP, getBudgets } from '../../service/TTLService';
 import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
+import budgetStyles from '../Budget/Budgets.module.scss'
 import DashboardComponent from './DashboardComponent';
 import { DeliveryDirectorDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
+import { TooltipHost, Icon } from '@fluentui/react';
+import BudgetRequestsPanel from '../Budget/BudgetRequestsPanel';
+import DonutChart from '../Budget/DonutChart';
 
 const DeliveryDirectorDashboard: React.FC<DeliveryDirectorDashboardProps> = ({ context, onBack, isDeliveryDirector }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
@@ -15,6 +19,41 @@ const DeliveryDirectorDashboard: React.FC<DeliveryDirectorDashboardProps> = ({ c
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [teamCoachBudgets, setTeamCoachBudgets] = useState<Budget[]>([]);
+  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const loadYears = async () => {
+      try {
+        const sp = getSP(context);
+        const list = sp.web.lists.getByTitle('TTL_Budget');
+
+        // Query distinct years
+        const items = await list.items.select('Year').top(5000)();
+
+        const years = Array.from(new Set(items.map(i => i.Year))).sort().reverse();
+
+        setAvailableYears(years);
+      } catch (e) {
+        console.error("Error loading years:", e);
+      }
+    };
+
+    loadYears();
+    fetchData();
+  }, [context]);
+
+    useEffect(() => {
+      // Fetch budget data for the logged in user
+      const fetchBudget = async () => {      
+        const budgetsData = await getBudgets(context, selectedYear, true);
+        setTeamCoachBudgets(budgetsData);  
+      };
+      
+      fetchBudget();
+    }, [context, selectedYear]);
 
   // Get all requests for the delivery director
   const fetchData = async (requestId?: number): Promise<void> => {
@@ -82,9 +121,12 @@ const DeliveryDirectorDashboard: React.FC<DeliveryDirectorDashboardProps> = ({ c
     goBack({ setSelectedRequest, setRequestItems, setError, pushState, viewName: 'deliveryDirector' });
   };
 
-  // Handle status update and refresh the list
+  // Handle status update and refresh the list and budget
   const handleStatusUpdate = async (): Promise<void> => {
     await fetchData();
+    // Refresh budget after approval to reflect deductions
+    const budgetsData = await getBudgets(context, selectedYear, true);
+    setTeamCoachBudgets(budgetsData);
   };
 
   if (isLoading) {
@@ -127,7 +169,75 @@ const DeliveryDirectorDashboard: React.FC<DeliveryDirectorDashboardProps> = ({ c
       
       {(isDeliveryDirector) ? (
         <>
+          <div className={budgetStyles.budgetCard}>
+            <div className={budgetStyles.budgetYearWrapper}>
+              <label>Budgets for</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
 
+            {teamCoachBudgets && teamCoachBudgets.length > 0 ? (
+              <div className={budgetStyles.budgetContainer}>
+                {teamCoachBudgets.map((b) => {
+                  const usedAmount = b.Budget - b.Availablebudget;
+
+                  return (
+                    <div
+                      key={b.ID}
+                      onClick={() => setSelectedBudget(b)}
+                      role="button"
+                      tabIndex={0}
+                      className={budgetStyles.budgetWrapper}
+                    >
+                      <DonutChart
+                        total={b.Budget}
+                        available={b.Availablebudget}
+                        size={100}
+                        strokeWidth={10}
+                      />
+
+                      <div className={budgetStyles.budgetInfo}>
+                        <h3 style={{ margin: 0 }}>{b.TeamCoach?.Title}</h3>
+                        <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                        <div>
+                          <strong>
+                            Available{" "}
+                            <TooltipHost content="Budget including completed, booked, and in-process requests. 
+                            This reflects budget that is already used or temporarily held by pending requests.">
+                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                            </TooltipHost>
+                            :
+                          </strong>{" "}
+                          <span style={{ color: b.Availablebudget > 0 ? "#2f8183" : "#d83b01" }}>
+                            €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div><strong>Used:</strong> €{usedAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p style={{justifySelf: 'center'}}>No budget data available for your team coaches in {selectedYear}.</p>
+            )}
+          </div>
+
+          {selectedBudget && (
+            <BudgetRequestsPanel
+              context={context}
+              budget={selectedBudget}
+              onClose={() => setSelectedBudget(null)}
+            />
+          )}
         {error && (
           <div className={styles.error}>
             <p>{error}</p>
@@ -135,6 +245,7 @@ const DeliveryDirectorDashboard: React.FC<DeliveryDirectorDashboardProps> = ({ c
         )}
   
         <DashboardComponent
+          context={context}
           onClick={handleRequestClick}
           requests={requests}
           view='deliveryDirector'

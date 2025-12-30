@@ -630,21 +630,61 @@ export const getBudgetforApprover = async (context: WebPartContext, teamCoachEma
 };
 
 // Get all budgets for team coaches under a specific practice lead
-export const getBudgetsForPracticeLead = async (context: WebPartContext, practiceLeadEmail: string, year: string): Promise<Budget[]> => {
+export const getBudgets = async (context: WebPartContext, year: string, isDeliveryDirector: boolean, loggedInEmail?: string): Promise<Budget[]> => {
   try {
     const sp = getSP(context);
-
     const approversList = sp.web.lists.getByTitle('TTL_Approver');
-    const approvers: any[] = await approversList.items
-      .select('*,TeamCoach/Id,TeamCoach/EMail,TeamCoach/Title')
-      .expand('TeamCoach')
-      .filter(`PracticeLead/EMail eq '${practiceLeadEmail}'`)();
+    let approvers: any[] = [];
+
+    // If delivery director, return all approvers' team coaches
+    if (isDeliveryDirector) {
+      approvers = await approversList.items
+        .select('*,TeamCoach/Id,TeamCoach/EMail,TeamCoach/Title')
+        .expand('TeamCoach')();
+    } else {
+      // Load approvers with both TeamCoach and PracticeLead
+      const allApprovers = await approversList.items
+        .select('*,TeamCoach/Id,TeamCoach/EMail,TeamCoach/Title,PracticeLead/Id,PracticeLead/EMail,PracticeLead/Title')
+        .expand('TeamCoach,PracticeLead')();
+
+      if (!allApprovers || !allApprovers.length) return [];
+
+      // If the caller email corresponds to a team coach,
+      // then find all practice leads that this team coach is associated with and gather all team coaches
+      // for those practice leads (i.e., "everyone who they share a practicelead with"). Also include the practice lead email.
+      if (loggedInEmail && allApprovers.some(a => a.TeamCoach?.EMail === loggedInEmail)) {
+        // practice lead that this team coach works under
+        const loggedInEmails = Array.from(new Set(
+          allApprovers
+            .filter(a => a.TeamCoach?.EMail === loggedInEmail)
+            .map(a => a.PracticeLead?.EMail)
+            .filter((e): e is string => !!e)
+        ));
+
+        if (!loggedInEmails.length) return [];
+
+        // approvers under the practice lead
+        approvers = allApprovers.filter(a => loggedInEmails.includes(a.PracticeLead?.EMail));
+
+        // also ensure practice lead email is included in the email list later
+        loggedInEmails.forEach(pl => approvers.push({ TeamCoach: { EMail: pl }, _isPracticeLeadMarker: true }));
+      } else if (loggedInEmail) {
+        // standard practice lead flow: approvers where PracticeLead == loggedInEmail
+        approvers = allApprovers.filter(a => a.PracticeLead?.EMail === loggedInEmail);
+      } else {
+        return [];
+      }
+    }
 
     if (!approvers.length) return [];
 
-    const teamCoachEmails = approvers
-      .map(a => a.TeamCoach?.EMail)
-      .filter((email): email is string => !!email);
+    const teamCoachEmails = Array.from(new Set(
+      approvers
+        .map(a => a.TeamCoach?.EMail)
+        .filter((email): email is string => !!email)
+    ));
+
+    if (loggedInEmail) teamCoachEmails.push(loggedInEmail);
 
     if (!teamCoachEmails.length) return [];
 
@@ -679,13 +719,13 @@ export const getBudgetsForPracticeLead = async (context: WebPartContext, practic
 };
 
 // Deduct an amount from a team coach's available budget
-export const deductFromBudget = async (context: WebPartContext, budgetId: number, amount: number, type: string): Promise<void> => {
+export const deductFromBudget = async (context: WebPartContext, budgetId: number, amount: number): Promise<void> => {
   try {
     const sp = getSP(context);
     const budgetList = sp.web.lists.getByTitle('TTL_Budget');
 
     // Get current budget
-    const budget: any = await budgetList.items.getById(budgetId).select(type)();
+    const budget: any = await budgetList.items.getById(budgetId).select('Availablebudget')();
     const newAvailableBudget = budget.Availablebudget - amount;
 
     // Update the available budget
@@ -705,7 +745,7 @@ export const addToBudget = async (context: WebPartContext, budgetId: number, amo
     const budgetList = sp.web.lists.getByTitle('TTL_Budget');
 
     // Get current budget
-    const budget: any = await budgetList.items.getById(budgetId).select('PendingBudget')();
+    const budget: any = await budgetList.items.getById(budgetId).select('Availablebudget')();
     const newAvailableBudget = budget.Availablebudget + amount;
 
     // Update the available budget
