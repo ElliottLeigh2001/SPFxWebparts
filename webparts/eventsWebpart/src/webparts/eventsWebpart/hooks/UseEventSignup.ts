@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { EventItem } from '../EventsInterfaces';
-import { getSP } from '../utils/getSP';
-import { KidData } from '../components/form-fields/Sinterklaas/SinterklaasFormInterface';
+import { getCurrentUser, isUserSignedUp, deleteUserSubscriptionsForEvent, addSubscriptionItem } from '../service/EventsService';
+import { KidData } from '../components/formFields/Sinterklaas/SinterklaasFormInterface';
 
 interface SignupFormData {
   extraInfo: string;
@@ -34,15 +34,8 @@ export const useEventSignup = (context: WebPartContext, event: EventItem) => {
     const checkSignup = async (): Promise<void> => {
       try {
         setCheckingStatus(true);
-        const sp = getSP(context);
-        const currentUser = await sp.web.currentUser();
-        const attendee = await sp.web.lists
-          .getByTitle("Subscriptions")
-          .items
-          .filter(`EventId eq ${event.Id} and AttendeeId eq ${currentUser.Id}`)
-          .select("Id")();
-
-        setIsSignedUp(attendee.length > 0);
+        const signedUp = await isUserSignedUp(context, event.Id!);
+        setIsSignedUp(signedUp);
       } catch (err) {
         console.error("Error checking signup:", err);
       } finally {
@@ -67,28 +60,16 @@ export const useEventSignup = (context: WebPartContext, event: EventItem) => {
     
     setLoading(true);
     try {
-      const sp = getSP(context);
-      const currentUser = await sp.web.currentUser();
+      const deletedCount = await deleteUserSubscriptionsForEvent(context, event.Id!);
 
-      const attendeeItems = await sp.web.lists
-        .getByTitle("Subscriptions")
-        .items
-        .filter(`EventId eq ${event.Id} and AttendeeId eq ${currentUser.Id}`)
-        .select("Id")();
-
-      if (attendeeItems.length === 0) {
+      if (deletedCount === 0) {
         showNotification('error', 'You are not signed up for this event.');
         setIsSignedUp(false);
         return;
       }
 
-    // Delete ALL rows for this event and user
-    for (const item of attendeeItems) {
-      await sp.web.lists.getByTitle("Subscriptions").items.getById(item.Id).delete();
-    }
-    
-    setIsSignedUp(false);
-    showNotification('success', 'You have successfully signed out.');
+      setIsSignedUp(false);
+      showNotification('success', 'You have successfully signed out.');
   } catch {
     showNotification('error', 'Could not remove your signup. Refresh and try again.');
   } finally {
@@ -99,15 +80,14 @@ export const useEventSignup = (context: WebPartContext, event: EventItem) => {
 const handleSubmit = async (formData: SignupFormData): Promise<void> => {
   setLoading(true);
   try {
-    const sp = getSP(context);
-    const currentUser = await sp.web.currentUser();
+    const currentUser = await getCurrentUser(context);
 
     // For Sinterklaas events, create one row per kid
     if (event.EventTypes === 'Sinterklaas') {
       const kids = formData.kidsData || [];
 
       for (const kid of kids) {
-        await sp.web.lists.getByTitle("Subscriptions").items.add({
+        await addSubscriptionItem(context, {
           Title: event.Title,
           AttendeeId: currentUser.Id,
           EventId: event.Id,
@@ -122,7 +102,7 @@ const handleSubmit = async (formData: SignupFormData): Promise<void> => {
       
       // If no kids but it's a Sinterklaas event, still create one row for the attendee
       if (kids.length === 0) {
-        await sp.web.lists.getByTitle("Subscriptions").items.add({
+        await addSubscriptionItem(context, {
           Title: event.Title,
           AttendeeId: currentUser.Id,
           EventId: event.Id,
@@ -173,7 +153,7 @@ const handleSubmit = async (formData: SignupFormData): Promise<void> => {
         submitData.ageChild5 = formData.ageChild5;
       }
 
-      await sp.web.lists.getByTitle("Subscriptions").items.add(submitData);
+      await addSubscriptionItem(context, submitData);
     }
 
     setIsSignedUp(true);

@@ -2,16 +2,16 @@ import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { EventItem } from '../../EventsInterfaces';
-import { SportFormFields } from '../form-fields/Sport/SportFormField';
-import { FoodFormFields } from '../form-fields/Food/FoodFormFields';
-import { CarpoolingFormFields } from '../form-fields/Carpooling/CarpoolingFormFields';
-import { FamilyFormFields } from '../form-fields/Family/FamilyFormFields';
-import { SinterklaasFormFields } from '../form-fields/Sinterklaas/SinterklaasFormFields';
-import { PlusOneFormFields } from '../form-fields/PlusOne/PlusOneFormFields';
-import { formatSingleDate } from '../../utils/DateUtils';
+import { SportFormFields } from '../formFields/Sport/SportFormField';
+import { FoodFormFields } from '../formFields/Food/FoodFormFields';
+import { CarpoolingFormFields } from '../formFields/Carpooling/CarpoolingFormFields';
+import { FamilyFormFields } from '../formFields/Family/FamilyFormFields';
+import { SinterklaasFormFields } from '../formFields/Sinterklaas/SinterklaasFormFields';
+import { PlusOneFormFields } from '../formFields/PlusOne/PlusOneFormFields';
+import { formatDate, formatSingleDate } from '../../utils/DateUtils';
 import { useEventSignup } from '../../hooks/UseEventSignup';
 import detailsStyles from './EventDetails.module.scss'
-import { getSP } from '../../utils/getSP';
+import { getAttendeesForEvent } from '../../service/EventsService';
 
 const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack: () => void; }> = ({ context, event, onBack }) => {
   const [allAttendees, setAllAttendees] = useState<any[]>([]);
@@ -76,12 +76,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
   useEffect(() => {
     const fetchAttendees = async () => {
       try {
-        const sp = getSP(context);
-        const items = await sp.web.lists
-          .getByTitle("Subscriptions")
-          .items.filter(`EventId eq ${event.Id}`)
-          .select("Id", "Carpooling", "DepartureFrom", "Attendee/Id", "Attendee/Title")
-          .expand("Attendee")();
+        const items = await getAttendeesForEvent(context, event.Id!);
 
         // Deduplicate by Attendee Id or Title
         const uniqueAttendees = Object.values(
@@ -193,7 +188,7 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
           {event ? (
             <>
               <h2 style={{marginBottom: '8px'}}>{event.Title}</h2>
-              <p>{formatSingleDate(event.StartTime)}</p>
+              <p>{formatDate(event.StartTime, event.EndTime)}</p>
               <p>{event.Location}</p>
             </>
           ) : (

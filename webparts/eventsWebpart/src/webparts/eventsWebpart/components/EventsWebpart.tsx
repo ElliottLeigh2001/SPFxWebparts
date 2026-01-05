@@ -153,7 +153,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
         });
         setAllItems(upcoming);
 
-        // ** load subscriptions only if showMyEvents is true or anyway, depends on UX -->
         const eventIds = await getMySubscriptions(context);
         setMyEventIds(eventIds);
 

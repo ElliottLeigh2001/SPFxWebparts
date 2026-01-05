@@ -23,26 +23,31 @@ const months: Record<number, string> = {
   11: "December"
 };
 
+// Add a 0 to the start if the number is under 10
+const pad = (num: number): string => (num < 10 ? '0' + num : num.toString());
+
 // Date formatting for displaying start and end dates
 export const formatDate = (startTime: string, endTime: string): string => {
   const startDate = new Date(startTime);
   const endDate = new Date(endTime);
-  const pad = (num: number): string => (num < 10 ? '0' + num : num.toString());
 
   if (startDate.getDate() === endDate.getDate() &&
       startDate.getMonth() === endDate.getMonth() &&
       startDate.getFullYear() === endDate.getFullYear()) {
-    return `${daysOfWeek[startDate.getDay()]} ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()} from ${pad(startDate.getHours())}:${pad(startDate.getMinutes())} to ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+    if (startDate.getHours() === endDate.getHours() &&
+      startDate.getMinutes() === endDate.getMinutes()) {
+      return `${daysOfWeek[startDate.getDay()]} ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()} at ${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`;
+    } else {
+      return `${daysOfWeek[startDate.getDay()]} ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()} from ${pad(startDate.getHours())}:${pad(startDate.getMinutes())} to ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+    }
   } else {
     return `${daysOfWeek[startDate.getDay()]} ${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()} ${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${daysOfWeek[endDate.getDay()]} ${pad(endDate.getDate())}/${pad(endDate.getMonth() + 1)}/${endDate.getFullYear()} ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
   }
 };
 
 // Date formatting for displaying sign up deadline
-export const formatSingleDate = (date: string, hoursNeeded?: boolean): string => {
+export const formatSingleDate = (date: string): string => {
   const d = new Date(date);
-
-  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
 
   const dayName = daysOfWeek[d.getDay()];
   const day = d.getDate();

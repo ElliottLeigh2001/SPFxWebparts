@@ -11,11 +11,7 @@
 :root {
   --main-bg-color: rgb(47, 129, 131);
   --dark-bg-color: rgb(39, 109, 110);
-  --light-grey: rgb(47, 129, 131);
-}
-
-.mainContainer {
-  margin: 1rem 2rem;
+  --light-grey: #797979;
 }
 
 .layout {
@@ -50,11 +46,6 @@
   align-items: center;
   gap: 1rem;
   margin-left: auto;
-}
-
-.dateInputs {
-  display: flex;
-  gap: 0.5rem;
 }
 
 .dropdown {
@@ -161,21 +152,6 @@
   min-height: 400px;
 }
 
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
-  font-size: 0.95rem;
-}
-
-.eventContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-}
-
 .eventViewport {
   overflow: hidden;
   width: 1050px;
@@ -251,58 +227,6 @@
   box-sizing: border-box;
 }
 
-.pageDots {
-  display: flex;
-  justify-content: center;
-  margin-top: 1.2rem;
-  gap: 15px;
-}
-
-.dotWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 4px;
-  border: 2px solid var(--light-grey);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: border-color 0.3s;
-}
-
-.dotWrapper:hover {
-  border-color: var(--main-bg-color);
-  .dot {
-    background-color: var(--main-bg-color);
-  }
-}
-
-.dotWrapper.active {
-  border-color: var(--main-bg-color);
-}
-
-.dotWrapper.active .dot {
-  background-color: var(--main-bg-color);
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  background-color: var(--light-grey);
-  border-radius: 50%;
-  transition: background-color 0.3s;
-}
-
-.dot:hover {
-  background-color: var(--main-bg-color);
-}
-
-.title {
-  display: flex;
-  justify-content: center;
-  margin: 1em;
-  font-weight: bold;
-}
-
 .addButton {
   width: fit-content;
   cursor: pointer;
@@ -321,22 +245,6 @@
   height: 37.33px;
   width: 80px;
   background: transparent;
-}
-
-.dateInputRow {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.dateLabel {
-  width: 50px;
-  margin-right: 0.5rem;
-  text-align: left;
-}
-
-.dateInput {
-  flex: 1;
 }
 
 .carouselControls button {
@@ -373,11 +281,6 @@
   gap: 8px;
 }
 
-.pageButton {
-  width: 76px;
-}
-
-.pageButton,
 .pageNumber {
   background-color: white;
   border: 1px solid #2f8183;

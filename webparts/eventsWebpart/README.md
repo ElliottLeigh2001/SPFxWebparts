@@ -2,7 +2,7 @@
 
 ## Summary
 
-A React based SPFx webpart designed to streamline the process of signing in and out for company events. For each event type, unique form fields will be visible and are to be filled in, either optionally or mandatory. 
+A React based SPFx webpart designed to streamline the process of signing in and out for company events. All future events are shown in the dashboard. Users can filter and search on events and can then choose for which events they would like to sign up for. For each event type, unique form fields will be visible and are to be filled in, either optionally or mandatory. 
 
 ## Versions used
 
