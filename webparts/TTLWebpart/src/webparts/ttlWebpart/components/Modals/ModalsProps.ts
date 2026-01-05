@@ -4,7 +4,6 @@ import { UserRequestItem } from "../../Interfaces/TTLInterfaces";
 export interface AddItemModalProps {
   context: WebPartContext;
   isOpen: boolean;
-  isUpdating: boolean;
   onSave: (item: UserRequestItem) => Promise<void>;
   onCancel: () => void;
 }
@@ -31,7 +30,7 @@ export const messages: Record<ActionType, string> = {
   completed: 'Are you sure you want to mark this request as completed?'
 };
 
-export interface ConfirmActionDialogProps {
+export interface IConfirmActionDialogProps {
   isOpen: boolean;
   action: ActionType | null;
   isProcessing?: boolean;
@@ -39,7 +38,7 @@ export interface ConfirmActionDialogProps {
   onConfirm: (comment?: string) => void;
 }
 
-export interface ConfirmDeleteDialogProps {
+export interface IConfirmDeleteDialogProps {
   isOpen: boolean;
   isDeleting: boolean;
   itemName?: string | null;
@@ -48,7 +47,7 @@ export interface ConfirmDeleteDialogProps {
   onConfirmRequestDelete: () => void;
 }
 
-export interface EditItemModalProps {
+export interface IEditItemModalProps {
   context: WebPartContext;
   activeForm: 'software'|'training'|'travel'|'accommodation'|null;
   activeFormName: 'software'|'training'|'travel'|'accommodation'|null;

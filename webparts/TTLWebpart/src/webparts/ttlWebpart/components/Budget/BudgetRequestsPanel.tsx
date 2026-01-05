@@ -1,25 +1,13 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { UserRequest, Approver, Budget } from '../../Interfaces/TTLInterfaces';
+import { Approver } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getApprovers } from '../../service/TTLService';
 import budgetStyles from './Budgets.module.scss';
 import { formatDate } from '../../Helpers/HelperFunctions';
+import { IBudgetProps, IRequestsByRequester } from './BudgetProps';
 
-interface Props {
-  context: WebPartContext;
-  budget: Budget;
-  onClose: () => void;
-}
-
-interface RequestsByRequester {
-  requester: string;
-  totalCost: number;
-  requests: UserRequest[];
-}
-
-const BudgetRequestsPanel: React.FC<Props> = ({ context, budget, onClose }) => {
-  const [groupedRequests, setGroupedRequests] = useState<RequestsByRequester[]>([]);
+const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose }) => {
+  const [groupedRequests, setGroupedRequests] = useState<IRequestsByRequester[]>([]);
   const [expandedRequesters, setExpandedRequesters] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +46,7 @@ const BudgetRequestsPanel: React.FC<Props> = ({ context, budget, onClose }) => {
           return r.RequestStatus === 'Completed' || r.RequestStatus === 'HR Processing';
         });
 
-        const groupedMap = new Map<string, RequestsByRequester>();
+        const groupedMap = new Map<string, IRequestsByRequester>();
         filtered.forEach(r => {
           const requesterName = r.Author?.Title ?? 'Unknown';
           const cost = Number(r.TotalCost || 0);

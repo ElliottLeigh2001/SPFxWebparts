@@ -7,13 +7,13 @@ import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
 import budgetStyles from '../Budget/Budgets.module.scss'
 import DashboardComponent from './DashboardComponent';
-import { DeliveryDirectorDashboardProps } from './DashboardProps';
+import { IDeliveryDirectorDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
 import { TooltipHost, Icon } from '@fluentui/react';
 import BudgetRequestsPanel from '../Budget/BudgetRequestsPanel';
 import DonutChart from '../Budget/DonutChart';
 
-const DeliveryDirectorDashboard: React.FC<DeliveryDirectorDashboardProps> = ({ context, onBack, isDeliveryDirector }) => {
+const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ context, onBack, isDeliveryDirector }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);

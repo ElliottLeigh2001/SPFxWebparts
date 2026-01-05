@@ -1,7 +1,7 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { Approver } from "../../Interfaces/TTLInterfaces";
 
-export interface ApproversDashboardProps {
+export interface IApproversDashboardProps {
   context: WebPartContext;
   onBack: () => void;
   loggedInUser: any;
@@ -9,27 +9,27 @@ export interface ApproversDashboardProps {
   isTeamCoach: boolean;
 }
 
-export interface DashboardComponentProps {
+export interface IDashboardComponentProps {
   onClick: (request: any, pushState: any) => void;
   requests: any[];
   view: "approvers" | "myView" | "HR" | "director" | "deliveryDirector";
   context: WebPartContext;
 }
 
-export interface DirectorDashboardProps {
+export interface IDirectorDashboardProps {
   context: WebPartContext;
   onBack: () => void;
   loggedInUser: any;
   isCEO: boolean;
 }
 
-export interface DeliveryDirectorDashboardProps {
+export interface IDeliveryDirectorDashboardProps {
   context: WebPartContext;
   onBack: () => void;
   isDeliveryDirector: boolean;
 }
 
-export interface HRDashboardProps {
+export interface IHRDashboardProps {
   context: WebPartContext;
   onBack: () => void;
   isHR: boolean;

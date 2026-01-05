@@ -1,25 +1,26 @@
 import * as React from 'react';
 import { Modal } from '@fluentui/react';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { ConfirmDeleteDialogProps } from './ModalsProps';
+import modalStyles from './Modals.module.scss';
+import { IConfirmDeleteDialogProps } from './ModalsProps';
 
-const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({ isOpen, isDeleting, itemName, onCancel, onConfirmItemDelete, onConfirmRequestDelete }) => {
+const ConfirmDeleteDialog: React.FC<IConfirmDeleteDialogProps> = ({ isOpen, isDeleting, itemName, onCancel, onConfirmItemDelete, onConfirmRequestDelete }) => {
   return (
     <Modal
       isOpen={isOpen}
       onDismiss={onCancel}
       isBlocking={true}
-      containerClassName={requestDetailsStyles.modalContainer}
+      containerClassName={modalStyles.modalContainer}
     >
-      <div className={requestDetailsStyles.modalHeader}>
+      <div className={modalStyles.modalHeader}>
         <h3>Confirm Delete</h3>
-        <button className={requestDetailsStyles.modalCloseButton} onClick={onCancel}>×</button>
+        <button className={modalStyles.modalCloseButton} onClick={onCancel}>×</button>
       </div>
-      <div className={requestDetailsStyles.modalBody}>
+      <div className={modalStyles.modalBody}>
         {itemName ? (
           <>
             <p>Are you sure you want to delete the item "{itemName}"? This action cannot be undone.</p>
-            <div className={requestDetailsStyles.modalActions}>
+            <div className={modalStyles.modalActions}>
               <button
                 className={requestDetailsStyles.cancelButton}
                 onClick={onCancel}
@@ -39,7 +40,7 @@ const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({ isOpen, isDel
         ) : (
           <>
             <p>Are you sure you want to delete this request and all its items? This action cannot be undone.</p>
-            <div className={requestDetailsStyles.modalActions}>
+            <div className={modalStyles.modalActions}>
               <button
                 className={requestDetailsStyles.deleteButton}
                 onClick={onConfirmRequestDelete}

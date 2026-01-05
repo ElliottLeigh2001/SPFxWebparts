@@ -3,13 +3,13 @@ import { Modal } from '@fluentui/react';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
+import modalStyles from './Modals.module.scss';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useState, useEffect } from 'react';
-import newRequestStyles from '../NewRequest/NewRequest.module.scss'
 import AccommodationForm from '../Forms/AccomodationForm';
 import { AddItemModalProps } from './ModalsProps';
 
-const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating, onSave, onCancel }) => {
+const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, onSave, onCancel }) => {
   const [activeForm, setActiveForm] = useState<'training' | 'travel' | 'accommodation' | null>(null);
 
   // Reset form selection when modal opens/closes
@@ -31,7 +31,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating
 
   // Render a form based on the chosen item 
   const renderFormSelection = (): JSX.Element => (
-    <div className={requestDetailsStyles.modalBody}>
+    <div className={modalStyles.modalBody}>
       <div className={requestDetailsStyles.formSelection}>
         <button 
           className={requestDetailsStyles.formSelectionButton} 
@@ -59,7 +59,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating
     switch (activeForm) {
       case 'training':
         return (
-          <div className={newRequestStyles.modalBody}>
+          <div className={modalStyles.modalBody}>
             <TrainingForm
                 context={context}
                 onSave={handleFormSave}
@@ -70,7 +70,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating
         );
       case 'travel':
         return (
-          <div className={newRequestStyles.modalBody}>
+          <div className={modalStyles.modalBody}>
             <TravelForm
                 context={context}
                 onSave={handleFormSave}
@@ -81,7 +81,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating
         );
       case 'accommodation':
         return (
-          <div className={newRequestStyles.modalBody}>
+          <div className={modalStyles.modalBody}>
             <AccommodationForm
                 context={context}
                 onSave={handleFormSave}
@@ -107,12 +107,12 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating
       isOpen={isOpen}
       onDismiss={onCancel}
       isBlocking={false}
-      containerClassName={requestDetailsStyles.modalContainer}
+      containerClassName={modalStyles.modalContainer}
     >
-      <div className={requestDetailsStyles.modalHeader}>
+      <div className={modalStyles.modalHeader}>
         <h3>{getModalTitle()}</h3>
         <button 
-          className={requestDetailsStyles.modalCloseButton} 
+          className={modalStyles.modalCloseButton} 
           onClick={onCancel}
         >
         ×
@@ -121,7 +121,6 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, isUpdating
       
       {renderForm()}
       
-      {isUpdating && <div className={requestDetailsStyles.loading}>Adding Item...</div>}
     </Modal>
   );
 };

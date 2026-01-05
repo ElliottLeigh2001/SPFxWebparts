@@ -3,11 +3,11 @@ import { Modal } from '@fluentui/react';
 import SoftwareForm from '../Forms/SoftwareForm';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
-import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
+import modalStyles from './Modals.module.scss';
 import AccommodationForm from '../Forms/AccomodationForm';
-import { EditItemModalProps } from './ModalsProps';
+import { IEditItemModalProps } from './ModalsProps';
 
-const EditItemModal: React.FC<EditItemModalProps> = ({ context, activeForm, activeFormName, editingItem, isUpdating, view, onSave, onCancel }) => {
+const EditItemModal: React.FC<IEditItemModalProps> = ({ context, activeForm, activeFormName, editingItem, isUpdating, view, onSave, onCancel }) => {
   const getModalTitle = () => editingItem ? `Edit ${activeFormName}` : `Add ${activeFormName}`;
 
   return (
@@ -16,13 +16,13 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ context, activeForm, acti
         isOpen={activeForm === 'software'}
         onDismiss={onCancel}
         isBlocking={false}
-        containerClassName={requestDetailsStyles.modalContainer}
+        containerClassName={modalStyles.modalContainer}
       >
-        <div className={requestDetailsStyles.modalHeader}>
+        <div className={modalStyles.modalHeader}>
           <h3>{getModalTitle()}</h3>
-          <button className={requestDetailsStyles.modalCloseButton} onClick={onCancel}>×</button>
+          <button className={modalStyles.modalCloseButton} onClick={onCancel}>×</button>
         </div>
-        <div className={requestDetailsStyles.modalBody}>
+        <div className={modalStyles.modalBody}>
           <SoftwareForm
             context={context}
             onSave={onSave}
@@ -38,13 +38,13 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ context, activeForm, acti
         isOpen={activeForm === 'training'}
         onDismiss={onCancel}
         isBlocking={false}
-        containerClassName={requestDetailsStyles.modalContainer}
+        containerClassName={modalStyles.modalContainer}
       >
-        <div className={requestDetailsStyles.modalHeader}>
+        <div className={modalStyles.modalHeader}>
           <h3>{getModalTitle()}</h3>
-          <button className={requestDetailsStyles.modalCloseButton} onClick={onCancel}>×</button>
+          <button className={modalStyles.modalCloseButton} onClick={onCancel}>×</button>
         </div>
-        <div className={requestDetailsStyles.modalBody}>
+        <div className={modalStyles.modalBody}>
           <TrainingForm
             context={context}
             onSave={onSave}
@@ -60,13 +60,13 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ context, activeForm, acti
         isOpen={activeForm === 'travel'}
         onDismiss={onCancel}
         isBlocking={false}
-        containerClassName={requestDetailsStyles.modalContainer}
+        containerClassName={modalStyles.modalContainer}
       >
-        <div className={requestDetailsStyles.modalHeader}>
+        <div className={modalStyles.modalHeader}>
           <h3>{getModalTitle()}</h3>
-          <button className={requestDetailsStyles.modalCloseButton} onClick={onCancel}>×</button>
+          <button className={modalStyles.modalCloseButton} onClick={onCancel}>×</button>
         </div>
-        <div className={requestDetailsStyles.modalBody}>
+        <div className={modalStyles.modalBody}>
           <TravelForm
             context={context}
             onSave={onSave}
@@ -82,13 +82,13 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ context, activeForm, acti
         isOpen={activeForm === 'accommodation'}
         onDismiss={onCancel}
         isBlocking={false}
-        containerClassName={requestDetailsStyles.modalContainer}
+        containerClassName={modalStyles.modalContainer}
       >
-        <div className={requestDetailsStyles.modalHeader}>
+        <div className={modalStyles.modalHeader}>
           <h3>{getModalTitle()}</h3>
-          <button className={requestDetailsStyles.modalCloseButton} onClick={onCancel}>×</button>
+          <button className={modalStyles.modalCloseButton} onClick={onCancel}>×</button>
         </div>
-        <div className={requestDetailsStyles.modalBody}>
+        <div className={modalStyles.modalBody}>
           <AccommodationForm
             context={context}
             onSave={onSave}

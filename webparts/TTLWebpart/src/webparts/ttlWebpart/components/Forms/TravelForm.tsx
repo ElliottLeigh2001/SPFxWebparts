@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
-import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { FormProps } from './FormProps';
+import formStyles from './Forms.module.scss';
+import { IFormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 
@@ -10,7 +10,7 @@ export type TravelFormHandle = {
   getFormData: () => { isValid: boolean; item?: UserRequestItem; includeAccommodation?: boolean; includeReturnJourney?: boolean }
 }
 
-const TravelForm = forwardRef<TravelFormHandle, FormProps & 
+const TravelForm = forwardRef<TravelFormHandle, IFormProps & 
   { isReturnJourney?: boolean, onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, 
     inline?: boolean, onToggleIncludeTraining?: (v: boolean) => void; onToggleIncludeAccommodation?: (v: boolean) => void, onToggleIncludeReturnJourney?: (v: boolean) => void 
   }>((props, ref) => {
@@ -184,14 +184,14 @@ const TravelForm = forwardRef<TravelFormHandle, FormProps &
         {ref && (
           <>
           {returning ? (
-            <div className={requestDetailsStyles.cardHeader}>
-              <div className={requestDetailsStyles.cardTitle}>
+            <div className={formStyles.cardHeader}>
+              <div className={formStyles.cardTitle}>
                 <h3>Travel details - Return Journey</h3>
               </div>
             </div>
           ) : (
-            <div className={requestDetailsStyles.cardHeader}>
-              <div className={requestDetailsStyles.cardTitle}>
+            <div className={formStyles.cardHeader}>
+              <div className={formStyles.cardTitle}>
                 <h3>Travel details</h3>
               </div>
             </div>

@@ -10,11 +10,11 @@ import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import newRequestStyles from './NewRequest.module.scss'
 import { sendEmail } from '../../service/AutomateService';
 import AccommodationForm from '../Forms/AccomodationForm';
-import { NewRequestProps } from './NewRequestProps';
+import { INewRequestProps } from './NewRequestProps';
 import HeaderComponent from '../Header/HeaderComponent';
 import { getUserAndManager } from '../../Helpers/HelperFunctions';
 
-const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave, approvers, loggedInUser }) => {
+const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSave, approvers, loggedInUser }) => {
     const [title, setTitle] = useState('');
     const [goal, setGoal] = useState('');
     const [project, setProject] = useState('');
@@ -181,7 +181,7 @@ const NewRequestTravel: React.FC<NewRequestProps> = ({ context, onCancel, onSave
             onSave();
 
         } catch (err) {
-            setError('Failed to create request');
+            setError('An error occured. Refresh and check your dashboard, the request may have been created anyway.');
         } finally {
             setIsSaving(false);
         }

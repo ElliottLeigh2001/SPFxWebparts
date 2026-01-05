@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
-import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { FormProps } from './FormProps';
+import formStyles from './Forms.module.scss';
+import { IFormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 
 export type AccommodationFormHandle = {
   getFormData: () => { isValid: boolean; item?: any }
 }
 
-const AccommodationForm = forwardRef<AccommodationFormHandle, FormProps & { inline?: boolean }>((props, ref) => {
+const AccommodationForm = forwardRef<AccommodationFormHandle, IFormProps & { inline?: boolean }>((props, ref) => {
   const { onSave, onCancel, initialData, view, inline } = props;
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
@@ -157,8 +157,8 @@ const AccommodationForm = forwardRef<AccommodationFormHandle, FormProps & { inli
       ) : (
       <>
         {ref && (
-          <div className={requestDetailsStyles.cardHeader}>
-            <div className={requestDetailsStyles.cardTitle}>
+          <div className={formStyles.cardHeader}>
+            <div className={formStyles.cardTitle}>
               <h3>Accommodation details</h3>
             </div>
           </div>

@@ -4,9 +4,9 @@ import { TTLComment } from '../../Interfaces/TTLCommentInterface';
 import { getCommentsForRequest } from '../../service/CommentService';
 import styles from './CommentsSection.module.scss';
 import requestDetailsStyles from './RequestDetails.module.scss'
-import { CommentsSectionProps } from './RequestDetailsProps';
+import { ICommentsSectionProps } from './RequestDetailsProps';
 
-const CommentsSection: React.FC<CommentsSectionProps> = ({ requestId, context }) => {
+const CommentsSection: React.FC<ICommentsSectionProps> = ({ requestId, context }) => {
   const [comments, setComments] = useState<TTLComment[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -2,9 +2,10 @@ import * as React from 'react';
 import { useState, useMemo } from 'react';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import requestDetailsStyles from './RequestDetails.module.scss';
+import formStyles from '../Forms/Forms.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { formatDate } from '../../Helpers/HelperFunctions';
-import { RequestItemsListProps } from './RequestDetailsProps';
+import { IRequestItemsListProps } from './RequestDetailsProps';
 import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
 import { SPFI, spfi, SPFx } from "@pnp/sp";
 import "@pnp/sp/webs";
@@ -13,7 +14,7 @@ import "@pnp/sp/items";
 import "@pnp/sp/files";
 import { getDocumentGuidForRequestItem } from '../../service/TTLService';
 
-const RequestItemsList: React.FC<RequestItemsListProps> = ({
+const RequestItemsList: React.FC<IRequestItemsListProps> = ({
     items,
     onEdit,
     onDelete,
@@ -174,8 +175,8 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
                 key={item.ID}
                 className={requestDetailsStyles.requestCard}
             >
-                <div className={requestDetailsStyles.cardHeader}>
-                    <div className={requestDetailsStyles.cardTitle}>
+                <div className={formStyles.cardHeader}>
+                    <div className={formStyles.cardTitle}>
                         <i className={requestDetailsStyles.typeIcon}></i>
                         <h3>{item.Title}</h3>
                     </div>
@@ -192,7 +193,7 @@ const RequestItemsList: React.FC<RequestItemsListProps> = ({
 
                     <div className={requestDetailsStyles.actionButtons}>
                         {request.RequestStatus === 'Completed' && (
-                            <button className={requestDetailsStyles.iconButtonDocument} title="Upload Document">
+                            <button className={requestDetailsStyles.iconButtonDocument} title="Provide document with proof of payment">
                                 <i className="fa fa-upload" aria-hidden="true"></i>
 
                                 <FilePicker

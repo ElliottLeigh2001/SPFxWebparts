@@ -1,7 +1,7 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { UserRequestItem, UserRequest } from "../../Interfaces/TTLInterfaces";
 
-export interface RequestItemsListProps {
+export interface IRequestItemsListProps {
   items: UserRequestItem[];
   onEdit: (item: UserRequestItem) => void;
   onDelete: (item: UserRequestItem) => void;
@@ -13,7 +13,7 @@ export interface RequestItemsListProps {
   onDocumentUploaded?: () => void;
 }
 
-export interface RequestDetailsProps {
+export interface IRequestDetailsProps {
   request: UserRequest;
   items: UserRequestItem[];
   view: 'myView' | 'approvers' | 'HR' | 'director' | 'deliveryDirector';
@@ -27,14 +27,14 @@ export interface RequestDetailsProps {
   isTeamCoach?: boolean;
 }
 
-export interface EditRequestFormProps {
+export interface IEditRequestFormProps {
   context: WebPartContext;
   request: UserRequest;
   onSave: (updatedRequest: UserRequest) => void;
   onCancel: () => void;
 }
 
-export interface CommentsSectionProps {
+export interface ICommentsSectionProps {
   requestId: number;
   context: WebPartContext;
 }

@@ -1,6 +1,6 @@
 import { Approver } from '../../Interfaces/TTLInterfaces';
 
-export interface HeaderProps {
+export interface IHeaderProps {
     view?: string;
     isHR?: boolean;
     isCEO?: boolean;

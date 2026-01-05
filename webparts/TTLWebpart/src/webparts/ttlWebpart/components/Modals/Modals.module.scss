@@ -1,0 +1,91 @@
+.formSelection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.formSelectionButton {
+  padding: 12px 20px;
+  background: rgb(47, 129, 131);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: rgb(39, 109, 110);
+  }
+}
+
+.modalContainer {
+  min-width: 600px;
+  max-width: 80%;
+  max-height: 90vh;
+  background: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e1e1;
+  background: #f8f9fa;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: #323130;
+}
+
+.modalCloseButton {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #605e5c;
+  padding: 4px 8px;
+  border-radius: 4px;
+  
+  &:hover {
+    background: #edebe9;
+    color: #323130;
+  }
+}
+
+.modalCloseButton:hover {
+    background: #edebe9;
+    color: #323130;
+}
+
+.modalBody {
+  padding: 20px;
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 25px;
+  
+  button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 768px) {
+  .modalContainer {
+    min-width: 95%;
+    max-width: 95%;
+    margin: 20px auto;
+  }
+}

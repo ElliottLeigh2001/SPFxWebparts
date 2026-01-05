@@ -2,17 +2,19 @@ import * as React from "react"
 import { useState, useMemo, useEffect } from "react"
 import styles from "./TtlWebpart.module.scss"
 import { formatDate, getRequestStatusStyling } from "../../Helpers/HelperFunctions"
-import { DashboardComponentProps } from "./DashboardProps"
+import { IDashboardComponentProps } from "./DashboardProps"
 import { getApprovers } from '../../service/TTLService'
 
 const ITEMS_PER_PAGE = 10
 
-const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, requests, view, context }) => {
+const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, requests, view, context }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchFilter, setSearchfilter] = useState('');
   const [sortBy, setSortBy] = useState<null | 'totalCost' | 'submissionDate'>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [teamCoachesMap, setTeamCoachesMap] = useState<Record<string, string>>({});
+
+  const placeholder = view === 'myView' ? 'Search by title, project or team' : 'Search by title, project, requester or team'
 
   // Filter, sort and paginate requests
   const filteredRequests = useMemo(() => {
@@ -134,7 +136,7 @@ const DashboardComponent: React.FC<DashboardComponentProps> = ({ onClick, reques
             className={styles.filterInput}
             type="text"
             value={searchFilter}
-            placeholder="Search by title, project, requester or team"
+            placeholder={placeholder}
             onChange={(e) => {
               setSearchfilter(e.target.value)
               setCurrentPage(1)

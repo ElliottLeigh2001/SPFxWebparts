@@ -8,12 +8,12 @@ import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/Hel
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
 import DashboardComponent from './DashboardComponent';
-import { ApproversDashboardProps } from './DashboardProps';
+import { IApproversDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
 import budgetStyles from '../Budget/Budgets.module.scss'
 import { TooltipHost, Icon } from '@fluentui/react';
 
-const ApproversDashboard: React.FC<ApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover, isTeamCoach }) => {
+const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover, isTeamCoach }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);

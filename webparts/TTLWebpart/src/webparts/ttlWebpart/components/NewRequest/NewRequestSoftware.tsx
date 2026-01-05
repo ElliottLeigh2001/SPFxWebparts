@@ -9,10 +9,10 @@ import SoftwareForm, { SoftwareFormHandle } from '../Forms/SoftwareForm';
 import { Approver } from '../../Interfaces/TTLInterfaces';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import * as React from 'react';
-import { NewRequestProps } from './NewRequestProps';
+import { INewRequestProps } from './NewRequestProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
-const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, loggedInUser, onCancel, onSave }) => {
+const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, loggedInUser, onCancel, onSave }) => {
   const [title, setTitle] = useState('');
   const [goal, setGoal] = useState('');
   const [project, setProject] = useState('');
@@ -168,7 +168,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
       onSave();
     } catch (err) {
       console.error(err);
-      setError('Failed to create request');
+      setError('An error occured. Refresh and check your dashboard, the request may have been created anyway.');
     } finally {
       setIsSaving(false);
     }
@@ -281,7 +281,7 @@ const NewRequestSoftware: React.FC<NewRequestProps> = ({ context, approvers, log
       </div>
     </div>
 
-      {error && <div className={styles.validationError}>{error}</div>}
+      {error && <div style={{fontSize: 'small', fontWeight: 'bold', justifySelf: 'center'}} className={styles.validationError}>{error}</div>}
 
       <ConfirmActionDialog
         isOpen={confirmOpen}

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-import { FormProps } from './FormProps';
+import { IFormProps } from './FormProps';
 import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 
@@ -10,7 +10,7 @@ export interface SoftwareFormHandle {
   getFormData: () => { isValid: boolean; item?: UserRequestItem };
 }
 
-const SoftwareForm = forwardRef<SoftwareFormHandle, FormProps>(({ context, onSave, onCancel, initialData, view }, ref) => {
+const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSave, onCancel, initialData, view }, ref) => {
   const [title, setTitle] = useState(initialData?.Title || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
   const [cost, setCost] = useState(initialData?.Cost || '');

@@ -6,10 +6,10 @@ import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/Hel
 import RequestDetails from '../RequestDetails/RequestDetails';
 import styles from './TtlWebpart.module.scss';
 import DashboardComponent from './DashboardComponent';
-import { HRDashboardProps } from './DashboardProps';
+import { IHRDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
-const HRDashboard: React.FC<HRDashboardProps> = ({ context, onBack, isHR }) => {
+const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => {
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);

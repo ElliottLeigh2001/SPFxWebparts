@@ -1,15 +1,8 @@
 import * as React from "react"; 
 import budgetStyles from './Budgets.module.scss'; 
+import { IDonutChartProps } from "./BudgetProps";
 
-export interface DonutChartProps { 
-  total: number; 
-  available: number; 
-  size?: number; 
-  strokeWidth?: number; 
-  label?: string; 
-} 
-
-const DonutChart: React.FC<DonutChartProps> = ({ total, available, size = 120, strokeWidth = 12, label, }) => { 
+const DonutChart: React.FC<IDonutChartProps> = ({ total, available, size = 120, strokeWidth = 12, label, }) => { 
   const targetPercent = Math.min(100, Math.round((available / total) * 100)); 
   
   const [animatedPercent, setAnimatedPercent] = React.useState(0); 

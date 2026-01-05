@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { NewRequestProps } from "./NewRequestProps";
+import { INewRequestProps } from "./NewRequestProps";
 import NewRequestTraining from "./NewRequestTraining";
 import NewRequestSoftware from "./NewRequestSoftware";
 import NewRequestTravel from "./NewRequestTravel";
@@ -11,7 +11,7 @@ import styles from "../Dashboard/TtlWebpart.module.scss";
 import newRequestStyles from "./NewRequest.module.scss";
 import HeaderComponent from "../Header/HeaderComponent";
 
-const ChooseNewRequest: React.FC<NewRequestProps> = ({ context, onSave, onCancel, approvers, loggedInUser }) => {
+const ChooseNewRequest: React.FC<INewRequestProps> = ({ context, onSave, onCancel, approvers, loggedInUser }) => {
   const [showSoftware, setShowSoftware] = useState(false);
   const [showTraining, setShowTraining] = useState(false);
   const [showTravel, setShowTravel] = useState(false);

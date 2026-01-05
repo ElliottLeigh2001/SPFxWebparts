@@ -6,6 +6,7 @@ import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { Modal } from '@fluentui/react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import requestDetailsStyles from './RequestDetails.module.scss';
+import modalStyles from '../Modals/Modals.module.scss';
 import * as React from 'react';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import { sendEmail } from '../../service/AutomateService';
@@ -16,10 +17,10 @@ import ConfirmDeleteDialog from '../Modals/ConfirmDeleteDialog';
 import EditItemModal from '../Modals/EditItemModal';
 import { createComment } from '../../service/CommentService';
 import { TTLComment } from '../../Interfaces/TTLCommentInterface';
-import { RequestDetailsProps } from './RequestDetailsProps';
+import { IRequestDetailsProps } from './RequestDetailsProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover, isTeamCoach }) => {
+const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover, isTeamCoach }) => {
   const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
   const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
@@ -32,7 +33,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   const [displayedItems, setDisplayedItems] = useState<UserRequestItem[]>(items || []);
   const [displayedRequest, setDisplayedRequest] = useState<UserRequest>(request);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
-  const [isAdding, setIsAdding] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusActionError, setStatusActionError] = useState<string | null>(null);
@@ -98,7 +98,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
 
   // Function to add a requestitem to a request
   const handleAddItem = async (newItem: UserRequestItem): Promise<void> => {
-    setIsAdding(true);
     setActionError(null);
 
     try {
@@ -123,8 +122,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
     } catch (error) {
       console.error('Error adding item:', error);
       setActionError('Failed to add item');
-    } finally {
-      setIsAdding(false);
     }
   };
 
@@ -153,9 +150,18 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         RequestStatus: type,
         SubmissionDate: submissionDate || undefined,
       }));
+
+      await sendEmail({        
+        emailType: 'Completed',
+        requestId: request.ID.toString(),
+        title: request.Title,
+        totalCost: request.TotalCost.toString(),
+        authorEmail: request.Author?.EMail,
+        authorName: request.Author?.Title,
+        approverTitle: request.ApproverID?.Title,
+        typeOfRequest: typeOfRequest})
       
       // Refresh parent component
-
       if (refreshParent && onUpdate) onUpdate();
 
     } catch (error) {
@@ -519,6 +525,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
   // Handle completed action (HR marks request as completed)
   const handleConfirmCompleted = async (): Promise<void> => {
     await updateRequestApprover('Completed', false, false);
+    onUpdate();
   };
 
   // Deduct cost from team coach's available budget
@@ -646,13 +653,13 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
         isOpen={editingRequest}
         onDismiss={closeModal}
         isBlocking={false}
-        containerClassName={requestDetailsStyles.modalContainer}
+        containerClassName={modalStyles.modalContainer}
       >
-        <div className={requestDetailsStyles.modalHeader}>
+        <div className={modalStyles.modalHeader}>
           <h3>Edit Request</h3>
-          <button className={requestDetailsStyles.modalCloseButton} onClick={closeModal}>×</button>
+          <button className={modalStyles.modalCloseButton} onClick={closeModal}>×</button>
         </div>
-        <div className={requestDetailsStyles.modalBody}>
+        <div className={modalStyles.modalBody}>
           <EditRequestForm
             context={context}
             request={request}
@@ -675,7 +682,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, items, view, H
       <AddItemModal
         context={context}
         isOpen={showAddModal}
-        isUpdating={isAdding}
         onSave={handleAddItem}
         onCancel={() => setShowAddModal(false)}
       />

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useState, useImperativeHandle, forwardRef } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
-import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { FormProps } from './FormProps';
+import formStyles from './Forms.module.scss';
+import { IFormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
 import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
 
@@ -10,7 +10,7 @@ export type TrainingFormHandle = {
   getFormData: () => { isValid: boolean; item?: UserRequestItem; includeTravel?: boolean }
 }
 
-const TrainingForm = forwardRef<TrainingFormHandle, FormProps & { onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, inline?: boolean, onToggleIncludeTravel?: (value: boolean) => void }>((props, ref) => {
+const TrainingForm = forwardRef<TrainingFormHandle, IFormProps & { onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, inline?: boolean, onToggleIncludeTravel?: (value: boolean) => void }>((props, ref) => {
   const { onSave, onCancel, initialData, showCheckbox, view, inline, onToggleIncludeTravel } = props;
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
@@ -167,8 +167,8 @@ const TrainingForm = forwardRef<TrainingFormHandle, FormProps & { onSave?: (item
       ) : (
       <>
         {ref && (
-          <div className={requestDetailsStyles.cardHeader}>
-            <div className={requestDetailsStyles.cardTitle}>
+          <div className={formStyles.cardHeader}>
+            <div className={formStyles.cardTitle}>
               <h3>Training details</h3>
             </div>
           </div>

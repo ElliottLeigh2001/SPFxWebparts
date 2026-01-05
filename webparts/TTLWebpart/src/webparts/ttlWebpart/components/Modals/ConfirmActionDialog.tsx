@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { Modal } from '@fluentui/react';
 import newRequestStyles from '../NewRequest/NewRequest.module.scss';
+import modalStyles from './Modals.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { useState } from 'react';
-import { ConfirmActionDialogProps, messages, titles } from './ModalsProps';
+import { IConfirmActionDialogProps, messages, titles } from './ModalsProps';
 
-const ConfirmActionDialog: React.FC<ConfirmActionDialogProps> = ({ isOpen, action, isProcessing, onCancel, onConfirm }) => {
+const ConfirmActionDialog: React.FC<IConfirmActionDialogProps> = ({ isOpen, action, isProcessing, onCancel, onConfirm }) => {
   const [comment, setComment] = useState('')
   const [commentError, setCommentError] = useState('');
   if (!action) return null;
@@ -15,11 +16,11 @@ const ConfirmActionDialog: React.FC<ConfirmActionDialogProps> = ({ isOpen, actio
       isOpen={isOpen}
       onDismiss={onCancel}
       isBlocking={true}
-      containerClassName={newRequestStyles.modalContainer}
+      containerClassName={modalStyles.modalContainer}
     >
-      <div className={newRequestStyles.modalHeader}>
+      <div className={modalStyles.modalHeader}>
         <h3>{titles[action]}</h3>
-        <button className={newRequestStyles.modalCloseButton} onClick={onCancel}>×</button>
+        <button className={modalStyles.modalCloseButton} onClick={onCancel}>×</button>
       </div>
       <div className={newRequestStyles.confirmationBody}>
         <p>{messages[action]}</p>
