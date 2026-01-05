@@ -1,5 +1,5 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
-import { Approver } from "../../Interfaces/TTLInterfaces";
+import { IApprover } from "../../Interfaces/TTLInterfaces";
 
 export interface IApproversDashboardProps {
   context: WebPartContext;
@@ -34,7 +34,7 @@ export interface IHRDashboardProps {
   onBack: () => void;
   isHR: boolean;
   isCEO: boolean;
-  allApprovers?: Approver[];
+  allApprovers?: IApprover[];
   onViewClick?: (view: string) => void;
 }
 

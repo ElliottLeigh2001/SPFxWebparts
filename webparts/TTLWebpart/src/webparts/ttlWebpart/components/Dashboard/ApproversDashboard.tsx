@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { UserRequest, UserRequestItem, Approver, Budget } from '../../Interfaces/TTLInterfaces';
+import { IUserRequest, IUserRequestItem, IApprover, IBudget } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId, getApprovers, getSP, getBudgets } from '../../service/TTLService';
 import BudgetRequestsPanel from '../Budget/BudgetRequestsPanel';
 import DonutChart from '../Budget/DonutChart';
@@ -14,18 +14,18 @@ import budgetStyles from '../Budget/Budgets.module.scss'
 import { TooltipHost, Icon } from '@fluentui/react';
 
 const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover, isTeamCoach }) => {
-  const [requests, setRequests] = useState<UserRequest[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
-  const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
+  const [requests, setRequests] = useState<IUserRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<IUserRequest | null>(null);
+  const [requestItems, setRequestItems] = useState<IUserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [teamCoachBudgets, setTeamCoachBudgets] = useState<Budget[]>([]);
+  const [teamCoachBudgets, setTeamCoachBudgets] = useState<IBudget[]>([]);
   const [teamBudget, setTeamBudget] = useState({
     totalBudget: 0,
     totalAvailable: 0
   });
   const [teamBudgetLoaded, setTeamBudgetLoaded] = useState(false);
-  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [selectedBudget, setSelectedBudget] = useState<IBudget | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [availableYears, setAvailableYears] = useState<string[]>([]);
 
@@ -65,7 +65,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       // Build a set of approver IDs where the current user is a team coach
       const teamCoachForApproverIds = new Set<number>();
       if (isTeamCoach) {
-        approversList.forEach((approver: Approver) => {
+        approversList.forEach((approver: IApprover) => {
           if (approver.TeamCoach?.EMail === loggedInUser.EMail) {
             teamCoachForApproverIds.add(approver.Id);
           }
@@ -78,7 +78,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
           req.ApproverID?.Title === loggedInUser.Title || 
           (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))
         )
-      setRequests(filteredRequests as UserRequest[]);
+      setRequests(filteredRequests as IUserRequest[]);
 
       // Get items after an update in any child component to the UI always stays up to date
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
@@ -88,7 +88,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
 
         const refreshedRequest = filteredRequests.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
-          setSelectedRequest(refreshedRequest as UserRequest);
+          setSelectedRequest(refreshedRequest as IUserRequest);
         }
       }
 
@@ -136,7 +136,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
   }, [context, selectedYear]);
 
   // Handle a click on a request
-  const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
+  const handleRequestClick = async (request: IUserRequest, pushState: boolean = true) => {
     await loadRequestDetails({
       context,
       request,

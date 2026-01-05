@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Approver } from '../../Interfaces/TTLInterfaces';
+import { IApprover } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getApprovers } from '../../service/TTLService';
 import budgetStyles from './Budgets.module.scss';
 import { formatDate } from '../../Helpers/HelperFunctions';
@@ -24,7 +24,7 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
         ]);
 
         const approverIdsForCoach = new Set<number>();
-        approvers.forEach((ap: Approver) => {
+        approvers.forEach((ap: IApprover) => {
           if (
             ap.TeamCoach?.Title === budget.TeamCoach?.Title ||
             ap.TeamCoach?.EMail === budget.TeamCoach?.EMail

@@ -6,7 +6,7 @@ import { createRequestWithItems } from '../../service/TTLService';
 import { sendEmail } from '../../service/AutomateService';
 import { calculateSoftwareLicenseCost, getUserAndManager } from '../../Helpers/HelperFunctions';
 import SoftwareForm, { SoftwareFormHandle } from '../Forms/SoftwareForm';
-import { Approver } from '../../Interfaces/TTLInterfaces';
+import { IApprover } from '../../Interfaces/TTLInterfaces';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import * as React from 'react';
 import { INewRequestProps } from './NewRequestProps';
@@ -18,7 +18,7 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
   const [project, setProject] = useState('');
   const [team, setTeam] = useState<string | undefined>(undefined);
   const [approver, setApprover] = useState<number | undefined>(undefined);
-  const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
+  const [allApprovers, setAllApprovers] = useState<IApprover[]>([]);
   const [teamCoach, setTeamCoach] = useState<{ id: number; title: string } | undefined>(undefined);
   const [titleError, setTitleError] = useState('');
   const [goalError, setGoalError] = useState('');

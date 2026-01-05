@@ -4,7 +4,7 @@ import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import modalStyles from './Modals.module.scss';
-import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useState, useEffect } from 'react';
 import AccommodationForm from '../Forms/AccomodationForm';
 import { AddItemModalProps } from './ModalsProps';
@@ -19,7 +19,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, onSave, on
     }
   }, [isOpen]);
 
-  const handleFormSave = async (item: UserRequestItem): Promise<void> => {
+  const handleFormSave = async (item: IUserRequestItem): Promise<void> => {
     await onSave(item);
     // Close the modal after successful save
     onCancel();

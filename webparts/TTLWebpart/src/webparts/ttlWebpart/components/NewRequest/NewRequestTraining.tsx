@@ -2,7 +2,7 @@ import * as React from 'react';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import { createRequestWithItems, getApproverById } from '../../service/TTLService';
-import { Approver, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IApprover, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useEffect, useState, useRef } from 'react';
 import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
 import styles from '../Dashboard/TtlWebpart.module.scss';
@@ -20,7 +20,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
     const [project, setProject] = useState('');
     const [team, setTeam] = useState<string | undefined>(undefined);
     const [approver, setApprover] = useState<number | undefined>(undefined);
-    const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
+    const [allApprovers, setAllApprovers] = useState<IApprover[]>([]);
     const [teamCoach, setTeamCoach] = useState<{ id: number; title: string } | undefined>(undefined);
     const trainingFormRef = useRef<any>(null);
     const travelFormRef = useRef<any>(null);
@@ -104,8 +104,8 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
         }
     }
 
-    const collectAllItems = async (): Promise<UserRequestItem[] | null> => {
-        let collected: UserRequestItem[] = [];
+    const collectAllItems = async (): Promise<IUserRequestItem[] | null> => {
+        let collected: IUserRequestItem[] = [];
 
         // 1. Training
         const t = await trainingFormRef.current?.getFormData();

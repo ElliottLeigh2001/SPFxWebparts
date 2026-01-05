@@ -1,10 +1,10 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
-import { UserRequestItem } from "../../Interfaces/TTLInterfaces";
+import { IUserRequestItem } from "../../Interfaces/TTLInterfaces";
 
 export interface AddItemModalProps {
   context: WebPartContext;
   isOpen: boolean;
-  onSave: (item: UserRequestItem) => Promise<void>;
+  onSave: (item: IUserRequestItem) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -51,10 +51,10 @@ export interface IEditItemModalProps {
   context: WebPartContext;
   activeForm: 'software'|'training'|'travel'|'accommodation'|null;
   activeFormName: 'software'|'training'|'travel'|'accommodation'|null;
-  editingItem?: UserRequestItem | undefined;
+  editingItem?: IUserRequestItem | undefined;
   isUpdating: boolean;
   view: string;
-  onSave: (item: UserRequestItem) => Promise<void>;
+  onSave: (item: IUserRequestItem) => Promise<void>;
   onCancel: () => void;
 }
 

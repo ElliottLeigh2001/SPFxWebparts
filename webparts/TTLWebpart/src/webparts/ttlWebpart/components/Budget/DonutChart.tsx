@@ -1,14 +1,15 @@
 import * as React from "react"; 
 import budgetStyles from './Budgets.module.scss'; 
 import { IDonutChartProps } from "./BudgetProps";
+import { useEffect, useRef, useState } from "react";
 
 const DonutChart: React.FC<IDonutChartProps> = ({ total, available, size = 120, strokeWidth = 12, label, }) => { 
   const targetPercent = Math.min(100, Math.round((available / total) * 100)); 
   
-  const [animatedPercent, setAnimatedPercent] = React.useState(0); 
-  const prevPercentRef = React.useRef(0); 
+  const [animatedPercent, setAnimatedPercent] = useState(0); 
+  const prevPercentRef = useRef(0); 
   
-  React.useEffect(() => { 
+  useEffect(() => { 
     const start = prevPercentRef.current; 
     const availableEnd = targetPercent; 
     const duration = 600; 

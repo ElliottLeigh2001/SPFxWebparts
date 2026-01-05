@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Budget, UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IBudget, IUserRequest, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId, getSP, getBudgets } from '../../service/TTLService';
 import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
 import RequestDetails from '../RequestDetails/RequestDetails';
@@ -14,13 +14,13 @@ import BudgetRequestsPanel from '../Budget/BudgetRequestsPanel';
 import DonutChart from '../Budget/DonutChart';
 
 const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ context, onBack, isDeliveryDirector }) => {
-  const [requests, setRequests] = useState<UserRequest[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
-  const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
+  const [requests, setRequests] = useState<IUserRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<IUserRequest | null>(null);
+  const [requestItems, setRequestItems] = useState<IUserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [teamCoachBudgets, setTeamCoachBudgets] = useState<Budget[]>([]);
-  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [teamCoachBudgets, setTeamCoachBudgets] = useState<IBudget[]>([]);
+  const [selectedBudget, setSelectedBudget] = useState<IBudget | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   
@@ -64,7 +64,7 @@ const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ 
       // Only get requests with the correct statuses for approver
       const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Submitted' or RequestStatus eq 'Resubmitted')");
 
-      setRequests(requestData as UserRequest[]);
+      setRequests(requestData as IUserRequest[]);
 
       // Get items after an update in any child component to the UI always stays up to date
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
@@ -74,7 +74,7 @@ const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ 
 
         const refreshedRequest = requestData.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
-          setSelectedRequest(refreshedRequest as UserRequest);
+          setSelectedRequest(refreshedRequest as IUserRequest);
         }
       }
 
@@ -102,7 +102,7 @@ const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ 
   }, [context]);
 
   // Handle a click on a request
-  const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
+  const handleRequestClick = async (request: IUserRequest, pushState: boolean = true) => {
     await loadRequestDetails({
       context,
       request,

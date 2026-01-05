@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IUserRequest, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
 import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
 import RequestDetails from '../RequestDetails/RequestDetails';
@@ -10,9 +10,9 @@ import { IHRDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
 const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => {
-  const [requests, setRequests] = useState<UserRequest[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
-  const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
+  const [requests, setRequests] = useState<IUserRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<IUserRequest | null>(null);
+  const [requestItems, setRequestItems] = useState<IUserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'awaitingApproval' | 'allRequests' | 'approved'>('approved');
@@ -29,7 +29,7 @@ const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => 
       pastDate.setDate(pastDate.getDate() - 730);
       const isoDate = pastDate.toISOString();
       const requestData = await getRequestsData(context, "SubmissionDate desc", `(SubmissionDate ge datetime'${isoDate}')`);
-      setRequests(requestData as UserRequest[]);
+      setRequests(requestData as IUserRequest[]);
 
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
       if (selectedId) {
@@ -38,7 +38,7 @@ const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => 
 
         const refreshedRequest = requestData.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
-          setSelectedRequest(refreshedRequest as UserRequest);
+          setSelectedRequest(refreshedRequest as IUserRequest);
         }
       }
 
@@ -66,7 +66,7 @@ const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => 
   }, [context]);
 
   // Handle a click on a request
-  const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
+  const handleRequestClick = async (request: IUserRequest, pushState: boolean = true) => {
     await loadRequestDetails({
       context,
       request,

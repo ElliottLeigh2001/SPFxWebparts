@@ -1,10 +1,10 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
-import { Approver } from "../../Interfaces/TTLInterfaces";
+import { IApprover } from "../../Interfaces/TTLInterfaces";
 
 export interface INewRequestProps {
   context: WebPartContext;
   onSave: () => void;
   onCancel: () => void;
-  approvers: Approver[];
+  approvers: IApprover[];
   loggedInUser: any;
 }

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useMemo } from 'react';
-import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import requestDetailsStyles from './RequestDetails.module.scss';
 import formStyles from '../Forms/Forms.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
@@ -28,7 +28,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
 
     // Group items by request type
     const groupedItems = useMemo(() => {
-        const groups: { [key: string]: UserRequestItem[] } = {};
+        const groups: { [key: string]: IUserRequestItem[] } = {};
         items.forEach(item => {
             const type = item.RequestType || 'Other';
             if (!groups[type]) {
@@ -133,7 +133,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
     };
 
     // Download file for a specific requestitem
-    const downloadFile = async (item: UserRequestItem) => {
+    const downloadFile = async (item: IUserRequestItem) => {
         const sp = getSP(context);
         
         // get the GUID for the document
@@ -167,7 +167,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
     };
 
     // For each request item in the request, render a card with the appropriate fields
-    const renderItemCard = (item: UserRequestItem) => {
+    const renderItemCard = (item: IUserRequestItem) => {
         return (
             <>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />

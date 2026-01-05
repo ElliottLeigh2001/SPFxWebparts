@@ -4,14 +4,14 @@ import styles from '../Dashboard/TtlWebpart.module.scss';
 import formStyles from './Forms.module.scss';
 import { IFormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
-import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 
 export type TravelFormHandle = {
-  getFormData: () => { isValid: boolean; item?: UserRequestItem; includeAccommodation?: boolean; includeReturnJourney?: boolean }
+  getFormData: () => { isValid: boolean; item?: IUserRequestItem; includeAccommodation?: boolean; includeReturnJourney?: boolean }
 }
 
 const TravelForm = forwardRef<TravelFormHandle, IFormProps & 
-  { isReturnJourney?: boolean, onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, 
+  { isReturnJourney?: boolean, onSave?: (item: IUserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, 
     inline?: boolean, onToggleIncludeTraining?: (v: boolean) => void; onToggleIncludeAccommodation?: (v: boolean) => void, onToggleIncludeReturnJourney?: (v: boolean) => void 
   }>((props, ref) => {
 
@@ -121,7 +121,7 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
 
   useImperativeHandle(ref, () => ({
     getFormData: () => {
-      const result: { isValid: boolean; item?: UserRequestItem; includeAccommodation?: boolean; includeReturnJourney?: boolean } = { isValid: false };
+      const result: { isValid: boolean; item?: IUserRequestItem; includeAccommodation?: boolean; includeReturnJourney?: boolean } = { isValid: false };
       const valid = validate();
       if (!valid) return result;
       result.isValid = true;

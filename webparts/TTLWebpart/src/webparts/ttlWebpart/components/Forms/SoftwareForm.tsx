@@ -4,10 +4,10 @@ import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { IFormProps } from './FormProps';
 import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
-import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 
 export interface SoftwareFormHandle {
-  getFormData: () => { isValid: boolean; item?: UserRequestItem };
+  getFormData: () => { isValid: boolean; item?: IUserRequestItem };
 }
 
 const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSave, onCancel, initialData, view }, ref) => {

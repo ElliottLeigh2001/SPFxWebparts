@@ -1,21 +1,21 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
-import { UserRequestItem, UserRequest } from "../../Interfaces/TTLInterfaces";
+import { IUserRequestItem, IUserRequest } from "../../Interfaces/TTLInterfaces";
 
 export interface IRequestItemsListProps {
-  items: UserRequestItem[];
-  onEdit: (item: UserRequestItem) => void;
-  onDelete: (item: UserRequestItem) => void;
+  items: IUserRequestItem[];
+  onEdit: (item: IUserRequestItem) => void;
+  onDelete: (item: IUserRequestItem) => void;
   onAdd: () => void;
   showActions: boolean;
-  request: UserRequest;
+  request: IUserRequest;
   view: "approvers" | "myView" | "HR" | "director" | "deliveryDirector";
   context?: WebPartContext;
   onDocumentUploaded?: () => void;
 }
 
 export interface IRequestDetailsProps {
-  request: UserRequest;
-  items: UserRequestItem[];
+  request: IUserRequest;
+  items: IUserRequestItem[];
   view: 'myView' | 'approvers' | 'HR' | 'director' | 'deliveryDirector';
   HRTab?: string;
   onBack: () => void;
@@ -29,8 +29,8 @@ export interface IRequestDetailsProps {
 
 export interface IEditRequestFormProps {
   context: WebPartContext;
-  request: UserRequest;
-  onSave: (updatedRequest: UserRequest) => void;
+  request: IUserRequest;
+  onSave: (updatedRequest: IUserRequest) => void;
   onCancel: () => void;
 }
 

@@ -2,7 +2,7 @@ import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
 import { spfi, SPFI } from "@pnp/sp";
 import { SPFx } from "@pnp/sp/presets/all";
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { Approver, UserRequest, UserRequestItem, Budget } from "../Interfaces/TTLInterfaces";
+import { IApprover, IUserRequest, IUserRequestItem, IBudget } from "../Interfaces/TTLInterfaces";
 import { calculateSoftwareLicenseCost } from "../Helpers/HelperFunctions";
 
 // Define spfi for CRUD operations to lists
@@ -93,7 +93,7 @@ export const getRequestsData = async (
   context: WebPartContext,
   orderBy?: string,
   filter?: string
-): Promise<UserRequest[]> => {
+): Promise<IUserRequest[]> => {
   try {
     // Base query
     let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,DeadlineDate,TeamCoachApproval,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,Team&$expand=RequestItemID,Author,ApproverID`;
@@ -114,15 +114,15 @@ export const getRequestsData = async (
     }
 
     const data = await response.json();
-    return data.value as UserRequest[];
+    return data.value as IUserRequest[];
   } catch (error) {
     console.error("Error fetching requests data:", error);
     return [];
   }
 };
 
-// Map SharePoint item to UserRequestItem interface
-const mapSharePointItemToUserRequestItem = (sharePointItem: any): UserRequestItem => {
+// Map SharePoint item to IUserRequestItem interface
+const mapSharePointItemToUserRequestItem = (sharePointItem: any): IUserRequestItem => {
   let usersLicense: any[] = [];
 
   if (sharePointItem.UsersLicense) {
@@ -153,7 +153,7 @@ const mapSharePointItemToUserRequestItem = (sharePointItem: any): UserRequestIte
 };
 
 // Get all request items for a given request ID
-export const getRequestItemsByRequestId = async (context: WebPartContext, requestId: number): Promise<UserRequestItem[]> => {
+export const getRequestItemsByRequestId = async (context: WebPartContext, requestId: number): Promise<IUserRequestItem[]> => {
   // First get the request to find linked item IDs
   const requestResponse = await context.spHttpClient.get(
     `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items(${requestId})?$select=RequestItemID/Id&$expand=RequestItemID`,
@@ -184,7 +184,7 @@ export const getRequestItemsByRequestId = async (context: WebPartContext, reques
   }
 
   const data = await response.json();
-  const items = data.value.map((item: UserRequestItem) => mapSharePointItemToUserRequestItem(item));
+  const items = data.value.map((item: IUserRequestItem) => mapSharePointItemToUserRequestItem(item));
 
   return items;
 };
@@ -215,7 +215,7 @@ export const getDocumentGuidForRequestItem = async (
 };
 
 // Create a request item in the TTL_RequestItem list
-export const createRequestItem = async (context: WebPartContext, item: UserRequestItem): Promise<number> => {
+export const createRequestItem = async (context: WebPartContext, item: IUserRequestItem): Promise<number> => {
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
 
@@ -298,7 +298,7 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
 export const createRequestItemForExistingRequest = async (
   context: WebPartContext,
   requestId: number,
-  item: UserRequestItem
+  item: IUserRequestItem
 ): Promise<number> => {
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
@@ -362,7 +362,7 @@ export const updateRequestWithItemId = async (
 };
 
 // Update the main request in TTL_Requests
-export const updateRequest = async (context: WebPartContext, requestId: number, requestData: UserRequest): Promise<void> => {
+export const updateRequest = async (context: WebPartContext, requestId: number, requestData: IUserRequest): Promise<void> => {
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_Requests');
 
@@ -410,7 +410,7 @@ export const updateRequestDeadline = async (
 };
 
 // Update a request item in the TTL_RequestItem list
-export const updateRequestItem = async (context: WebPartContext, itemId: number, item: UserRequestItem): Promise<void> => {
+export const updateRequestItem = async (context: WebPartContext, itemId: number, item: IUserRequestItem): Promise<void> => {
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
   const userIds = await getUserIds(sp, item.UsersLicense || []);
@@ -445,7 +445,7 @@ export const updateRequestItem = async (context: WebPartContext, itemId: number,
 };
 
 // Get a single request item by ID
-export const getRequestItem = async (context: WebPartContext, itemId: number): Promise<UserRequestItem> => {
+export const getRequestItem = async (context: WebPartContext, itemId: number): Promise<IUserRequestItem> => {
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
 
@@ -537,7 +537,7 @@ export const deleteRequestWithItems = async (context: WebPartContext, requestId:
 };
 
 // Get all approvers from the approvers list in SharePoint
-export const getApprovers = async (context: WebPartContext): Promise<Approver[]> => {
+export const getApprovers = async (context: WebPartContext): Promise<IApprover[]> => {
   try {
     const response: SPHttpClientResponse = await context.spHttpClient.get(
       `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Approver')/items?$select=Id,TeamCoach/Title,TeamCoach/Id,TeamCoach/EMail,PracticeLead/Title,PracticeLead/Id,PracticeLead/EMail,DeliveryDirector/Title,DeliveryDirector/Id,DeliveryDirector/EMail,CEO/Id,CEO/Title,CEO/EMail,Team0&$expand=TeamCoach,PracticeLead,DeliveryDirector,CEO`,
@@ -549,7 +549,7 @@ export const getApprovers = async (context: WebPartContext): Promise<Approver[]>
     }
 
     const data = await response.json();
-    return data.value as Approver[];
+    return data.value as IApprover[];
   } catch (error) {
     console.error('Error fetching requests data:', error);
     return [];
@@ -594,7 +594,7 @@ const getUserIds = async (sp: SPFI, users: any[]): Promise<number[]> => {
   return ids;
 };
 
-export const getBudgetforApprover = async (context: WebPartContext, teamCoachEmail: string, year: string): Promise<Budget | null> => {
+export const getBudgetforApprover = async (context: WebPartContext, teamCoachEmail: string, year: string): Promise<IBudget | null> => {
   try {
     const sp = getSP(context);
     const list = sp.web.lists.getByTitle('TTL_Budget');
@@ -630,7 +630,7 @@ export const getBudgetforApprover = async (context: WebPartContext, teamCoachEma
 };
 
 // Get all budgets for team coaches under a specific practice lead
-export const getBudgets = async (context: WebPartContext, year: string, isDeliveryDirector: boolean, loggedInEmail?: string): Promise<Budget[]> => {
+export const getBudgets = async (context: WebPartContext, year: string, isDeliveryDirector: boolean, loggedInEmail?: string): Promise<IBudget[]> => {
   try {
     const sp = getSP(context);
     const approversList = sp.web.lists.getByTitle('TTL_Approver');

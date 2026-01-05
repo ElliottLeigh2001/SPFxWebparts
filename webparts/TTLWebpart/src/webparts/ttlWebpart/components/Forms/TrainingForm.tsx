@@ -4,13 +4,13 @@ import styles from '../Dashboard/TtlWebpart.module.scss';
 import formStyles from './Forms.module.scss';
 import { IFormProps } from './FormProps';
 import { formatEditingDate, validateCost, validateLink } from '../../Helpers/HelperFunctions';
-import { UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 
 export type TrainingFormHandle = {
-  getFormData: () => { isValid: boolean; item?: UserRequestItem; includeTravel?: boolean }
+  getFormData: () => { isValid: boolean; item?: IUserRequestItem; includeTravel?: boolean }
 }
 
-const TrainingForm = forwardRef<TrainingFormHandle, IFormProps & { onSave?: (item: UserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, inline?: boolean, onToggleIncludeTravel?: (value: boolean) => void }>((props, ref) => {
+const TrainingForm = forwardRef<TrainingFormHandle, IFormProps & { onSave?: (item: IUserRequestItem, nextForms?: Array<{type: 'travel' | 'accommodation', data?: any}>) => void, inline?: boolean, onToggleIncludeTravel?: (value: boolean) => void }>((props, ref) => {
   const { onSave, onCancel, initialData, showCheckbox, view, inline, onToggleIncludeTravel } = props;
   const [title, setTitle] = useState(initialData?.Title || '');
   const [location, setLocation] = useState(initialData?.Location || '');
@@ -119,7 +119,7 @@ const TrainingForm = forwardRef<TrainingFormHandle, IFormProps & { onSave?: (ite
   // expose imperative handle to parent (after validate is defined)
   useImperativeHandle(ref, () => ({
     getFormData: () => {
-      const result: { isValid: boolean; item?: UserRequestItem; includeTravel?: boolean } = { isValid: false };
+      const result: { isValid: boolean; item?: IUserRequestItem; includeTravel?: boolean } = { isValid: false };
       // run same validation as below
       const valid = validate();
       if (!valid) return result;

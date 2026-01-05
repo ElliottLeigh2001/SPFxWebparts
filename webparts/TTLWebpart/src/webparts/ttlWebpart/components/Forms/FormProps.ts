@@ -1,11 +1,11 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
-import { UserRequestItem } from "../../Interfaces/TTLInterfaces";
+import { IUserRequestItem } from "../../Interfaces/TTLInterfaces";
 
 export interface IFormProps {
   context: WebPartContext
-  onSave: (item: UserRequestItem) => void;
+  onSave: (item: IUserRequestItem) => void;
   onCancel?: () => void;
-  initialData?: UserRequestItem;
+  initialData?: IUserRequestItem;
   view?: string;
   returning?: boolean;
   travelRequest?: boolean;

@@ -1,16 +1,16 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
-import { Budget, UserRequest } from "../../Interfaces/TTLInterfaces";
+import { IBudget, IUserRequest } from "../../Interfaces/TTLInterfaces";
 
 export interface IBudgetProps {
   context: WebPartContext;
-  budget: Budget;
+  budget: IBudget;
   onClose: () => void;
 }
 
 export interface IRequestsByRequester {
   requester: string;
   totalCost: number;
-  requests: UserRequest[];
+  requests: IUserRequest[];
 }
 
 

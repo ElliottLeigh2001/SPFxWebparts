@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import EditRequestForm from './EditRequestForm';
 import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById, updateRequestDeadline, updateTeamCoachApproval, getBudgetforApprover, deductFromBudget, getApprovers, addToBudget } from '../../service/TTLService';
 import RequestItemsList from './RequestItemsList';
-import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IUserRequest, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { Modal } from '@fluentui/react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import requestDetailsStyles from './RequestDetails.module.scss';
@@ -21,7 +21,7 @@ import { IRequestDetailsProps } from './RequestDetailsProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
 const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover, isTeamCoach }) => {
-  const [editingItem, setEditingItem] = useState<UserRequestItem | undefined>(undefined);
+  const [editingItem, setEditingItem] = useState<IUserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
   const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
   const [activeFormName, setActiveFormName] = useState<'training'|'travel'|'accommodation'|null>(null);
@@ -29,9 +29,9 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   const [isUpdating, setIsUpdating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [selectedItemToDelete, setSelectedItemToDelete] = useState<UserRequestItem | null>(null);
-  const [displayedItems, setDisplayedItems] = useState<UserRequestItem[]>(items || []);
-  const [displayedRequest, setDisplayedRequest] = useState<UserRequest>(request);
+  const [selectedItemToDelete, setSelectedItemToDelete] = useState<IUserRequestItem | null>(null);
+  const [displayedItems, setDisplayedItems] = useState<IUserRequestItem[]>(items || []);
+  const [displayedRequest, setDisplayedRequest] = useState<IUserRequest>(request);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -73,7 +73,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     setChangedByHR(changed);
   }, [request]);
 
-  const handleEditItem = (item: UserRequestItem): void => {
+  const handleEditItem = (item: IUserRequestItem): void => {
     setEditingItem(item);
     setActiveForm(item.RequestType?.toLowerCase() as any);
     setActiveFormName(item.RequestType?.toLowerCase() as any);
@@ -97,7 +97,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   };
 
   // Function to add a requestitem to a request
-  const handleAddItem = async (newItem: UserRequestItem): Promise<void> => {
+  const handleAddItem = async (newItem: IUserRequestItem): Promise<void> => {
     setActionError(null);
 
     try {
@@ -174,7 +174,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   };
 
   // Update request item
-  const handleUpdateItem = async (updatedItem: UserRequestItem): Promise<void> => {
+  const handleUpdateItem = async (updatedItem: IUserRequestItem): Promise<void> => {
     if (!editingItem?.ID) return;
 
     setIsUpdating(true);
@@ -249,7 +249,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   };
 
   // Function to handle updates to the request (not the items in the request)
-  const handleUpdateRequest = async (updatedRequest: UserRequest): Promise<void> => {
+  const handleUpdateRequest = async (updatedRequest: IUserRequest): Promise<void> => {
     if (!request.ID) return;
 
     setIsUpdating(true);
@@ -318,7 +318,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   };
 
   // Show confirmation dialog when the delete icon is pressed
-  const handleDeleteItem = (requestItem: UserRequestItem): void =>  {
+  const handleDeleteItem = (requestItem: IUserRequestItem): void =>  {
     setSelectedItemToDelete(requestItem);
     setShowDeleteConfirm(true);
   }

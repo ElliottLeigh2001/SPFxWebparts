@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IUserRequest, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getRequestItemsByRequestId } from '../../service/TTLService';
 import { attachUrlHandlers, loadRequestDetails, goBack } from '../../Helpers/HelperFunctions';
 import RequestDetails from '../RequestDetails/RequestDetails';
@@ -10,9 +10,9 @@ import { IDirectorDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
 
 const DirectorDashboard: React.FC<IDirectorDashboardProps> = ({ context, onBack, isCEO }) => {
-  const [requests, setRequests] = useState<UserRequest[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
-  const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
+  const [requests, setRequests] = useState<IUserRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<IUserRequest | null>(null);
+  const [requestItems, setRequestItems] = useState<IUserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +28,7 @@ const DirectorDashboard: React.FC<IDirectorDashboardProps> = ({ context, onBack,
       // Only show requests where the total cost exceeds 5000 euro
       const filteredCEORequests = requestData
         .filter((req) => Number(req.TotalCost) > 5000 && !req.ApprovedByCEO)
-      setRequests(filteredCEORequests as UserRequest[])
+      setRequests(filteredCEORequests as IUserRequest[])
 
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
       if (selectedId) {
@@ -37,7 +37,7 @@ const DirectorDashboard: React.FC<IDirectorDashboardProps> = ({ context, onBack,
 
       const refreshedRequest = filteredCEORequests.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
-          setSelectedRequest(refreshedRequest as UserRequest);
+          setSelectedRequest(refreshedRequest as IUserRequest);
         }
       }
 
@@ -65,7 +65,7 @@ const DirectorDashboard: React.FC<IDirectorDashboardProps> = ({ context, onBack,
   }, [context]);
 
   // Handle request click and load details
-  const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
+  const handleRequestClick = async (request: IUserRequest, pushState: boolean = true) => {
     await loadRequestDetails({
       context,
       request,

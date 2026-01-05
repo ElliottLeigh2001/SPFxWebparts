@@ -1,4 +1,4 @@
-export interface UserRequest {
+export interface IUserRequest {
     ID: number;
     Title: string;
     TotalCost: string;
@@ -36,7 +36,7 @@ export interface UserRequest {
     };
 }
 
-export interface UserRequestItem {
+export interface IUserRequestItem {
     ID?: number;
     Title?: string;
     Provider?: string;
@@ -58,13 +58,7 @@ export interface UserRequestItem {
     }
 }
 
-export interface TTLDocument {
-    ID?: number;
-    Title?: string;
-    FileUrl?: string;
-}
-
-export interface Approver {
+export interface IApprover {
     Id: number;
     TeamCoach: {
         Id?: number;
@@ -89,7 +83,7 @@ export interface Approver {
     Team0?: string;
 }
 
-export interface Budget {
+export interface IBudget {
     ID: number;
     Title: string;
     TeamCoach: {

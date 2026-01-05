@@ -1,6 +1,6 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import styles from "../components/Dashboard/TtlWebpart.module.scss";
-import { Approver } from "../Interfaces/TTLInterfaces";
+import { IApprover } from "../Interfaces/TTLInterfaces";
 import { getManager, loadUserProfile } from "../service/TTLService";
 
 // Function to validate the cost of a request item
@@ -235,7 +235,7 @@ export const goBack = (args: {
 };
 
 // Get user's team coach
-export const getUserAndManager = async (approversList: Approver[], context: WebPartContext) => {
+export const getUserAndManager = async (approversList: IApprover[], context: WebPartContext) => {
   try {
     const user = await loadUserProfile(context);
     const manager = await getManager(context, user.managerAccount);

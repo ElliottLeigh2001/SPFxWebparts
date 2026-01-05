@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { getRequestsData, getLoggedInUser, getRequestItemsByRequestId, getApprovers, checkHR } from '../../service/TTLService';
 import styles from './TtlWebpart.module.scss';
-import { Approver, UserRequest, UserRequestItem } from '../../Interfaces/TTLInterfaces';
+import { IApprover, IUserRequest, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import RequestDetails from '../RequestDetails/RequestDetails';
 import ApproversDashboard from './ApproversDashboard';
 import HRDashboard from './HRDashboard';
@@ -14,12 +14,12 @@ import HeaderComponent from '../Header/HeaderComponent';
 import DeliveryDirectorDashboard from './DeliveryDirectorDashboard';
 
 const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
-  const [requests, setRequests] = useState<UserRequest[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<UserRequest | null>(null);
+  const [requests, setRequests] = useState<IUserRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<IUserRequest | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>();
-  const [allApprovers, setAllApprovers] = useState<Approver[]>([]);
+  const [allApprovers, setAllApprovers] = useState<IApprover[]>([]);
   const [newRequest, setNewRequest] = useState<boolean>(false);
-  const [requestItems, setRequestItems] = useState<UserRequestItem[]>([]);
+  const [requestItems, setRequestItems] = useState<IUserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -49,7 +49,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       const requestData = await getRequestsData(context, "Id desc", `Author/Id eq ${user?.Id}`);
 
       // Filter requests to only show requests from the logged in user
-      setRequests(requestData as UserRequest[]);
+      setRequests(requestData as IUserRequest[]);
       setLoggedInUser(user);
 
       // Filter list on only approvers
@@ -90,7 +90,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
 
       const filteredRequests = requestData
         .filter(req => req.Author?.Id === loggedInUser?.Id)
-      setRequests(filteredRequests as UserRequest[]);
+      setRequests(filteredRequests as IUserRequest[]);
 
       // if a request is selected, refresh its data and items
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
@@ -100,7 +100,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
 
         const refreshedRequest = filteredRequests.find(r => (r as any).ID === Number(selectedId));
         if (refreshedRequest) {
-          setSelectedRequest(refreshedRequest as UserRequest);
+          setSelectedRequest(refreshedRequest as IUserRequest);
         }
       }
     } catch (err) {
@@ -224,7 +224,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
   }, [context, refreshTrigger]);
 
   // Function to handle clicks on a request
-  const handleRequestClick = async (request: UserRequest, pushState: boolean = true) => {
+  const handleRequestClick = async (request: IUserRequest, pushState: boolean = true) => {
     try {
       setIsLoading(true);
       setError(null);

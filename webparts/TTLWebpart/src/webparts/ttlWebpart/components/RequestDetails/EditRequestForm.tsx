@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as React from 'react';
-import { UserRequest } from '../../Interfaces/TTLInterfaces';
+import { IUserRequest } from '../../Interfaces/TTLInterfaces';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IEditRequestFormProps } from './RequestDetailsProps';
 
@@ -47,7 +47,7 @@ const EditRequestForm: React.FC<IEditRequestFormProps> = ({ context, request, on
   const handleSave = (): void => {
     if (!validate()) return;
 
-    const updatedRequest: UserRequest = {
+    const updatedRequest: IUserRequest = {
       ...request,
       Title: title,
       Goal: goal,
