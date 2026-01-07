@@ -34,6 +34,11 @@ export interface IUserRequest {
         Title?: string;
         EMail?: string;
     };
+    BudgetSharing?: {
+      Id?: number;
+      Title?: string;
+      EMail?: string;
+    }
 }
 
 export interface IUserRequestItem {

@@ -28,6 +28,8 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
   const [selectedBudget, setSelectedBudget] = useState<IBudget | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<'requests'|'budgetSharing'>('requests');
+  const [isFromBudgetSharing, setIsFromBudgetSharing] = useState(false);
 
   useEffect(() => {
     const loadYears = async () => {
@@ -45,10 +47,13 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
         console.error("Error loading years:", e);
       }
     };
-
     loadYears();
     fetchData();
   }, [context]);
+
+  useEffect(() => {
+    console.log(requests);
+  }, [requests])
 
   // Get all requests for approvers and team coaches
   const fetchData = async (requestId?: number): Promise<void> => {
@@ -136,7 +141,13 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
   }, [context, selectedYear]);
 
   // Handle a click on a request
-  const handleRequestClick = async (request: IUserRequest, pushState: boolean = true) => {
+  const handleRequestClick = async (
+    request: IUserRequest,
+    pushState: boolean = true,
+    fromBudgetSharing: boolean = false
+  ) => {
+    setIsFromBudgetSharing(fromBudgetSharing);
+
     await loadRequestDetails({
       context,
       request,
@@ -202,15 +213,17 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
         view='approvers'
         isApprover={isApprover}
         isTeamCoach={isTeamCoach}
+        isFromBudgetSharing={isFromBudgetSharing}
         onBack={() => handleBackClick(true)}
         onUpdate={handleStatusUpdate}
         context={context}
         error={error} 
+        totalBudget={teamBudget.totalAvailable}
       />
     );
   }
 
-  const teamUsed = teamBudget.totalBudget - teamBudget.totalAvailable;
+  
 
   return (
     <div className={styles.ttlDashboard}>
@@ -235,35 +248,35 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
 
             {teamCoachBudgets && teamCoachBudgets.length > 0 ? (
               <>
-              {teamBudgetLoaded && (
-                <div className={budgetStyles.budgetContainer} style={{marginBottom: '1rem'}}>
-                  <div className={budgetStyles.budgetWrapper}>
-                    <DonutChart
-                      total={teamBudget.totalBudget}
-                      available={teamBudget.totalAvailable}
-                      size={100}
-                      strokeWidth={10}
-                    />
-                    <div className={budgetStyles.budgetInfo}>
-                      <h3 style={{ margin: 0 }}>{teamCoachBudgets[0].Team}</h3>
-                      <div><strong>Total Budget:</strong> €{teamBudget.totalBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-                      <div>
-                        <strong>
-                          Available{" "}
-                          <TooltipHost content="This reflects the budget that remains after prices of completed and in-process requests have been subtracted.">
-                            <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
-                          </TooltipHost>
-                          :
-                        </strong>{" "}
-                        <span style={{ color: teamBudget.totalAvailable > 0 ? "#2f8183" : "#d83b01" }}>
-                          €{teamBudget.totalAvailable.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                        </span>
+                {teamBudgetLoaded && (
+                  <div className={budgetStyles.budgetContainer} style={{marginBottom: '1rem'}}>
+                    <div className={budgetStyles.budgetWrapper}>
+                      <DonutChart
+                        total={teamBudget.totalBudget}
+                        available={teamBudget.totalAvailable}
+                        size={100}
+                        strokeWidth={10}
+                      />
+                      <div className={budgetStyles.budgetInfo}>
+                        <h3 style={{ margin: 0 }}>{teamCoachBudgets[0].Team}</h3>
+                        <div><strong>Total Budget:</strong> €{teamBudget.totalBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                        <div>
+                          <strong>
+                            Available{" "}
+                            <TooltipHost content="This reflects the budget that remains after prices of completed and in-process requests have been subtracted.">
+                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                            </TooltipHost>
+                            :
+                          </strong>{" "}
+                          <span style={{ color: teamBudget.totalAvailable > 0 ? "#2f8183" : "#d83b01" }}>
+                            €{teamBudget.totalAvailable.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div><strong>Used:</strong> €{(teamBudget.totalBudget - teamBudget.totalAvailable).toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                       </div>
-                      <div><strong>Used:</strong> €{teamUsed.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
                 <div className={budgetStyles.budgetContainer}>
                   {teamCoachBudgets.map((b) => {
@@ -305,7 +318,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
                     );
                   })}
                 </div>
-                </>
+              </>
             ) : (
               <p style={{justifySelf: 'center'}}>No budget data available for your team coaches in {selectedYear}.</p>
             )}
@@ -320,29 +333,58 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
           )}
         </>
       )}
-      
-      {(isApprover || isTeamCoach) ? (
-        <>
 
+      <div style={{marginTop: '3em'}} className={styles.tabContainer}>
+        <div className={styles.tabButtonWrapper}>
+          <div
+            className={`${styles.activeBgApprover} ${
+              activeTab === 'requests'
+                ? styles.slideLeft
+                : styles.slideCenter
+            }`}
+          >
+        </div>
+          <button
+            className={`${styles.tabButtonLeft} ${activeTab === 'requests' ? styles.activeTabText : ''}`}
+            onClick={() => setActiveTab('requests')}
+          >
+            Requests
+          </button>
+          <button
+            className={`${styles.tabButtonRight} ${activeTab === 'budgetSharing' ? styles.activeTabText : ''}`}
+            onClick={() => setActiveTab('budgetSharing')}
+          >
+            Budget Sharing
+          </button>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 12 }}>
         {error && (
           <div className={styles.error}>
             <p>{error}</p>
           </div>
         )}
 
+      {activeTab === 'requests' ? (
         <DashboardComponent
           context={context}
-          onClick={handleRequestClick}
+          onClick={(req) => handleRequestClick(req, true, false)}
           requests={requests}
-          view='approvers'
+          view="approvers"
         />
-
-      </>
       ) : (
-        <div style={{display: 'flex', justifyContent: 'center'}}>
-          <h2>You don't have the correct permissions to access to this page</h2>
-        </div>
+        <DashboardComponent
+          context={context}
+          onClick={(req) => handleRequestClick(req, true, true)}
+          requests={requests.filter(
+            r => r.BudgetSharing?.EMail === loggedInUser.Email
+          )}
+          view="approvers"
+        />
       )}
+
+      </div>
     </div>
   );
 }

@@ -4,9 +4,9 @@ import newRequestStyles from '../NewRequest/NewRequest.module.scss';
 import modalStyles from './Modals.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { useState } from 'react';
-import { IConfirmActionDialogProps, messages, titles } from './ModalsProps';
+import { IConfirmActionModalProps, messages, titles } from './ModalsProps';
 
-const ConfirmActionDialog: React.FC<IConfirmActionDialogProps> = ({ isOpen, action, isProcessing, onCancel, onConfirm }) => {
+const ConfirmActionModal: React.FC<IConfirmActionModalProps> = ({ isOpen, action, isProcessing, onCancel, onConfirm }) => {
   const [comment, setComment] = useState('')
   const [commentError, setCommentError] = useState('');
   if (!action) return null;
@@ -78,4 +78,4 @@ const ConfirmActionDialog: React.FC<IConfirmActionDialogProps> = ({ isOpen, acti
   );
 };
 
-export default ConfirmActionDialog;
+export default ConfirmActionModal;

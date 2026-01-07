@@ -7,9 +7,9 @@ import modalStyles from './Modals.module.scss';
 import { IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useState, useEffect } from 'react';
 import AccommodationForm from '../Forms/AccomodationForm';
-import { AddItemModalProps } from './ModalsProps';
+import { IAddItemModalProps } from './ModalsProps';
 
-const AddItemModal: React.FC<AddItemModalProps> = ({ context, isOpen, onSave, onCancel }) => {
+const AddItemModal: React.FC<IAddItemModalProps> = ({ context, isOpen, onSave, onCancel }) => {
   const [activeForm, setActiveForm] = useState<'training' | 'travel' | 'accommodation' | null>(null);
 
   // Reset form selection when modal opens/closes

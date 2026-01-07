@@ -96,7 +96,7 @@ export const getRequestsData = async (
 ): Promise<IUserRequest[]> => {
   try {
     // Base query
-    let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,DeadlineDate,TeamCoachApproval,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,Team&$expand=RequestItemID,Author,ApproverID`;
+    let apiUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_Requests')/items?$select=Id,Title,TotalCost,Goal,Project,SubmissionDate,ApprovedByCEO,RequestStatus,DeadlineDate,TeamCoachApproval,Author/Id,Author/Title,Author/EMail,RequestItemID/Id,ApproverID/Id,ApproverID/Title,BudgetSharing/Id,BudgetSharing/Title,BudgetSharing/EMail,Team&$expand=RequestItemID,Author,ApproverID,BudgetSharing`;
 
     // Add optional $orderby if provided
     if (orderBy) {
@@ -265,6 +265,7 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
     TotalCost: request.TotalCost || 0,
     SubmissionDate: submissionDate,
     DeadlineDate: request.DeadlineDate,
+    BudgetSharing: request.BudgetSharing,
   });
 
   const requestId = (reqAdd && (reqAdd.Id ?? reqAdd.ID)) as number | undefined;
@@ -388,6 +389,23 @@ export const updateRequest = async (context: WebPartContext, requestId: number, 
   }
 
   await list.items.getById(requestId).update(updateData);
+};
+
+// Set the BudgetSharing person field for a request
+export const updateRequestBudgetSharing = async (context: WebPartContext, requestId: number, userId: number | null): Promise<void> => {
+  try {
+    const sp = getSP(context);
+    const list = sp.web.lists.getByTitle('TTL_Requests');
+
+    if (userId) {
+      await list.items.getById(requestId).update({ BudgetSharingId: userId });
+    } else {
+      await list.items.getById(requestId).update({ BudgetSharingId: null });
+    }
+  } catch (error) {
+    console.error('Error updating BudgetSharing for request:', error);
+    throw error;
+  }
 };
 
 // Update only the DeadlineDate field for a request
@@ -594,6 +612,33 @@ const getUserIds = async (sp: SPFI, users: any[]): Promise<number[]> => {
   return ids;
 };
 
+// Update the status of a request
+// Also add a comment to the request if one was provided
+export const updateRequestStatus = async (
+  context: WebPartContext,
+  requestId: number,
+  requestStatus: string,
+  submissionDate?: Date,
+  setApprovedByCEO?: boolean,
+): Promise<void> => {
+  const sp = getSP(context);
+  const list = sp.web.lists.getByTitle('TTL_Requests');
+
+  // First update the request status
+  await list.items.getById(requestId).update({
+    RequestStatus: requestStatus,
+    SubmissionDate: submissionDate,
+    ApprovedByCEO: setApprovedByCEO
+  });
+};
+
+export const updateTeamCoachApproval = async (context: WebPartContext, requestId: number, decision: string) => {
+  const sp = getSP(context);
+  const list = sp.web.lists.getByTitle('TTL_Requests');
+
+  await list.items.getById(requestId).update({TeamCoachApproval: decision})
+}
+
 export const getBudgetforApprover = async (context: WebPartContext, teamCoachEmail: string, year: string): Promise<IBudget | null> => {
   try {
     const sp = getSP(context);
@@ -758,29 +803,33 @@ export const addToBudget = async (context: WebPartContext, budgetId: number, amo
   }
 }
 
-// Update the status of a request
-// Also add a comment to the request if one was provided
-export const updateRequestStatus = async (
-  context: WebPartContext,
-  requestId: number,
-  requestStatus: string,
-  submissionDate?: Date,
-  setApprovedByCEO?: boolean,
-): Promise<void> => {
-  const sp = getSP(context);
-  const list = sp.web.lists.getByTitle('TTL_Requests');
+// Get all budgets for the current year across all teams
+export const getAllBudgetsForYear = async (context: WebPartContext, year: string, totalCost?: number): Promise<IBudget[]> => {
+  try {
+    const sp = getSP(context);
+    const budgetList = sp.web.lists.getByTitle('TTL_Budget');
 
-  // First update the request status
-  await list.items.getById(requestId).update({
-    RequestStatus: requestStatus,
-    SubmissionDate: submissionDate,
-    ApprovedByCEO: setApprovedByCEO
-  });
-};
+    const budgets: any[] = await budgetList.items
+      .select('*,TeamCoach/Id,TeamCoach/EMail,TeamCoach/Title')
+      .expand('TeamCoach')
+      .filter(`Year eq '${year}' and Availablebudget gt '${totalCost}'`)();
 
-export const updateTeamCoachApproval = async (context: WebPartContext, requestId: number, decision: string) => {
-  const sp = getSP(context);
-  const list = sp.web.lists.getByTitle('TTL_Requests');
-
-  await list.items.getById(requestId).update({TeamCoachApproval: decision})
+    return budgets.map(b => ({
+      ID: b.Id,
+      Title: b.Title,
+      TeamCoach: {
+        Id: b.TeamCoach?.Id,
+        Title: b.TeamCoach?.Title,
+        EMail: b.TeamCoach?.EMail
+      },
+      Team: b.Team,
+      Budget: b.Budget || 0,
+      Availablebudget: b.Availablebudget || 0,
+      PendingBudget: b.PendingBudget || 0,
+      Year: b.Year
+    }));
+  } catch (error) {
+    console.error('Error fetching all budgets for year:', error);
+    return [];
+  }
 }

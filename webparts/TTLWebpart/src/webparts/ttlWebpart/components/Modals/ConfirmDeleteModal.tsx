@@ -2,9 +2,9 @@ import * as React from 'react';
 import { Modal } from '@fluentui/react';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import modalStyles from './Modals.module.scss';
-import { IConfirmDeleteDialogProps } from './ModalsProps';
+import { IConfirmDeleteModalProps } from './ModalsProps';
 
-const ConfirmDeleteDialog: React.FC<IConfirmDeleteDialogProps> = ({ isOpen, isDeleting, itemName, onCancel, onConfirmItemDelete, onConfirmRequestDelete }) => {
+const ConfirmDeleteModal: React.FC<IConfirmDeleteModalProps> = ({ isOpen, isDeleting, itemName, onCancel, onConfirmItemDelete, onConfirmRequestDelete }) => {
   return (
     <Modal
       isOpen={isOpen}
@@ -63,4 +63,4 @@ const ConfirmDeleteDialog: React.FC<IConfirmDeleteDialogProps> = ({ isOpen, isDe
   );
 };
 
-export default ConfirmDeleteDialog;
+export default ConfirmDeleteModal;

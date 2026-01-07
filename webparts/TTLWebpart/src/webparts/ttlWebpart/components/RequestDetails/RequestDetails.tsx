@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import EditRequestForm from './EditRequestForm';
-import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById, updateRequestDeadline, updateTeamCoachApproval, getBudgetforApprover, deductFromBudget, getApprovers, addToBudget } from '../../service/TTLService';
+import { updateRequestItem, deleteRequestWithItems, updateRequest, deleteRequestItem, recalcAndUpdateRequestTotal, createRequestItemForExistingRequest, updateRequestStatus, getApproverById, updateRequestDeadline, updateTeamCoachApproval, getBudgetforApprover, deductFromBudget, getApprovers, addToBudget, updateRequestBudgetSharing } from '../../service/TTLService';
+import { IBudget } from '../../Interfaces/TTLInterfaces';
 import RequestItemsList from './RequestItemsList';
 import { IUserRequest, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { Modal } from '@fluentui/react';
@@ -8,19 +9,20 @@ import styles from '../Dashboard/TtlWebpart.module.scss';
 import requestDetailsStyles from './RequestDetails.module.scss';
 import modalStyles from '../Modals/Modals.module.scss';
 import * as React from 'react';
-import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
+import ConfirmActionModal from '../Modals/ConfirmActionModal';
 import { sendEmail } from '../../service/AutomateService';
 import { formatDate, getRequestStatusStyling } from '../../Helpers/HelperFunctions';
 import CommentsSection from './CommentsSection';
 import AddItemModal from '../Modals/AddItemModal';
-import ConfirmDeleteDialog from '../Modals/ConfirmDeleteDialog';
+import ConfirmDeleteModal from '../Modals/ConfirmDeleteModal';
 import EditItemModal from '../Modals/EditItemModal';
 import { createComment } from '../../service/CommentService';
 import { TTLComment } from '../../Interfaces/TTLCommentInterface';
 import { IRequestDetailsProps } from './RequestDetailsProps';
 import HeaderComponent from '../Header/HeaderComponent';
+import BudgetSharingModal from '../Budget/BudgetSharingModal';
 
-const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover, isTeamCoach }) => {
+const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover, isTeamCoach, totalBudget, isFromBudgetSharing }) => {
   const [editingItem, setEditingItem] = useState<IUserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
   const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
@@ -36,14 +38,17 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusActionError, setStatusActionError] = useState<string | null>(null);
-  const [showConfirmActionDialog, setShowConfirmActionDialog] = useState(false);
+  const [showConfirmActionModal, setShowConfirmActionModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
   const [typeOfRequest, setTypeOfRequest] = useState('');
   const [deadlineWarning, setDeadlineWarning] = useState(false);
-  const [isOverBudget, setIsOverBudget] = useState(false);
+  const [isOverTeamcoachBudget, setIsOverTeamcoachBudget] = useState(false);
+  const [isOverTeamBudget, setIsOverTeamBudget] = useState(false);
   const [teamCoach, setTeamCoach] = useState('');
+  const [showSharingScreen, setShowSharingScreen] = useState(false);
+  const [selectedSharedBudget, setSelectedSharedBudget] = useState<IBudget | null>(null);
 
   // Set the items to display after an update, deletion, add...
   useEffect(() => {
@@ -86,13 +91,17 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
 
     setTeamCoach(teamCoachTitle);
 
-    const year = new Date(request.DeadlineDate!).getFullYear().toString();
-
+    const year = new Date().getFullYear().toString();
     const teamCoachBudget = await getBudgetforApprover(context, teamCoachEmail, year);
 
     if (teamCoachBudget) {
-      const overBudget = teamCoachBudget.Availablebudget < Number(request.TotalCost);
-      setIsOverBudget(overBudget);
+      const overTeamcoachBudget = teamCoachBudget.Availablebudget < Number(request.TotalCost);
+      setIsOverTeamcoachBudget(overTeamcoachBudget);
+    }
+
+    if (totalBudget || totalBudget === 0) {
+      const overTeamBudget = totalBudget < Number(request.TotalCost);
+      setIsOverTeamBudget(overTeamBudget);
     }
   };
 
@@ -300,7 +309,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   };
 
   // Function for adding comments to a request
-  // commentText is the text that is filled into the texarea in the confirmActionDialog
+  // commentText is the text that is filled into the texarea in the ConfirmActionModal
   const handleAddComment = async (commentText: string) => {
     if (!commentText.trim()) return;
 
@@ -396,8 +405,12 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   // Handle CEO approval logic
   const handleCEOApproval = async (): Promise<void> => {
     if (request.RequestStatus === 'Awaiting CEO approval') {
-      // Deduct from reserved budget
-      await deductFromTeamCoachBudget();
+      // Deduct from budget (either shared or team coach)
+      if (selectedSharedBudget) {
+        await deductFromSharedBudget(selectedSharedBudget);
+      } else {
+        await deductFromTeamCoachBudget();
+      }
       // Send to HR
       await updateRequestApprover('HR Processing', true, true);
       // Notify HR
@@ -411,6 +424,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
         approverTitle: request.ApproverID?.Title,
         typeOfRequest: typeOfRequest
       });
+      // If the practice lead hasn't approved yet, keep the same status, but set 'approvedByCEO' to true
     } else if (request.RequestStatus === 'Submitted' || request.RequestStatus === 'Resubmitted') {
       await updateRequestApprover(request.RequestStatus, true, true);
     }
@@ -418,6 +432,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
 
   // Handle practice lead/delivery director approval logic
   const handlePracticeLeadApproval = async (): Promise<void> => {
+    // If the price is > 5000 EUR, we need the CEO's approval
     const needsDirectorApproval = Number(request.TotalCost) > 5000;
     const nextStatus = needsDirectorApproval && !request.ApprovedByCEO ? 'Awaiting CEO approval' : 'HR Processing';
 
@@ -425,7 +440,12 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
 
     // Send email to HR only if request goes to HR Processing
     if (nextStatus === 'HR Processing') {
-      await deductFromTeamCoachBudget();
+      // Deduct from budget (either shared or team coach)
+      if (selectedSharedBudget) {
+        await deductFromSharedBudget(selectedSharedBudget);
+      } else {
+        await deductFromTeamCoachBudget();
+      }
 
       await sendEmail({
         emailType: 'HR',
@@ -544,6 +564,46 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
       }
     } catch (budgetError) {
       console.error('Error deducting from budget:', budgetError);
+    }
+  };
+
+  const deductFromSharedBudget = async (sharedBudget: IBudget): Promise<void> => {
+    if (!request.TotalCost) return;
+
+    try {
+      await deductFromBudget(context, sharedBudget.ID, Number(request.TotalCost));
+    } catch (budgetError) {
+      console.error('Error deducting from shared budget:', budgetError);
+    }
+  };
+
+  // Handler used by the budget owner to confirm sharing and deduct from their budget
+  const handleConfirmBudgetSharing = async (): Promise<void> => {
+    if (!request.ID) return;
+    setIsProcessing(true);
+    try {
+      // get the budget for the current user (the one assigned in BudgetSharing)
+      const currentUserEmail = context?.pageContext?.user?.email;
+      if (!currentUserEmail) return;
+      const budget = await getBudgetforApprover(context, currentUserEmail, new Date().getFullYear().toString());
+      if (budget) {
+        await deductFromBudget(context, budget.ID, Number(request.TotalCost));
+      }
+
+      // clear the BudgetSharing field on the request
+      try {
+        await updateRequestBudgetSharing(context, request.ID, null);
+      } catch (err) {
+        console.error('Failed to clear BudgetSharing after confirm:', err);
+      }
+
+      // refresh parent UI
+      onUpdate();
+    } catch (err) {
+      console.error('Error confirming budget sharing:', err);
+      setStatusActionError('Failed to confirm budget sharing');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -686,7 +746,31 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
         onCancel={() => setShowAddModal(false)}
       />
 
-      <ConfirmDeleteDialog
+      <BudgetSharingModal
+        context={context}
+        isOpen={showSharingScreen}
+        totalCost={Number(request.TotalCost)}
+        onSelectBudget={async (budget) => {
+          try {
+            // persist the BudgetSharing person on the request so the other approver can act on it
+            const userId = budget?.TeamCoach?.Id || null;
+            if (request.ID) {
+              await updateRequestBudgetSharing(context, request.ID, userId);
+            }
+            setSelectedSharedBudget(budget);
+          } catch (err) {
+            console.error('Failed to set BudgetSharing on request:', err);
+            setStatusActionError('Failed to request budget sharing');
+          } finally {
+            setShowSharingScreen(false);
+            // refresh parent to surface the new BudgetSharing assignment
+            onUpdate();
+          }
+        }}
+        onCancel={() => setShowSharingScreen(false)}
+      />
+
+      <ConfirmDeleteModal
         isOpen={showDeleteConfirm}
         isDeleting={isDeleting}
         itemName={selectedItemToDelete?.Title || null}
@@ -695,11 +779,11 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
         onConfirmRequestDelete={handleDeleteRequest}
       />
 
-      <ConfirmActionDialog
-          isOpen={showConfirmActionDialog}
+      <ConfirmActionModal
+          isOpen={showConfirmActionModal}
           action={confirmAction}
           isProcessing={confirmProcessing}
-          onCancel={() => { setShowConfirmActionDialog(false); setConfirmAction(null); }}
+          onCancel={() => { setShowConfirmActionModal(false); setConfirmAction(null); }}
           onConfirm={async (comment) => {
             if (!confirmAction) return;
             setConfirmProcessing(true);
@@ -721,8 +805,9 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
             } finally {
               setConfirmProcessing(false);
               setIsProcessing(false);
-              setShowConfirmActionDialog(false);
+              setShowConfirmActionModal(false);
               setConfirmAction(null);
+              setSelectedSharedBudget(null);
               sessionStorage.removeItem(`changedByHR${request.ID}`)
               if (success) {
                 onBack();
@@ -756,27 +841,49 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
         )}
         {((view === 'approvers' && isApprover) || view === 'director' || view === 'deliveryDirector') && (
           <div style={{justifyItems: 'center'}}>
-          {isOverBudget && (
-            <p style={{color: 'red', textDecoration: 'underline', fontWeight: '600'}}>WARNING: This request exceeds the team coach's budget!</p>
+          {isOverTeamcoachBudget && (
+              isOverTeamBudget ? (
+                <p style={{color: 'red', textDecoration: 'underline', fontWeight: '600'}}>WARNING: This request exceeds the team's budget!</p>
+              ) : (
+                <p style={{color: 'red', textDecoration: 'underline', fontWeight: '600'}}>WARNING: This request exceeds the team coach's budget!</p>
+              )
           )}
           <div style={{display: 'flex', gap: '20px'}}>
             <button 
-              onClick={() => {setConfirmAction('deny'); setShowConfirmActionDialog(true)}}
+              onClick={() => {setConfirmAction('deny'); setShowConfirmActionModal(true)}}
               className={requestDetailsStyles.declineButton}
               disabled={isUpdatingStatus}
             >
               Deny
             </button>
-          <button
-            onClick={() => {
-              setConfirmAction('approve');
-              setShowConfirmActionDialog(true);
-            }}
-            className={requestDetailsStyles.approveButton}
-            disabled={isUpdatingStatus}
-          >
-          Approve
-          </button>
+              {isFromBudgetSharing && (
+                <button
+                  onClick={async () => { await handleConfirmBudgetSharing(); }}
+                  className={requestDetailsStyles.approveButton}
+                  disabled={isUpdatingStatus || isProcessing}
+                >
+                  Confirm Sharing
+                </button>
+              )}
+            {isOverTeamBudget ? (
+              <button
+                onClick={() => setShowSharingScreen(true)}
+                className={requestDetailsStyles.approveButton}
+                disabled={isUpdatingStatus}>
+                Approve
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setConfirmAction('approve');
+                  setShowConfirmActionModal(true);
+                }}
+                className={requestDetailsStyles.approveButton}
+                disabled={isUpdatingStatus}
+              >
+              Approve
+              </button>
+            )}
             {statusActionError && (
               <p>{statusActionError}</p>
             )}
@@ -795,7 +902,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                 } else {
                   setConfirmAction('completed');
                 }
-                setShowConfirmActionDialog(true);
+                setShowConfirmActionModal(true);
               } }
               disabled={isUpdatingStatus}
               className={styles.stdButton}
@@ -820,7 +927,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
 
             <button
               className={styles.stdButton}
-              onClick={() => { setConfirmAction('send'); setShowConfirmActionDialog(true); } }
+              onClick={() => { setConfirmAction('send'); setShowConfirmActionModal(true); } }
               style={{width: '171px'}}
             >
               Send for approval

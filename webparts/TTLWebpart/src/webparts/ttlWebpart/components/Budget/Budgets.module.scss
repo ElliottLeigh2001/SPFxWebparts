@@ -210,3 +210,65 @@
     background-color: #ddd;
   }
 }
+
+.budgetSharingBody {
+  padding: 20px;
+  max-height: calc(90vh - 205px);
+  overflow-y: auto;
+}
+
+.center {
+  text-align: center;
+  padding: 20px;
+}
+
+.paragraph {
+  margin-bottom: 15px;
+  color: #605e5c;
+}
+
+.budgetSharingContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.budgetSharingCard {
+  padding: 15px;
+  border: 1px solid #e1e1e1;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.budgetSharingTeam {
+   display: flex; 
+   justify-content: space-between; 
+   align-Items: center; 
+   margin-bottom: 8px;
+}
+
+.budgetSharingAmounts {
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 15px; 
+  margin-top: 10px;
+}
+
+.budgetSharingActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid #e1e1e1;
+  background-color: #f8f9fa;
+}
+
+.selectBudget {
+  padding: 8px 16px;
+  border: none;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s ease
+}

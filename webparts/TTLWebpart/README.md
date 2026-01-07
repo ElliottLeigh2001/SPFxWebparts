@@ -55,11 +55,11 @@ Request is approved by all required approvers: requester is informed that their 
 - RequestDetails.tsx: When a request is created, this component contains all information from that item. Actions can be taken based on the status of that specific request (CRUD operations, approvals etc.)
 - RequestItemsList.tsx: Component inside the RequestDetails that shows each request item
 - AddItemModal.tsx: Modal for adding a request item to a request in the details page (only possible when request status is 'Draft')
-- ConfirmDeleteDialog.tsx: Dialog for deleting whole requests or individual request items
+- ConfirmDeleteModal.tsx: Dialog for deleting whole requests or individual request items
 - EditItemModal.tsx: Modal for editing requests
 - EditRequestForm.tsx: Modal for editing details about the request like: approver, title, goal etc.
 
-- ConfirmActionDialog.tsx: Dialog to confirm actions like deleting items, sending requests for approval, approving requests etc.
+- ConfirmActionModal.tsx: Dialog to confirm actions like deleting items, sending requests for approval, approving requests etc.
 
 
 ***Most components also have an interface and scss file for modularity and readability***

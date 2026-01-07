@@ -13,7 +13,6 @@ export interface IRequestsByRequester {
   requests: IUserRequest[];
 }
 
-
 export interface IDonutChartProps { 
   total: number; 
   available: number; 
@@ -22,3 +21,10 @@ export interface IDonutChartProps {
   label?: string; 
 } 
 
+export interface IBudgetSharingModalProps {
+  context: WebPartContext;
+  isOpen: boolean;
+  totalCost?: number;
+  onSelectBudget: (budget: IBudget) => void;
+  onCancel: () => void;
+}

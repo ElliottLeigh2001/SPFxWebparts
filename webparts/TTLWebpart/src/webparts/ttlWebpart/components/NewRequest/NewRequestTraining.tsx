@@ -4,7 +4,7 @@ import TravelForm from '../Forms/TravelForm';
 import { createRequestWithItems, getApproverById } from '../../service/TTLService';
 import { IApprover, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useEffect, useState, useRef } from 'react';
-import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
+import ConfirmActionModal from '../Modals/ConfirmActionModal';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
 import newRequestStyles from './NewRequest.module.scss'
@@ -344,7 +344,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
 
                 {error && <div className={styles.validationError}>{error}</div>}
 
-                <ConfirmActionDialog
+                <ConfirmActionModal
                     isOpen={confirmOpen}
                     action={confirmAction}
                     isProcessing={confirmProcessing}

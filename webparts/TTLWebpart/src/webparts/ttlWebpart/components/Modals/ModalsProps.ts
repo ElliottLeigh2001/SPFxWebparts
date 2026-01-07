@@ -1,7 +1,7 @@
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { IUserRequestItem } from "../../Interfaces/TTLInterfaces";
 
-export interface AddItemModalProps {
+export interface IAddItemModalProps {
   context: WebPartContext;
   isOpen: boolean;
   onSave: (item: IUserRequestItem) => Promise<void>;
@@ -30,7 +30,7 @@ export const messages: Record<ActionType, string> = {
   completed: 'Are you sure you want to mark this request as completed?'
 };
 
-export interface IConfirmActionDialogProps {
+export interface IConfirmActionModalProps {
   isOpen: boolean;
   action: ActionType | null;
   isProcessing?: boolean;
@@ -38,7 +38,7 @@ export interface IConfirmActionDialogProps {
   onConfirm: (comment?: string) => void;
 }
 
-export interface IConfirmDeleteDialogProps {
+export interface IConfirmDeleteModalProps {
   isOpen: boolean;
   isDeleting: boolean;
   itemName?: string | null;
@@ -57,4 +57,5 @@ export interface IEditItemModalProps {
   onSave: (item: IUserRequestItem) => Promise<void>;
   onCancel: () => void;
 }
+
 

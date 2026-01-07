@@ -25,6 +25,8 @@ export interface IRequestDetailsProps {
   isCEO?: boolean;
   isApprover?: boolean;
   isTeamCoach?: boolean;
+  totalBudget?: number;
+  isFromBudgetSharing?: boolean;
 }
 
 export interface IEditRequestFormProps {

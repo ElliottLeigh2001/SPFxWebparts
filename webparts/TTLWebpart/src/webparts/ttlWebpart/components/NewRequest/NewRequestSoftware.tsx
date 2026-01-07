@@ -7,7 +7,7 @@ import { sendEmail } from '../../service/AutomateService';
 import { calculateSoftwareLicenseCost, getUserAndManager } from '../../Helpers/HelperFunctions';
 import SoftwareForm, { SoftwareFormHandle } from '../Forms/SoftwareForm';
 import { IApprover } from '../../Interfaces/TTLInterfaces';
-import ConfirmActionDialog from '../Modals/ConfirmActionDialog';
+import ConfirmActionModal from '../Modals/ConfirmActionModal';
 import * as React from 'react';
 import { INewRequestProps } from './NewRequestProps';
 import HeaderComponent from '../Header/HeaderComponent';
@@ -283,7 +283,7 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
 
       {error && <div style={{fontSize: 'small', fontWeight: 'bold', justifySelf: 'center'}} className={styles.validationError}>{error}</div>}
 
-      <ConfirmActionDialog
+      <ConfirmActionModal
         isOpen={confirmOpen}
         action={confirmAction}
         isProcessing={confirmProcessing}

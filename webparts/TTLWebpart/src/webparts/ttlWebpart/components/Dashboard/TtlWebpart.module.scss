@@ -245,13 +245,8 @@
   font-size: 14px;
 }
 
-select:hover,
-select:focus,
-input:hover,
-input:focus {
-  border-color: rgb(47, 129, 131);
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(47, 129, 131, 0.2);
+textarea {
+  border-radius: 2px;
 }
 
 .invalid {
@@ -415,11 +410,22 @@ input:focus {
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
-.activeBg {
+.activeBgHR {
   position: absolute;
   top: 0;
   left: 0;
   width: 33.33%;
+  height: 100%;
+  background-color: rgb(47, 129, 131);
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+
+.activeBgApprover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
   height: 100%;
   background-color: rgb(47, 129, 131);
   transition: transform 0.3s ease;
@@ -438,9 +444,9 @@ input:focus {
   transform: translateX(0%);
 }
 
-.tabButtonAllRequests,
-.tabButtonApproved,
-.tabButtonAwaiting {
+.tabButtonLeft,
+.tabButtonRight,
+.tabButtonCenter {
   border: none;
   padding: 10px 20px;
   background: transparent;
@@ -453,15 +459,15 @@ input:focus {
   border: 1px solid gray;
 }
 
-.tabButtonAwaiting {
+.tabButtonCenter {
   border-radius: 0;
 }
 
-.tabButtonApproved {
+.tabButtonRight {
   border-radius: 0px 4px 4px 0px;
 }
 
-.tabButtonAllRequests {
+.tabButtonLeft {
   border-radius: 4px 0px 0px 4px;
 }
 

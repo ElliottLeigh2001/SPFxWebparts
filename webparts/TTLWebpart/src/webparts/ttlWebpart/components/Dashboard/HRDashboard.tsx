@@ -152,7 +152,7 @@ const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => 
         <div className={styles.tabContainer}>
           <div className={styles.tabButtonWrapper}>
             <div
-              className={`${styles.activeBg} ${
+              className={`${styles.activeBgHR} ${
                 activeTab === 'awaitingApproval'
                   ? styles.slideCenter
                   : activeTab === 'allRequests'
@@ -163,21 +163,21 @@ const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => 
             </div>
 
             <button
-              className={`${styles.tabButtonAllRequests} ${activeTab === 'allRequests' ? styles.activeTabText : ''}`}
+              className={`${styles.tabButtonLeft} ${activeTab === 'allRequests' ? styles.activeTabText : ''}`}
               onClick={() => setActiveTab('allRequests')}
             >
               All Requests
             </button>
 
             <button
-              className={`${styles.tabButtonAwaiting} ${activeTab === 'awaitingApproval' ? styles.activeTabText : ''}`}
+              className={`${styles.tabButtonCenter} ${activeTab === 'awaitingApproval' ? styles.activeTabText : ''}`}
               onClick={() => setActiveTab('awaitingApproval')}
             >
               Awaiting Approval
             </button>
 
             <button
-              className={`${styles.tabButtonApproved} ${activeTab === 'approved' ? styles.activeTabText : ''}`}
+              className={`${styles.tabButtonRight} ${activeTab === 'approved' ? styles.activeTabText : ''}`}
               onClick={() => setActiveTab('approved')}
             >
               Approved
