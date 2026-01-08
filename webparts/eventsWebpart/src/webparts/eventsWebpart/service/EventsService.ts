@@ -65,32 +65,6 @@ export const addSubscriptionItem = async (context: WebPartContext, item: any): P
   return await sp.web.lists.getByTitle("Subscriptions").items.add(item);
 };
 
-// Gets the groups of the logged in user
-export const getUserGroups = async (
-  context: WebPartContext
-): Promise<boolean> => {
-  try {
-    const sp = getSP(context);
-
-    // Get groups of the current user
-    const groups = await sp.web.currentUser.groups();
-
-    const userGroups = groups.map((grp) => grp.Title.toLowerCase());
-
-    // If the user is a member or owner of the site, they can make a new event
-    const canAddEvents = userGroups.some((group) =>
-      ["hr-be members", "hr-be owners"].some((role) =>
-        group.includes(role)
-      )
-    );
-
-    return canAddEvents;
-  } catch (err) {
-    console.error("Error checking group membership:", err);
-    return false;
-  }
-};
-
 // Fetch events from SharePoint list HR_Events
 export const getListData = async (
   context: WebPartContext

@@ -5,7 +5,7 @@ import EventDetails from "./eventDetails/EventDetails";
 import { EventItem, IEventsWebpartProps } from "../EventsInterfaces";
 import { formatSingleDate, getDateRange } from "../utils/DateUtils";
 import HeaderComponent from "./header/HeaderComponent";
-import { getUserGroups, getListData, getMySubscriptions } from "../service/EventsService";
+import { getListData, getMySubscriptions } from "../service/EventsService";
 
 const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [items, setItems] = useState<EventItem[]>([]);
@@ -13,7 +13,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
-  const [isAdminOrMember, setIsAdminOrMember] = useState(false);
   const [filters, setFilters] = useState<string[]>([]);
   const [dateRangeFilter, setDateRangeFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -140,8 +139,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   // On mount: fetch events, user groups, and subscriptions
   useEffect(() => {
     (async () => {
-      const groups = await getUserGroups(context);
-      setIsAdminOrMember(groups)
       try {
         const listItems = await getListData(context);
         const now = new Date();
@@ -193,12 +190,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, [items]);
-
-  // Redirects to the add form (only visible for hr members and owners)
-  const goToAddPage = (): void => {
-    window.location.href =
-      "https://amexio.sharepoint.com/sites/HR-BE/Lists/HR_Events/NewForm.aspx?Source=https%3A%2F%2Famexio.sharepoint.com%2Fsites%2FHR-BE%2FLists%2FHR_Events%2FAllItems.aspx&ContentTypeId=0x010052716024EBBFA746A6539D172B442321001AAB3285335EE04FAECB2DA239AE7D6C&ovuser=1a44e8c4-fbc4-4d25-b648-099e23c46fe2%2CElliott.Leigh%40amexiogroup.com&OR=Teams-HL&CT=1761144177184&clickparams=eyJBcHBOYW1lIjoiVGVhbXMtRGVza3RvcCIsIkFwcFZlcnNpb24iOiI0OS8yNTA5MTExNjAxOCIsIkhhc0ZlZGVyYXRlZFVzZXIiOmZhbHNlfQ%3D%3D&CID=c5e8d1a1-d0eb-9000-61b1-13a55e82e2f2&cidOR=SPO&id=%2Fsites%2FHR-BE%2FLists%2FHR_Events";
-  };
 
   // Carousel arrows logic
   const handlePrev = (): void => {
@@ -353,14 +344,6 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
           </aside>
         </div>
       </div>
-
-        {isAdminOrMember && (
-          <div style={{display: 'flex', justifyContent: 'flex-end', width: '96%', justifySelf: 'center'}}>
-            <p style={{margin: '0 0 20px 0'}} onClick={goToAddPage} className={styles.addButton}>
-              + Add event
-            </p>
-          </div>
-        )}
 
         <main className={styles.mainContent}>
 
