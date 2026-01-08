@@ -1,7 +1,8 @@
 import * as React from 'react';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
-import { createRequestWithItems, getApproverById } from '../../service/TTLService';
+import { createRequestWithItems, getApproverById, updateRequestWithCommentId } from '../../service/TTLService';
+import { createComment } from '../../service/CommentService';
 import { IApprover, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useEffect, useState, useRef } from 'react';
 import ConfirmActionModal from '../Modals/ConfirmActionModal';
@@ -137,7 +138,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
     };
 
     // On submit of the request, save it
-    const handleSave = async (type: string): Promise<void> => {
+    const handleSave = async (type: string, comment?: string): Promise<void> => {
 
         // Collect inline items
         const collectedItems = await collectAllItems();
@@ -168,6 +169,18 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                 collectedItems,
                 type
             );
+
+            // If a comment was provided, create the comment and link it to the request
+            if (comment && comment.trim()) {
+                try {
+                    const commentObj = { Title: `Comment on Request ${requestId}`, Body: comment };
+                    const commentId = await createComment(context, commentObj, requestId);
+                    // Also update the request's CommentID lookup to include this comment
+                    await updateRequestWithCommentId(context, requestId, commentId);
+                } catch (err) {
+                    console.error('Failed to create or link comment for new request', err);
+                }
+            }
 
             if (type === 'Submitted') {
                 const approverData = await getApproverById(context, Number(approver));
@@ -349,14 +362,14 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                     action={confirmAction}
                     isProcessing={confirmProcessing}
                     onCancel={() => { setConfirmOpen(false); setConfirmAction(null); }}
-                    onConfirm={async () => {
+                    onConfirm={async (comment) => {
                         if (!confirmAction) return;
                         setConfirmProcessing(true);
                         try {
                             if (confirmAction === 'save') {
-                                await handleSave('Draft');
+                                await handleSave('Draft', comment);
                             } else if (confirmAction === 'send') {
-                                await handleSave('Submitted');
+                                await handleSave('Submitted', comment);
                             } else if (confirmAction === 'discard') {
                                 onCancel();
                             }

@@ -33,14 +33,14 @@ const ConfirmActionModal: React.FC<IConfirmActionModalProps> = ({ isOpen, action
               value={comment} 
               onChange={e => setComment(e.target.value)} 
               required
-              style={{padding: '20px 0', width: '50%', marginTop: '1em'}}
+              style={{padding: '5px 20px 40px 5px', width: '50%', marginTop: '1em'}}
             >
 
             </textarea>
             {commentError && <div className={styles.validationError}>{commentError}</div>}
           </>
         )}
-        {(action === 'approve') && (
+        {(action === 'approve' || action === 'send') && (
           <>
             <label>Add a comment (optional)</label>
             <textarea 
@@ -49,7 +49,7 @@ const ConfirmActionModal: React.FC<IConfirmActionModalProps> = ({ isOpen, action
               value={comment} 
               onChange={e => setComment(e.target.value)} 
               className={commentError ? styles.invalid : ''} 
-              style={{padding: '20px 0', width: '50%', marginTop: '1em'}}
+              style={{padding: '5px 20px 40px 5px', width: '50%', marginTop: '1em'}}
             >
 
             </textarea>

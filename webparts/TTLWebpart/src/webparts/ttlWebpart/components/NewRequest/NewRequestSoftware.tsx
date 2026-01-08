@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import newRequestStyles from './NewRequest.module.scss';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { createRequestWithItems } from '../../service/TTLService';
+import { createRequestWithItems, updateRequestWithCommentId } from '../../service/TTLService';
+import { createComment } from '../../service/CommentService';
 import { sendEmail } from '../../service/AutomateService';
 import { calculateSoftwareLicenseCost, getUserAndManager } from '../../Helpers/HelperFunctions';
 import SoftwareForm, { SoftwareFormHandle } from '../Forms/SoftwareForm';
@@ -88,7 +89,7 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
   };
 
   // On submit, create new items
-  const handleSave = async (type: string) => {
+  const handleSave = async (type: string, comment?: string) => {
     // Check general validation
     if (!validate()) return;
 
@@ -114,6 +115,7 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
     try {
       // Get the selected approver row
       const selectedApproverRow = allApprovers.find(a => a.Id === approver);
+      console.log(selectedApproverRow);
       
       if (!selectedApproverRow) {
         throw new Error('Selected approver not found');
@@ -134,26 +136,36 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
         type
       );
 
-      // If sending for approval, trigger the Automate flow
-      if (type === 'Submitted' && selectedApproverRow?.PracticeLead) {
-        const approverEmail = selectedApproverRow.PracticeLead.EMail;
-        const approverTitle = selectedApproverRow.PracticeLead.Title;
-        const directorTitle = selectedApproverRow.CEO.Title;
-        const directorEmail = selectedApproverRow.CEO.EMail;
+      // If a comment was provided, create and link it to the new request
+      if (comment && comment.trim()) {
+        try {
+          const commentObj = { Title: `Comment on Request ${createdId}`, Body: comment };
+          const commentId = await createComment(context, commentObj, createdId);
+          await updateRequestWithCommentId(context, createdId, commentId);
+        } catch (err) {
+          console.error('Failed to create or link comment for new request', err);
+        }
+      }
 
-        sendEmail({
-          emailType: "new request",
-          requestId: createdId.toString(),
-          title: title,
-          approver: approverEmail,
-          approverTitle: approverTitle,
-          authorEmail: loggedInUser.Email,
-          authorName: loggedInUser.Title,
-          directorTitle: directorTitle,
-          directorEmail: directorEmail,
-          totalCost: totalCost.toString(),
-          typeOfRequest: 'Software License'
-        });
+      // If sending for approval, trigger the Automate flow
+      if (type === 'Submitted' && selectedApproverRow.PracticeLead?.EMail) {
+        try {
+          await sendEmail({
+            emailType: "new request",
+            requestId: createdId.toString(),
+            title,
+            approver: selectedApproverRow.PracticeLead.EMail,
+            approverTitle: selectedApproverRow.PracticeLead.Title ?? '',
+            authorEmail: loggedInUser.Email,
+            authorName: loggedInUser.Title,
+            directorTitle: selectedApproverRow.CEO?.Title ?? '',
+            directorEmail: selectedApproverRow.CEO?.EMail ?? '',
+            totalCost: totalCost.toString(),
+            typeOfRequest: 'Software License'
+          });
+        } catch (err) {
+          console.error('Email sending failed', err);
+        }
       }
 
       // Clear general form and reset software form
@@ -288,7 +300,7 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
         action={confirmAction}
         isProcessing={confirmProcessing}
         onCancel={() => { setConfirmOpen(false); setConfirmAction(null); } }
-        onConfirm={async () => {
+        onConfirm={async (comment) => {
           if (!confirmAction) return;
           setConfirmProcessing(true);
 
@@ -299,16 +311,17 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
             }
 
             if (confirmAction === 'save') {
-              await handleSave('Draft');
+              await handleSave('Draft', comment);
             } else if (confirmAction === 'send') {
-              await handleSave('Submitted');
+              await handleSave('Submitted', comment);
             }
           } finally {
             setConfirmProcessing(false);
             setConfirmOpen(false);
             setConfirmAction(null);
           }
-        } } />
+        } }
+        />
     </div>
     </>
   );

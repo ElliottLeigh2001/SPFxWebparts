@@ -368,6 +368,36 @@ export const updateRequestWithItemId = async (
   }
 };
 
+// Update the CommentID field in TTL_Requests with a new comment ID
+export const updateRequestWithCommentId = async (
+  context: WebPartContext,
+  requestId: number,
+  newCommentId: number
+): Promise<void> => {
+  const sp = getSP(context);
+  const requestsList = sp.web.lists.getByTitle('TTL_Requests');
+
+  try {
+    // First, get the current request to see existing comment IDs
+    const currentRequest = await requestsList.items.getById(requestId).select('CommentID/Id').expand('CommentID')();
+
+    // Extract existing comment IDs
+    const existingCommentIds = currentRequest.CommentID
+      ? currentRequest.CommentID.map((c: any) => c.Id)
+      : [];
+
+    // Add the new comment ID to the array
+    const updatedCommentIds = [...existingCommentIds, newCommentId];
+
+    // Update the CommentID field with the complete array
+    await requestsList.items.getById(requestId).update({ CommentIDId: updatedCommentIds });
+
+  } catch (error) {
+    console.error('Error updating CommentID field:', error);
+    // Don't throw - we don't want comment linking to break the whole flow
+  }
+};
+
 // Update the main request in TTL_Requests
 export const updateRequest = async (context: WebPartContext, requestId: number, requestData: IUserRequest): Promise<void> => {
   const sp = getSP(context);

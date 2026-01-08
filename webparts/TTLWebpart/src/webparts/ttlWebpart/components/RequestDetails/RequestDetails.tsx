@@ -500,7 +500,8 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   };
 
   // Handle send for approval action
-  const handleConfirmSend = async (): Promise<void> => {
+  const handleConfirmSend = async (comment: string): Promise<void> => {
+    await handleAddComment(comment);
     await updateRequestApprover('Submitted', false, false);
 
     const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
@@ -795,7 +796,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
               } else if (confirmAction === 'deny') {
                 await handleConfirmDeny(comment!);
               } else if (confirmAction === 'send') {
-                await handleConfirmSend();
+                await handleConfirmSend(comment!);
               } else if (confirmAction === 'reapprove') {
                 await handleConfirmReapprove(comment!);
               } else if (confirmAction === 'completed') {

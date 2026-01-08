@@ -1,7 +1,8 @@
 import * as React from 'react';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
-import { createRequestWithItems, getApproverById } from '../../service/TTLService';
+import { createRequestWithItems, getApproverById, updateRequestWithCommentId } from '../../service/TTLService';
+import { createComment } from '../../service/CommentService';
 import { IApprover, IUserRequestItem } from '../../Interfaces/TTLInterfaces';
 import { useEffect, useState, useRef } from 'react';
 import ConfirmActionModal from '../Modals/ConfirmActionModal';
@@ -125,7 +126,7 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
     };
 
     // On submit of the request, save it
-    const handleSave = async (type: string): Promise<void> => {
+    const handleSave = async (type: string, comment?: string): Promise<void> => {
         // Validate main form
         if (!validate()) return;
 
@@ -156,6 +157,17 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                 collectedItems,
                 type
             );
+
+            // If a comment was provided, create and link it to the new request
+            if (comment && comment.trim()) {
+                try {
+                    const commentObj = { Title: `Comment on Request ${requestId}`, Body: comment };
+                    const commentId = await createComment(context, commentObj, requestId);
+                    await updateRequestWithCommentId(context, requestId, commentId);
+                } catch (err) {
+                    console.error('Failed to create or link comment for new request', err);
+                }
+            }
 
             if (type === 'Submitted') {
                 const approverData = await getApproverById(context, Number(approver));
@@ -338,14 +350,14 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                     action={confirmAction}
                     isProcessing={confirmProcessing}
                     onCancel={() => { setConfirmOpen(false); setConfirmAction(null); }}
-                    onConfirm={async () => {
+                    onConfirm={async (comment) => {
                         if (!confirmAction) return;
                         setConfirmProcessing(true);
                         try {
                             if (confirmAction === 'save') {
-                                await handleSave('Draft');
+                                await handleSave('Draft', comment);
                             } else if (confirmAction === 'send') {
-                                await handleSave('Submitted');
+                                await handleSave('Submitted', comment);
                             } else if (confirmAction === 'discard') {
                                 onCancel();
                             }
