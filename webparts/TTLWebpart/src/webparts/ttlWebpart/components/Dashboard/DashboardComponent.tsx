@@ -14,7 +14,13 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [teamCoachesMap, setTeamCoachesMap] = useState<Record<string, string>>({});
 
-  const placeholder = view === 'myView' ? 'Search by title, project or team' : 'Search by title, project, requester or team'
+  const searchPlaceholder: Record<string, string> = {
+    myView: 'Search by title or team',
+    approvers: 'Search by title, project or requester',
+    HR: 'Search by title, project, requester or team',
+    director: 'Search by title, project, requester or team',
+    deliveryDirector: 'Search by title, project, requester or team',
+  };
 
   // Filter, sort and paginate requests
   const filteredRequests = useMemo(() => {
@@ -127,6 +133,8 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
     setCurrentPage(1);
   };
 
+  const placeholder = searchPlaceholder[view] || 'Search';
+
   return (
     <div style={{width: '96%', justifySelf: 'center'}}>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
@@ -151,10 +159,10 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                 <tr>
                   <th>Title</th>
                   {view !== "myView" && <th>Requester</th>}
-                  {view === "HR" && <th>Approver</th>}
+                  {view !== "myView" && <th>Approver</th>}
                   {view !== 'myView' && <th>Team Coach</th>}
                   <th
-                    className={`${styles.colTotalCost} ${styles.sortable}`}
+                    className={styles.sortable}
                     onClick={() => toggleSort('totalCost')}
                     role="button"
                     aria-label="Sort by total cost"
@@ -171,11 +179,11 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                       />
                   </th>
                   <th>Project</th>
-                  {view !== 'HR' && (
+                  {(view !== "myView" && view !== 'approvers') && (
                     <th>Team</th>
                   )}
                   <th
-                    className={`${styles.colDate} ${styles.sortable}`}
+                    className={styles.sortable}
                     onClick={() => toggleSort('submissionDate')}
                     role="button"
                     aria-label="Sort by submission date"
@@ -192,9 +200,7 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                         />
 
                   </th>
-                  {view === 'HR' && (
-                    <th>Deadline Date</th>
-                  )}
+                  <th>Deadline Date</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -208,17 +214,15 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                     >
                       <td>{request.Title}</td>
                       {view !== "myView" && <td>{request.Author?.Title || "-"}</td>}
-                      {view === "HR" && <td>{request.ApproverID?.Title || "-"}</td>}
+                      {view !== "myView" && <td>{request.ApproverID?.Title || "-"}</td>}
                       {view !== "myView" && <td>{request.ApproverID?.Id ? (teamCoachesMap[String(request.ApproverID.Id)] || "-") : "-"}</td>}
                       <td>€ {request.TotalCost || "-"}</td>
                       <td>{request.Project || "-"}</td>
-                      {view !== 'HR' && (
+                      {(view !== "myView" && view !== 'approvers') && (
                         <td>{request.Team || "-"}</td>
                       )}
                       <td>{formatDate(request.SubmissionDate)}</td>
-                      {view === 'HR' && (
-                        <td>{formatDate(request.DeadlineDate) || "-"}</td>
-                      )}
+                      <td>{formatDate(request.DeadlineDate) || "-"}</td>
                       <td>
                         <span
                           className={`${styles.status} ${getRequestStatusStyling(
