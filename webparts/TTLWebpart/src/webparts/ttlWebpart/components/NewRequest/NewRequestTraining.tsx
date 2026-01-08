@@ -186,6 +186,8 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.PracticeLead?.EMail;
                 const approverTitle = approverData.PracticeLead?.Title;
+                const teamCoachEmail = approverData?.TeamCoach?.EMail;
+                const teamCoachTitle = approverData.TeamCoach?.Title;
                 const directorEmail = approverData.CEO?.Email;
                 const directorTitle = approverData.CEO?.Title
                 sendEmail({ 
@@ -194,6 +196,8 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                     title: title, 
                     approverEmail: approverEmail,
                     approverTitle: approverTitle,
+                    teamCoachEmail: teamCoachEmail,
+                    teamCoachTitle: teamCoachTitle,
                     directorTitle: directorTitle,
                     directorEmail: directorEmail, 
                     authorEmail: loggedInUser.Email, 

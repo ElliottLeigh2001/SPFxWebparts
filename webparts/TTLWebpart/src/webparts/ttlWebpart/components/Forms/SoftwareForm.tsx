@@ -44,6 +44,60 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
     }
   }, [initialData]);
 
+  const peoplePickerStyles = {
+    root: {
+      border: '1px solid #767676',
+      borderRadius: '2px',
+      backgroundColor: 'white',
+      selectors: {
+        ':hover': {
+          border: '1px solid #4f4f4f'
+        },
+        ':focus-within': {
+          border: '2px solid #000',
+          outline: 'none'
+        },
+        '::after': {
+          border: 'none',
+          content: '""',
+          display: 'none'
+        }
+      }
+    },
+
+    text: {
+      border: 'none',
+      boxShadow: 'none',
+      backgroundColor: 'transparent',
+      minHeight: 24,
+      selectors: {
+        '::after': {
+          border: 'none',
+          content: '""',
+          display: 'none'
+        }
+      }
+    },
+
+    input: {
+      border: 'none',
+      boxShadow: 'none',
+      height: 24,
+      lineHeight: 24,
+      selectors: {
+        ':focus': {
+          border: 'none',
+          boxShadow: 'none',
+          outline: 'none'
+        }
+      }
+    },
+
+    itemsWrapper: {
+      border: 'none'
+    }
+  };
+
   const validate = (): boolean => {
     let valid = true;
 
@@ -204,14 +258,14 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
                     resolveDelay={500}
                     defaultSelectedUsers={initialUsers}
                     onChange={handleUsersChange}
-                    styles={{input: styles.peoplePicker}}
+                    styles={peoplePickerStyles}
                   />
                 </div>
                 {usersLicenseError && <div className={styles.validationError}>{usersLicenseError}</div>}
               </div>
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>Link *</label>
-                <input style={{ height: '25px' }} value={link} onChange={e => setLink(e.target.value)} className={linkError ? styles.invalid : ''}/>
+                <input value={link} onChange={e => setLink(e.target.value)} className={linkError ? styles.invalid : ''}/>
                 {linkError && <div className={styles.validationError}>{linkError}</div>}
               </div>
             </div>

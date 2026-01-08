@@ -507,6 +507,10 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
     const approverEmail = approverData?.PracticeLead?.EMail;
     const approverTitle = approverData?.PracticeLead?.Title;
+    const teamCoachEmail = approverData?.TeamCoach?.EMail;
+    const teamCoachTitle = approverData.TeamCoach?.Title;
+    const directorEmail = approverData.CEO?.Email;
+    const directorTitle = approverData.CEO?.Title
 
     await sendEmail({
       emailType: 'new request',
@@ -517,6 +521,10 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
       authorName: request.Author?.Title,
       approverEmail: approverEmail,
       approverTitle: approverTitle,
+      teamCoachEmail: teamCoachEmail,
+      teamCoachTitle: teamCoachTitle,
+      directorTitle: directorTitle,
+      directorEmail: directorEmail,
       typeOfRequest: typeOfRequest
     });
   };
@@ -529,6 +537,10 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
     const approverEmail = approverData?.PracticeLead?.EMail;
     const approverTitle = approverData?.PracticeLead?.Title;
+    const teamCoachEmail = approverData?.TeamCoach?.EMail;
+    const teamCoachTitle = approverData.TeamCoach?.Title;
+    const directorEmail = approverData.CEO?.Email;
+    const directorTitle = approverData.CEO?.Title
 
     await sendEmail({
       emailType: 'reapprove',
@@ -539,6 +551,10 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
       authorName: request.Author?.Title,
       approverEmail: approverEmail,
       approverTitle: approverTitle,
+      teamCoachEmail: teamCoachEmail,
+      teamCoachTitle: teamCoachTitle,
+      directorTitle: directorTitle,
+      directorEmail: directorEmail,
       typeOfRequest: typeOfRequest
     });
   };

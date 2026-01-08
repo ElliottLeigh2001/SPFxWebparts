@@ -51,10 +51,6 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
     fetchData();
   }, [context]);
 
-  useEffect(() => {
-    console.log(requests);
-  }, [requests])
-
   // Get all requests for approvers and team coaches
   const fetchData = async (requestId?: number): Promise<void> => {
     try {

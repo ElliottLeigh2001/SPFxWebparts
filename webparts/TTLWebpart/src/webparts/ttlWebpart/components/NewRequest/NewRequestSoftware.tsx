@@ -115,7 +115,6 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
     try {
       // Get the selected approver row
       const selectedApproverRow = allApprovers.find(a => a.Id === approver);
-      console.log(selectedApproverRow);
       
       if (!selectedApproverRow) {
         throw new Error('Selected approver not found');
@@ -154,8 +153,10 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
             emailType: "new request",
             requestId: createdId.toString(),
             title,
-            approver: selectedApproverRow.PracticeLead.EMail,
+            approverEmail: selectedApproverRow.PracticeLead.EMail,
             approverTitle: selectedApproverRow.PracticeLead.Title ?? '',
+            teamCoachEmail: selectedApproverRow.TeamCoach.EMail,
+            teamCoachTitle: selectedApproverRow.TeamCoach.Title ?? '',
             authorEmail: loggedInUser.Email,
             authorName: loggedInUser.Title,
             directorTitle: selectedApproverRow.CEO?.Title ?? '',

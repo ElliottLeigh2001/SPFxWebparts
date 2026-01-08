@@ -173,6 +173,8 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                 const approverData = await getApproverById(context, Number(approver));
                 const approverEmail = approverData?.PracticeLead?.EMail;
                 const approverTitle = approverData.PracticeLead?.Title;
+                const teamCoachEmail = approverData?.TeamCoach?.EMail;
+                const teamCoachTitle = approverData.TeamCoach?.Title;
                 const directorEmail = approverData.CEO?.Email;
                 const directorTitle = approverData.CEO?.Title
                 sendEmail({ 
@@ -181,8 +183,10 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                     title: title, 
                     approverEmail: approverEmail,
                     approverTitle: approverTitle,
+                    teamCoachEmail: teamCoachEmail,
+                    teamCoachTitle: teamCoachTitle,
                     directorTitle: directorTitle,
-                    directorEmail: directorEmail, 
+                    directorEmail: directorEmail,
                     authorEmail: loggedInUser.Email, 
                     authorName: loggedInUser.Title, 
                     totalCost: totalCost.toString(), 
