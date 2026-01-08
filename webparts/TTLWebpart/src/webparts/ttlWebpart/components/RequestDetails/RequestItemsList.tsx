@@ -282,6 +282,18 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
                                     <span className={requestDetailsStyles.fieldValue}>{item.Location}</span>
                                 </div>
                             )}
+                            {item.LocationFrom && (
+                                <div className={requestDetailsStyles.fieldGroup}>
+                                    <span className={requestDetailsStyles.fieldLabel}>From:</span>
+                                    <span className={requestDetailsStyles.fieldValue}>{item.LocationFrom}</span>
+                                </div>
+                            )}
+                            {item.LocationTo && (
+                                <div className={requestDetailsStyles.fieldGroup}>
+                                    <span className={requestDetailsStyles.fieldLabel}>To:</span>
+                                    <span className={requestDetailsStyles.fieldValue}>{item.LocationTo}</span>
+                                </div>
+                            )}
                             {item.StartDate && (
                                 <div className={requestDetailsStyles.fieldGroup}>
                                     <span className={requestDetailsStyles.fieldLabel}>Start Date:</span>

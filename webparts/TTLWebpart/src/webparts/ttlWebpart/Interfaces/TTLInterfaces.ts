@@ -46,6 +46,8 @@ export interface IUserRequestItem {
     Title?: string;
     Provider?: string;
     Location?: string;
+    LocationFrom?: string;
+    LocationTo?: string;
     Link?: string;
     StartDate?: string;
     OData__EndDate?: string;

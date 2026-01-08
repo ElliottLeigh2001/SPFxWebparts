@@ -19,7 +19,8 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
   
   const [title, setTitle] = useState(initialData?.Title || '');
   const [date, setDate] = useState(formatEditingDate(initialData?.StartDate) || '');
-  const [location, setLocation] = useState(initialData?.Location || '');
+  const [locationFrom, setLocationFrom] = useState(initialData?.LocationFrom || '');
+  const [locationTo, setLocationTo] = useState(initialData?.LocationTo || '');
   const [cost, setCost] = useState(initialData?.Cost || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
   const [link, setLink] = useState(initialData?.Link || '');
@@ -28,7 +29,8 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
   const [costError, setCostError] = useState('');
   const [dateError, setDateError] = useState('');
   const [linkError, setLinkError] = useState('');
-  const [locationError, setLocationError] = useState('');
+  const [locationFromError, setLocationFromError] = useState('');
+  const [locationToError, setLocationToError] = useState('');
   const [isLoading, setIsLoading] = useState(false)
   const [includeAccommodation, setIncludeAccommodation] = useState(false);
   const [includeReturnJourney, setIncludeReturnJourney] = useState(false);
@@ -42,7 +44,8 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
     setProviderError('');
     setLinkError('');
     setDateError('');
-    setLocationError('');
+    setLocationFromError('');
+    setLocationToError('');
     setCostError('');
 
     if (!title) {
@@ -55,8 +58,13 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
       valid = false;
     }
 
-    if (!location) {
-      setLocationError('Location is required');
+    if (!locationFrom) {
+      setLocationFromError('From is required');
+      valid = false;
+    }
+
+    if (!locationTo) {
+      setLocationToError('To is required');
       valid = false;
     }
 
@@ -94,8 +102,13 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
         valid = false;
     }
 
-    if (location.length > 255) {
-        setLocationError('Max length of address is 255 characters')
+    if (locationFrom.length > 255) {
+        setLocationFromError('Max length of from is 255 characters')
+        valid = false;
+    }
+
+    if (locationTo.length > 255) {
+        setLocationToError('Max length of to is 255 characters')
         valid = false;
     }
 
@@ -125,7 +138,7 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
       const valid = validate();
       if (!valid) return result;
       result.isValid = true;
-      result.item = { Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' } as any;
+      result.item = { Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' } as any;
       result.includeAccommodation = includeAccommodation;
       result.includeReturnJourney = includeReturnJourney;
       return result;
@@ -154,20 +167,21 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
         setIsLoading(false);
         return;
       }
-      onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
+      onSave({ Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
       setIsLoading(false);
     }
     if (!validate()) {
       setIsLoading(false);
       return;
     }
-    onSave({ Title: title, Provider: provider, Location: location, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
+    onSave({ Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
     setIsLoading(false);
     setTitle('');
     setProvider('');
     setLink('');
     setDate('');
-    setLocation('');
+    setLocationFrom('');
+    setLocationTo('');
     setCost('');
   };
 
@@ -212,28 +226,31 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
         </div>
         <div className={styles.formRow}>
           <div className={styles.formItem}>
-            <label className={styles.formRowLabel}>Location *</label>
-            <input value={location} onChange={e => setLocation(e.target.value)} className={locationError ? styles.invalid : ''}/>
-            {locationError && <div className={styles.validationError}>{locationError}</div>}
+            <label className={styles.formRowLabel}>From *</label>
+            <input value={locationFrom} onChange={e => setLocationFrom(e.target.value)} className={locationFromError ? styles.invalid : ''}/>
+            {locationFromError && <div className={styles.validationError}>{locationFromError}</div>}
           </div>
+          <div className={styles.formItem}>
+            <label className={styles.formRowLabel}>To *</label>
+            <input value={locationTo} onChange={e => setLocationTo(e.target.value)} className={locationToError ? styles.invalid : ''}/>
+            {locationToError && <div className={styles.validationError}>{locationToError}</div>}
+          </div>
+        </div>
+          <div className={styles.formRow}>
             <div className={styles.formItem}>
               <label className={styles.formRowLabel}>Cost (€)*</label>
               <input value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''}/>
               {costError && <div className={styles.validationError}>{costError}</div>}
             </div>
-          </div>
-          <div className={styles.formRow}>
             <div className={styles.formItem}>
               <label className={styles.formRowLabel}>Date *</label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} className={dateError ? styles.invalid : ''}/>
               {dateError && <div className={styles.validationError}>{dateError}</div>}
             </div>
-            <div className={styles.formItem}>
-              <label className={styles.formRowLabel}>Link *</label>
-              <input value={link} onChange={e => setLink(e.target.value)} className={linkError ? styles.invalid : ''}/>
-              {linkError && <div className={styles.validationError}>{linkError}</div>}
-            </div>
           </div>
+            <label className={styles.formRowLabel}>Link *</label>
+            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px', padding: '0 0 5px 0' }} className={linkError ? styles.invalid : ''}/>
+          {linkError && <div className={styles.validationError}>{linkError}</div>}
 
           {!returning && !initialData && ref && (
             <div style={{ marginTop: '20px' }}>

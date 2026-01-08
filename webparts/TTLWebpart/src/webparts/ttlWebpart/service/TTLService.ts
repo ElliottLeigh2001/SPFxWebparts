@@ -138,6 +138,8 @@ const mapSharePointItemToUserRequestItem = (sharePointItem: any): IUserRequestIt
     Title: sharePointItem.Title || '',
     Provider: sharePointItem.Provider || '',
     Location: sharePointItem.Location || '',
+    LocationFrom: sharePointItem.LocationFrom || '',
+    LocationTo: sharePointItem.LocationTo || '',
     Link: sharePointItem.Link || sharePointItem.URL || '',
     StartDate: sharePointItem.StartDate || '',
     OData__EndDate: sharePointItem.OData__EndDate || '',
@@ -226,6 +228,8 @@ export const createRequestItem = async (context: WebPartContext, item: IUserRequ
     Title: item.Title || '',
     Provider: item.Provider || '',
     Location: item.Location || '',
+    LocationFrom: item.LocationFrom || '',
+    LocationTo: item.LocationTo || '',
     Link: item.Link || '',
     StartDate: item.StartDate || null,
     OData__EndDate: item.OData__EndDate || null,
@@ -309,6 +313,8 @@ export const createRequestItemForExistingRequest = async (
     Title: item.Title || '',
     Provider: item.Provider || '',
     Location: item.Location || '',
+    LocationFrom: item.LocationFrom || '',
+    LocationTo: item.LocationTo || '',
     Link: item.Link || '',
     StartDate: item.StartDate || null,
     OData__EndDate: item.OData__EndDate || null,
@@ -437,6 +443,8 @@ export const updateRequestItem = async (context: WebPartContext, itemId: number,
     Title: item.Title || '',
     Provider: item.Provider || '',
     Location: item.Location || '',
+    LocationFrom: item.LocationFrom || '',
+    LocationTo: item.LocationTo || '',
     Link: item.Link || '',
     StartDate: item.StartDate || null,
     OData__EndDate: item.OData__EndDate || null,
@@ -468,7 +476,7 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
 
   const item = await list.items.getById(itemId).select(
-    'ID', 'Title', 'Provider', 'Location', 'Link', 'StartDate', 'OData__EndDate',
+    'ID', 'Title', 'Provider', 'Location', 'LocationFrom', 'LocationTo', 'Link', 'StartDate', 'OData__EndDate',
     'RequestType', 'Cost', 'Licensing', 'LicenseType', 'UsersLicense/Id', 'UsersLicense/Title', 'UsersLicense/LoginName'
   ).expand('UsersLicense')();
 
@@ -477,6 +485,8 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
     Title: item.Title,
     Provider: item.Provider,
     Location: item.Location,
+    LocationFrom: item.LocationFrom,
+    LocationTo: item.LocationTo,
     Link: item.Link,
     StartDate: item.StartDate,
     OData__EndDate: item.OData__EndDate,

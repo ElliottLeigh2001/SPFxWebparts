@@ -840,56 +840,72 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
           </div>
         )}
         {((view === 'approvers' && isApprover) || view === 'director' || view === 'deliveryDirector') && (
-          <div style={{justifyItems: 'center'}}>
-          {isOverTeamcoachBudget && (
-              isOverTeamBudget ? (
-                <p style={{color: 'red', textDecoration: 'underline', fontWeight: '600'}}>WARNING: This request exceeds the team's budget!</p>
-              ) : (
-                <p style={{color: 'red', textDecoration: 'underline', fontWeight: '600'}}>WARNING: This request exceeds the team coach's budget!</p>
-              )
-          )}
-          <div style={{display: 'flex', gap: '20px'}}>
-            <button 
-              onClick={() => {setConfirmAction('deny'); setShowConfirmActionModal(true)}}
-              className={requestDetailsStyles.declineButton}
-              disabled={isUpdatingStatus}
-            >
-              Deny
-            </button>
+          <div style={{ justifyItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+
+              {!isFromBudgetSharing && !request.BudgetSharing && (
+                <>
+                  {isOverTeamcoachBudget && (
+                    isOverTeamBudget ? (
+                      <p style={{ color: 'red', textDecoration: 'underline', fontWeight: 600 }}>
+                        WARNING: This request exceeds the team's budget!
+                      </p>
+                    ) : (
+                      <p style={{ color: 'red', textDecoration: 'underline', fontWeight: 600 }}>
+                        WARNING: This request exceeds the team coach's budget!
+                      </p>
+                    )
+                  )}
+
+                  <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+                    <button
+                      onClick={() => {
+                        setConfirmAction('deny');
+                        setShowConfirmActionModal(true);
+                      }}
+                      className={requestDetailsStyles.declineButton}
+                      disabled={isUpdatingStatus}
+                    >
+                      Deny
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        isOverTeamBudget
+                          ? setShowSharingScreen(true)
+                          : (setConfirmAction('approve'), setShowConfirmActionModal(true));
+                      }}
+                      className={requestDetailsStyles.approveButton}
+                      disabled={isUpdatingStatus}
+                    >
+                      Approve
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {request.BudgetSharing && !isFromBudgetSharing && (
+                <p>Awaiting budget sharing approval from {request.BudgetSharing.Title}</p>
+              )}
+
               {isFromBudgetSharing && (
                 <button
-                  onClick={async () => { await handleConfirmBudgetSharing(); }}
+                  onClick={async () => {
+                    await handleConfirmBudgetSharing();
+                  }}
                   className={requestDetailsStyles.approveButton}
                   disabled={isUpdatingStatus || isProcessing}
                 >
                   Confirm Sharing
                 </button>
               )}
-            {isOverTeamBudget ? (
-              <button
-                onClick={() => setShowSharingScreen(true)}
-                className={requestDetailsStyles.approveButton}
-                disabled={isUpdatingStatus}>
-                Approve
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setConfirmAction('approve');
-                  setShowConfirmActionModal(true);
-                }}
-                className={requestDetailsStyles.approveButton}
-                disabled={isUpdatingStatus}
-              >
-              Approve
-              </button>
-            )}
-            {statusActionError && (
-              <p>{statusActionError}</p>
-            )}
+
+              {statusActionError && <p>{statusActionError}</p>}
+            </div>
           </div>
-          </div>
+
         )}
+
         {view === 'HR' && request.RequestStatus === 'HR Processing' && (
           <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
             {deadlineWarning && (
