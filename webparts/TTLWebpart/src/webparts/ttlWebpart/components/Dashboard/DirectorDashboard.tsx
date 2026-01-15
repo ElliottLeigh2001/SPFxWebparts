@@ -144,7 +144,7 @@ const DirectorDashboard: React.FC<IDirectorDashboardProps> = ({ context, onBack,
           />
         </>
       ) : (
-        <div style={{display: 'flex', justifyContent: 'center'}}>
+        <div className={styles.flexCenter}>
           <h2>You don't have the correct permissions to access to this page</h2>
         </div>
       )}

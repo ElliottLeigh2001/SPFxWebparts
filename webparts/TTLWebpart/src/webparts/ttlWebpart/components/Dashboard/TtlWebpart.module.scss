@@ -169,6 +169,15 @@
 
 }
 
+.noMargin {
+  margin: 0;
+}
+
+.flexCenter {
+  display: flex;
+  justify-content: center;
+}
+
 .noData {
   color: #605e5c;
   font-style: italic;

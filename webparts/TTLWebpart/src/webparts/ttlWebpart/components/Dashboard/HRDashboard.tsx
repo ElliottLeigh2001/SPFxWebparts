@@ -195,7 +195,7 @@ const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => 
         />
         </>
       ) : (
-        <div style={{display: 'flex', justifyContent: 'center'}}>
+        <div className={styles.flexCenter}>
           <h2>You don't have the correct permissions to access to this page</h2>
         </div>
       )}

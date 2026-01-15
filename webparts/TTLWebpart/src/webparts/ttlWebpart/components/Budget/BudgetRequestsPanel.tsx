@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { IApprover } from '../../Interfaces/TTLInterfaces';
 import { getRequestsData, getApprovers } from '../../service/TTLService';
 import budgetStyles from './Budgets.module.scss';
+import styles from '../Dashboard/TtlWebpart.module.scss';
 import { formatDate } from '../../Helpers/HelperFunctions';
 import { IBudgetProps, IRequestsByRequester } from './BudgetProps';
 
@@ -86,7 +87,7 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
     <div className={budgetStyles.budgetDetailsWrapper}>
       <div className={budgetStyles.budgetDetailsContainer}>
         <div className={budgetStyles.budgetDetailsTitleWrapper}>
-          <h3 style={{ margin: 0 }}>
+          <h3 className={styles.noMargin}>
             Requests for {budget.TeamCoach?.Title} — {budget.Year}
           </h3>
           <button className={budgetStyles.closeButton} onClick={onClose}>✕</button>

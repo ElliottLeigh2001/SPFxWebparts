@@ -76,39 +76,45 @@ const BudgetSharingModal: React.FC<IBudgetSharingModalProps> = ({ context, isOpe
               Select a team's budget to request additional funds:
             </p>
             <div className={budgetStyles.budgetSharingContainer}>
-              {budgets.map((budget) => (
+            {budgets.map((budget) => {
+              const isSelected = selectedBudgetId === budget.ID;
+
+              return (
                 <div
                   key={budget.ID}
-                  className={budgetStyles.budgetSharingCard}
-                  style={{
-                    backgroundColor: selectedBudgetId === budget.ID ? '#f0f7f8' : '#ffffff',
-                    borderLeft: selectedBudgetId === budget.ID ? '4px solid rgb(47, 129, 131)' : ''
-                  }}
+                  className={`${budgetStyles.budgetSharingCard} ${
+                    isSelected ? budgetStyles.budgetSharingCardSelected : ''
+                  }`}
                   onClick={() => setSelectedBudgetId(budget.ID)}
                   onDoubleClick={() => handleSelectBudget(budget)}
                 >
                   <div className={budgetStyles.budgetSharingTeam}>
-                    <strong style={{ color: '#323130' }}>{budget.Team}</strong>
-                    <span style={{ fontSize: '14px', color: '#605e5c' }}>
-                      {budget.TeamCoach?.Title && `(${budget.TeamCoach.Title})`}
-                    </span>
+                    <strong className={budgetStyles.teamName}>{budget.Team}</strong>
+                    {budget.TeamCoach?.Title && (
+                      <span className={budgetStyles.teamCoach}>
+                        ({budget.TeamCoach.Title})
+                      </span>
+                    )}
                   </div>
+
                   <div className={budgetStyles.budgetSharingAmounts}>
                     <div>
-                      <div style={{ fontSize: '12px', color: '#605e5c' }}>Available Budget</div>
-                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'rgb(47, 129, 131)' }}>
+                      <div className={budgetStyles.amountLabel}>Available Budget</div>
+                      <div className={budgetStyles.availableAmount}>
                         €{budget.Availablebudget.toFixed(2)}
                       </div>
                     </div>
+
                     <div>
-                      <div style={{ fontSize: '12px', color: '#605e5c' }}>Total Budget</div>
-                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#323130' }}>
+                      <div className={budgetStyles.amountLabel}>Total Budget</div>
+                      <div className={budgetStyles.totalAmount}>
                         €{budget.Budget.toFixed(2)}
                       </div>
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           </div>
         )}
@@ -128,12 +134,10 @@ const BudgetSharingModal: React.FC<IBudgetSharingModalProps> = ({ context, isOpe
               handleSelectBudget(selected);
             }
           }}
-          className={budgetStyles.selectBudget}
+          className={`${budgetStyles.selectBudget} ${
+            selectedBudgetId === null ? budgetStyles.selectBudgetDisabled : ''
+          }`}
           disabled={selectedBudgetId === null}
-          style={{
-            cursor: selectedBudgetId === null ? 'not-allowed' : 'pointer',
-            backgroundColor: selectedBudgetId === null ? '#d3d3d3' : 'rgb(47, 129, 131)',
-          }}
         >
           Select Budget
         </button>

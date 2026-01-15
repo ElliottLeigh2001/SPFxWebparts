@@ -39,7 +39,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusActionError, setStatusActionError] = useState<string | null>(null);
   const [showConfirmActionModal, setShowConfirmActionModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|null>(null);
+  const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|'confirmSharing'|'denySharing'|null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
   const [typeOfRequest, setTypeOfRequest] = useState('');
@@ -105,6 +105,29 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     }
   };
 
+  // Helper function to build base email data with common fields
+  const getBaseEmailData = () => ({
+    requestId: request.ID.toString(),
+    title: request.Title,
+    totalCost: request.TotalCost.toString(),
+    authorEmail: request.Author?.EMail,
+    authorName: request.Author?.Title,
+    typeOfRequest: typeOfRequest,
+  });
+
+  // Helper function to extract approver data for email
+  const getApproverEmailData = async () => {
+    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
+    return {
+      approverEmail: approverData?.PracticeLead?.EMail,
+      approverTitle: approverData?.PracticeLead?.Title,
+      teamCoachEmail: approverData?.TeamCoach?.EMail,
+      teamCoachTitle: approverData.TeamCoach?.Title,
+      directorEmail: approverData.CEO?.Email,
+      directorTitle: approverData.CEO?.Title,
+    };
+  };
+
   // Function to add a requestitem to a request
   const handleAddItem = async (newItem: IUserRequestItem): Promise<void> => {
     setActionError(null);
@@ -161,14 +184,10 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
       }));
 
       await sendEmail({        
+        ...getBaseEmailData(),
         emailType: 'Completed',
-        requestId: request.ID.toString(),
-        title: request.Title,
-        totalCost: request.TotalCost.toString(),
-        authorEmail: request.Author?.EMail,
-        authorName: request.Author?.Title,
         approverTitle: request.ApproverID?.Title,
-        typeOfRequest: typeOfRequest})
+      })
       
       // Refresh parent component
       if (refreshParent && onUpdate) onUpdate();
@@ -415,14 +434,9 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
       await updateRequestApprover('HR Processing', true, true);
       // Notify HR
       await sendEmail({
+        ...getBaseEmailData(),
         emailType: 'HR',
-        requestId: request.ID.toString(),
-        title: request.Title,
-        totalCost: request.TotalCost.toString(),
-        authorEmail: request.Author?.EMail,
-        authorName: request.Author?.Title,
         approverTitle: request.ApproverID?.Title,
-        typeOfRequest: typeOfRequest
       });
       // If the practice lead hasn't approved yet, keep the same status, but set 'approvedByCEO' to true
     } else if (request.RequestStatus === 'Submitted' || request.RequestStatus === 'Resubmitted') {
@@ -448,13 +462,9 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
       }
 
       await sendEmail({
+        ...getBaseEmailData(),
         emailType: 'HR',
-        requestId: request.ID.toString(),
-        title: request.Title,
-        authorEmail: request.Author?.EMail,
-        authorName: request.Author?.Title,
         approverTitle: request.ApproverID?.Title,
-        typeOfRequest: typeOfRequest,
       });
     }
   };
@@ -471,12 +481,9 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     await handleAddComment(comment);
     // Notify requester
     await sendEmail({
+      ...getBaseEmailData(),
       emailType: 'deny',
-      title: request.Title,
-      authorEmail: request.Author?.EMail,
-      authorName: request.Author?.Title,
       comment: comment,
-      typeOfRequest: typeOfRequest
     });
   };
 
@@ -504,28 +511,12 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     await handleAddComment(comment);
     await updateRequestApprover('Submitted', false, false);
 
-    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
-    const approverEmail = approverData?.PracticeLead?.EMail;
-    const approverTitle = approverData?.PracticeLead?.Title;
-    const teamCoachEmail = approverData?.TeamCoach?.EMail;
-    const teamCoachTitle = approverData.TeamCoach?.Title;
-    const directorEmail = approverData.CEO?.Email;
-    const directorTitle = approverData.CEO?.Title
+    const approverData = await getApproverEmailData();
 
     await sendEmail({
+      ...getBaseEmailData(),
       emailType: 'new request',
-      requestId: request.ID.toString(),
-      title: request.Title,
-      totalCost: request.TotalCost.toString(),
-      authorEmail: request.Author?.EMail,
-      authorName: request.Author?.Title,
-      approverEmail: approverEmail,
-      approverTitle: approverTitle,
-      teamCoachEmail: teamCoachEmail,
-      teamCoachTitle: teamCoachTitle,
-      directorTitle: directorTitle,
-      directorEmail: directorEmail,
-      typeOfRequest: typeOfRequest
+      ...approverData,
     });
   };
 
@@ -534,28 +525,12 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     await handleAddComment(comment);
     await updateRequestApprover('Resubmitted', false, true);
 
-    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
-    const approverEmail = approverData?.PracticeLead?.EMail;
-    const approverTitle = approverData?.PracticeLead?.Title;
-    const teamCoachEmail = approverData?.TeamCoach?.EMail;
-    const teamCoachTitle = approverData.TeamCoach?.Title;
-    const directorEmail = approverData.CEO?.Email;
-    const directorTitle = approverData.CEO?.Title
+    const approverData = await getApproverEmailData();
 
     await sendEmail({
+      ...getBaseEmailData(),
       emailType: 'reapprove',
-      requestId: request.ID.toString(),
-      title: request.Title,
-      totalCost: request.TotalCost.toString(),
-      authorEmail: request.Author?.EMail,
-      authorName: request.Author?.Title,
-      approverEmail: approverEmail,
-      approverTitle: approverTitle,
-      teamCoachEmail: teamCoachEmail,
-      teamCoachTitle: teamCoachTitle,
-      directorTitle: directorTitle,
-      directorEmail: directorEmail,
-      typeOfRequest: typeOfRequest
+      ...approverData,
     });
   };
 
@@ -624,14 +599,37 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     }
   };
 
+  // Handler used by the budget owner to deny sharing
+  const handleDenyBudgetSharing = async (comment: string): Promise<void> => {
+    if (!request.ID) return;
+    setIsProcessing(true);
+    try {
+      // clear the BudgetSharing field on the request
+      await updateRequestBudgetSharing(context, request.ID, null);
+
+      // Add comment
+      if (comment) {
+        await handleAddComment(comment);
+      }
+
+      // refresh parent UI
+      onUpdate();
+    } catch (err) {
+      console.error('Error denying budget sharing:', err);
+      setStatusActionError('Failed to deny budget sharing');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
     <div>
       {isProcessing && (
-        <div style={{position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.9)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          <div style={{textAlign: 'center'}}>
-            <i className="fa fa-spinner fa-spin" style={{fontSize: 36, marginBottom: 12}}></i>
+        <div className={requestDetailsStyles.processingOverlay}>
+          <div className={requestDetailsStyles.processingContent}>
+            <i className="fa fa-spinner fa-spin" style={{ fontSize: '36px', marginBottom: '12px'}}></i>
             <div>Processing…</div>
           </div>
         </div>
@@ -658,20 +656,20 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                 )}
                 <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
                 <span><strong>Team Coach:</strong> {teamCoach|| '/'}</span>
-                <div style={{display: 'flex'}}>
+                <div className={requestDetailsStyles.teamCoachSection}>
                   {(view === 'approvers' || view === 'deliveryDirector') && (
                     <>
                     <span><strong>Team Coach Approval:</strong></span>
                       {request.TeamCoachApproval ? (
                         <>
                         {request.TeamCoachApproval === 'Approve' ? (
-                          <span style={{marginLeft: '3px'}}> Team Coach approves</span>
+                          <span className={requestDetailsStyles.approvalStatus}> Team Coach approves</span>
                         ) : (
-                          <span style={{marginLeft: '3px'}}> Team Coach disapproves</span>
+                          <span className={requestDetailsStyles.approvalStatus}> Team Coach disapproves</span>
                         )}
                         </>
                       ) : (
-                        <span style={{marginLeft: '3px'}}> Team coach has not yet reviewed</span>
+                        <span className={requestDetailsStyles.approvalStatus}> Team coach has not yet reviewed</span>
                       )}
                     </>
                   )}
@@ -694,7 +692,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                 {view === 'HR' && (
                   <span><strong>Deadline Date:</strong> {formatDate(displayedRequest.DeadlineDate) || '/'}</span>
                 )}
-                <span><strong>Status:</strong> <span style={{ marginLeft: '0' }} className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
+                <span><strong>Status:</strong> <span className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
                 <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
               </div>
 
@@ -775,6 +773,13 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
               await updateRequestBudgetSharing(context, request.ID, userId);
             }
             setSelectedSharedBudget(budget);
+
+            await sendEmail({
+              ...getBaseEmailData(),
+              emailType: 'budgetSharing',
+              sharerEmail: budget?.TeamCoach.EMail,
+              sharerTitle: budget?.TeamCoach.Title,
+            })
           } catch (err) {
             console.error('Failed to set BudgetSharing on request:', err);
             setStatusActionError('Failed to request budget sharing');
@@ -817,6 +822,10 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                 await handleConfirmReapprove(comment!);
               } else if (confirmAction === 'completed') {
                 await handleConfirmCompleted();
+              } else if (confirmAction === 'confirmSharing') {
+                await handleConfirmBudgetSharing();
+              } else if (confirmAction === 'denySharing') {
+                await handleDenyBudgetSharing(comment || '');
               }
               success = true;
             } finally {
@@ -835,8 +844,8 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     </div>
       <div className={styles.newRequestButtonContainer}>
         {isTeamCoach && !isApprover && (
-          <div style={{display: 'flex', gap: '20px'}}>
-            <button style={{width: '130px'}} onClick={() => {
+          <div className={requestDetailsStyles.buttonRow}>
+            <button onClick={() => {
               setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Disapprove' }));
               updateTeamCoachApproval(context, request.ID, 'Disapprove');
             }} 
@@ -845,7 +854,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
               requestDetailsStyles.declineButton}`}>
               {`${displayedRequest.TeamCoachApproval === 'Disapprove' ? 'Disapproved' : 'Disapprove'}`}
             </button>
-            <button style={{width: '130px'}} onClick={() => {
+            <button onClick={() => {
               setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Approve' }));
               updateTeamCoachApproval(context, request.ID, 'Approve');
             }}  
@@ -856,25 +865,25 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
             </button>
           </div>
         )}
-        {((view === 'approvers' && isApprover) || view === 'director' || view === 'deliveryDirector') && (
-          <div style={{ justifyItems: 'center' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+        {((view === 'approvers' && isApprover && (request.RequestStatus === 'Submitted' || request.RequestStatus === 'Resubmitted')) || view === 'director' || view === 'deliveryDirector') && (
+          <div className={requestDetailsStyles.approvalContainer}>
+            <div className={requestDetailsStyles.approvalContent}>
 
               {!isFromBudgetSharing && !request.BudgetSharing && (
                 <>
                   {isOverTeamcoachBudget && (
                     isOverTeamBudget ? (
-                      <p style={{ color: 'red', textDecoration: 'underline', fontWeight: 600 }}>
+                      <p className={requestDetailsStyles.warningText}>
                         WARNING: This request exceeds the team's budget!
                       </p>
                     ) : (
-                      <p style={{ color: 'red', textDecoration: 'underline', fontWeight: 600 }}>
+                      <p className={requestDetailsStyles.warningText}>
                         WARNING: This request exceeds the team coach's budget!
                       </p>
                     )
                   )}
 
-                  <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+                  <div className={requestDetailsStyles.buttonRow}>
                     <button
                       onClick={() => {
                         setConfirmAction('deny');
@@ -906,15 +915,28 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
               )}
 
               {isFromBudgetSharing && (
-                <button
-                  onClick={async () => {
-                    await handleConfirmBudgetSharing();
-                  }}
-                  className={requestDetailsStyles.approveButton}
-                  disabled={isUpdatingStatus || isProcessing}
-                >
-                  Confirm Sharing
-                </button>
+                <div className={requestDetailsStyles.buttonRow}>
+                  <button
+                    onClick={() => {
+                      setConfirmAction('denySharing');
+                      setShowConfirmActionModal(true);
+                    }}
+                    className={requestDetailsStyles.declineButton}
+                    disabled={isUpdatingStatus || isProcessing}
+                  >
+                    Deny Sharing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setConfirmAction('confirmSharing');
+                      setShowConfirmActionModal(true);
+                    }}
+                    className={requestDetailsStyles.approveButton}
+                    disabled={isUpdatingStatus || isProcessing}
+                  >
+                    Confirm Sharing
+                  </button>
+                </div>
               )}
 
               {statusActionError && <p>{statusActionError}</p>}
@@ -924,9 +946,9 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
         )}
 
         {view === 'HR' && request.RequestStatus === 'HR Processing' && (
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+          <div className={requestDetailsStyles.hrProcessingContainer}>
             {deadlineWarning && (
-              <p style={{ color: 'red', fontWeight: '600', textDecoration: 'underline' }}>WARNING: The deadline for this request has already passed</p>
+              <p className={requestDetailsStyles.warningText}>WARNING: The deadline for this request has already passed</p>
             )}
             <button
               onClick={() => {
@@ -938,8 +960,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                 setShowConfirmActionModal(true);
               } }
               disabled={isUpdatingStatus}
-              className={styles.stdButton}
-              style={{ width: '176px' }}
+              className={`${styles.stdButton} ${requestDetailsStyles.hrButton}`}
             >
               {changedByHR ? 'Reapprove' : 'Mark as completed'}
             </button>
@@ -951,17 +972,15 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
         {(displayedRequest.RequestStatus === 'Draft' || displayedRequest.RequestStatus === 'Rejected') && view === 'myView' && (
           <>
           <button
-            className={styles.stdButton}
+            className={`${styles.stdButton} ${requestDetailsStyles.actionButton}`}
             onClick={() => setShowDeleteConfirm(true)}
-            style={{width: '171px'}}
           >
             Discard
           </button>
 
             <button
-              className={styles.stdButton}
+              className={`${styles.stdButton} ${requestDetailsStyles.actionButton}`}
               onClick={() => { setConfirmAction('send'); setShowConfirmActionModal(true); } }
-              style={{width: '171px'}}
             >
               Send for approval
             </button>

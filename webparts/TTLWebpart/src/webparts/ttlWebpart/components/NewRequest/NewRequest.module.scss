@@ -96,6 +96,14 @@
   align-items: center;
 }
 
+.buttonWidth {
+  width: 171px;
+}
+
+.topMargin {
+  margin-top: 18px;
+}
+
 @media (max-width: 1000px) {    
   .newRequestContainer {
     flex-wrap: wrap;

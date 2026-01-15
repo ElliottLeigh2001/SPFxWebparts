@@ -265,7 +265,7 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
               </div>
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>Link *</label>
-                <input value={link} onChange={e => setLink(e.target.value)} className={linkError ? styles.invalid : ''}/>
+                <input style={{height: '19px'}} value={link} onChange={e => setLink(e.target.value)} className={linkError ? styles.invalid : ''}/>
                 {linkError && <div className={styles.validationError}>{linkError}</div>}
               </div>
             </div>

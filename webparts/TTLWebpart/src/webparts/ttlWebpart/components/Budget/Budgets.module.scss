@@ -272,3 +272,68 @@
   font-size: 14px;
   transition: all 0.2s ease
 }
+
+.budgetSharingCard {
+  background-color: #ffffff;
+  border-radius: 6px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-left 0.2s ease;
+}
+
+.budgetSharingCardSelected {
+  background-color: #f0f7f8;
+  border-left: 4px solid rgb(47, 129, 131);
+}
+
+.budgetSharingTeam {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.teamName {
+  color: #323130;
+}
+
+.teamCoach {
+  font-size: 14px;
+  color: #605e5c;
+}
+
+.budgetSharingAmounts {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.amountLabel {
+  font-size: 12px;
+  color: #605e5c;
+}
+
+.availableAmount {
+  font-size: 16px;
+  font-weight: bold;
+  color: rgb(47, 129, 131);
+}
+
+.totalAmount {
+  font-size: 16px;
+  font-weight: bold;
+  color: #323130;
+}
+
+.selectBudget {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  background-color: rgb(47, 129, 131);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.selectBudgetDisabled {
+  background-color: #d3d3d3;
+  cursor: not-allowed;
+}

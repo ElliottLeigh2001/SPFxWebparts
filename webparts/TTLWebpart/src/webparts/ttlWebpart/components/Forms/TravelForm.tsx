@@ -257,7 +257,7 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {travelRequest && (
 
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <label className={formStyles.travelCheckbox}>
                     <input 
                       type="checkbox" 
                       checked={includeTravel} 
@@ -266,7 +266,7 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
                     I want to add a training for this travel
                   </label>
                 )}
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label className={formStyles.travelCheckbox}>
                   <input 
                     type="checkbox" 
                     checked={includeReturnJourney} 
@@ -274,7 +274,7 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
                   />
                   I want to add a return journey
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label className={formStyles.travelCheckbox}>
                   <input 
                     type="checkbox" 
                     checked={includeAccommodation} 

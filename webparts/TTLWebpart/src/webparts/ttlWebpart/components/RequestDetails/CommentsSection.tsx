@@ -37,7 +37,7 @@ const CommentsSection: React.FC<ICommentsSectionProps> = ({ requestId, context }
         {loading ? (
           <div>Loading comments...</div>
         ) : comments.length === 0 ? (
-          <div style={{marginLeft: '10px'}}>No comments yet</div>
+          <div className={styles.noComments}>No comments yet</div>
         ) : (
           comments.map(comment => (
             <div key={comment.ID} className={styles.commentItem}>

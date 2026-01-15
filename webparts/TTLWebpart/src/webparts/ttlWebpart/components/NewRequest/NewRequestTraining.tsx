@@ -240,8 +240,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                     <h2 style={{ color: '#055a57' }}>New Training Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
-                            className={styles.stdButton}
-                            style={{ width: '171px' }}
+                            className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}
                             disabled={isSaving}
                             onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); }}
                             title="Discard"
@@ -250,16 +249,14 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                         </button>
                         
                         <button
-                            className={styles.stdButton}
-                            style={{ width: '171px' }}
+                            className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}
                             onClick={() => { setConfirmAction('save'); setConfirmOpen(true); }}
                         >
                             Draft
                         </button>
 
                         <button
-                            className={styles.stdButton}
-                            style={{ width: '171px' }}
+                            className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}
                             onClick={() => { setConfirmAction('send'); setConfirmOpen(true); }}
                         >
                             Send for approval
@@ -335,7 +332,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                             />
 
                             {showInlineTravel && (
-                                <div style={{ marginTop: '18px' }}>
+                                <div className={newRequestStyles.topMargin}>
                                     <TravelForm ref={travelFormRef} context={context} inline={true} initialData={undefined}
                                         onToggleIncludeAccommodation={(v: boolean) => setShowInlineAccommodation(v)}
                                         onToggleIncludeReturnJourney={(v: boolean) => setShowInlineReturnTravel(v)}
@@ -344,13 +341,13 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                             )}
 
                             {showInlineReturnTravel && showInlineTravel && (
-                                <div style={{ marginTop: '18px' }}>
+                                <div className={newRequestStyles.topMargin}>
                                     <TravelForm ref={travelFormRef} returning={true} context={context} inline={true} initialData={undefined} />
                                 </div>
                             )}
 
                             {showInlineAccommodation && showInlineTravel && (
-                                <div style={{ marginTop: '18px' }}>
+                                <div className={newRequestStyles.topMargin}>
                                     <AccommodationForm ref={accommodationFormRef} context={context} inline={true} initialData={undefined} />
                                 </div>
                             )}

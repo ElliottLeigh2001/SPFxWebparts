@@ -213,15 +213,15 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
 
         <div className={newRequestStyles.newRequestActions}>
 
-          <button style={{ width: '171px' }} disabled={isSaving} onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); } } className={styles.stdButton}>
+          <button disabled={isSaving} onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); } } className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}>
             Discard
           </button>
           
-          <button style={{ width: '171px' }} onClick={() => { setConfirmAction('save'); setConfirmOpen(true); } } className={styles.stdButton}>
+          <button onClick={() => { setConfirmAction('save'); setConfirmOpen(true); } } className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}>
             Draft
           </button>
 
-          <button style={{ width: '171px' }} onClick={() => { setConfirmAction('send'); setConfirmOpen(true); } } className={styles.stdButton}>
+          <button onClick={() => { setConfirmAction('send'); setConfirmOpen(true); } } className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}>
             Send for approval
           </button>
         </div>

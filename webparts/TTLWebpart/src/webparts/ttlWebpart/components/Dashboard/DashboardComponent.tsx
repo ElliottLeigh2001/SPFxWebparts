@@ -22,6 +22,20 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
     deliveryDirector: 'Search by title, project, requester or team',
   };
 
+  const columnCount = useMemo(() => {
+    let count = 6; // Title, Total Cost, Project, Submission, Deadline, Status
+
+    if (view !== "myView") {
+      count += 3; // Requester, Approver, Team Coach
+    }
+
+    if (view !== "myView" && view !== "approvers") {
+      count += 1; // Team
+    }
+
+    return count;
+  }, [view]);
+
   // Filter, sort and paginate requests
   const filteredRequests = useMemo(() => {
     const q = (searchFilter || '').trim().toLowerCase()
@@ -236,10 +250,7 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={
-                      // calculate columns count to set correct colspan
-                      (6 + (view !== 'myView' ? 1 : 0) + (view === 'HR' ? 1 : 0))
-                    } className={styles.noData}>
+                    <td colSpan={columnCount} className={styles.noData}>
                       No requests to show.
                     </td>
                   </tr>

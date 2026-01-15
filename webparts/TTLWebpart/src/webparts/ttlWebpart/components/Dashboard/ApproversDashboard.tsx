@@ -15,6 +15,7 @@ import { TooltipHost, Icon } from '@fluentui/react';
 
 const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover, isTeamCoach }) => {
   const [requests, setRequests] = useState<IUserRequest[]>([]);
+  const [approvedRequests, setApprovedRequests] = useState<IUserRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<IUserRequest | null>(null);
   const [requestItems, setRequestItems] = useState<IUserRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
   const [selectedBudget, setSelectedBudget] = useState<IBudget | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [availableYears, setAvailableYears] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<'requests'|'budgetSharing'>('requests');
+  const [activeTab, setActiveTab] = useState<'approvedRequests'|'requests'|'budgetSharing'>('requests');
   const [isFromBudgetSharing, setIsFromBudgetSharing] = useState(false);
 
   useEffect(() => {
@@ -58,7 +59,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       setError(null);
 
       // Only get requests with the correct statuses for approver
-      const requestData = await getRequestsData(context, "SubmissionDate desc", "(RequestStatus eq 'Submitted' or RequestStatus eq 'Resubmitted')");
+      const requestData = await getRequestsData(context, "SubmissionDate desc");
 
       // Get all approvers to check if current user is a team coach
       const approversList = await getApprovers(context);
@@ -76,10 +77,20 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       // Filter on requests meant for the approver or where user is team coach for the approver
       const filteredRequests = requestData
         .filter(req => 
-          req.ApproverID?.Title === loggedInUser.Title || 
-          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))
+          (req.ApproverID?.Title === loggedInUser.Title || 
+          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))) && 
+          (req.RequestStatus === 'Submitted' || req.RequestStatus === 'Resubmitted')
         )
       setRequests(filteredRequests as IUserRequest[]);
+
+      const filteredApprovedRequests = requestData
+        .filter(req => 
+          (req.ApproverID?.Title === loggedInUser.Title || 
+          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))) && 
+          (req.RequestStatus === 'HR Processing' || req.RequestStatus === 'Completed' || req.RequestStatus === 'Booking' || req.RequestStatus === 'Awaiting CEO approval')
+        )
+      
+        setApprovedRequests(filteredApprovedRequests);
 
       // Get items after an update in any child component to the UI always stays up to date
       const selectedId = requestId ?? (selectedRequest as any)?.Id;
@@ -219,8 +230,6 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
     );
   }
 
-  
-
   return (
     <div className={styles.ttlDashboard}>
       <HeaderComponent view='Approver Dashboard'/>
@@ -254,7 +263,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
                         strokeWidth={10}
                       />
                       <div className={budgetStyles.budgetInfo}>
-                        <h3 style={{ margin: 0 }}>{teamCoachBudgets[0].Team}</h3>
+                        <h3 className={styles.noMargin}>{teamCoachBudgets[0].Team}</h3>
                         <div><strong>Total Budget:</strong> €{teamBudget.totalBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                         <div>
                           <strong>
@@ -294,7 +303,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
                         />
 
                         <div className={budgetStyles.budgetInfo}>
-                          <h3 style={{ margin: 0 }}>{b.TeamCoach?.Title}</h3>
+                          <h3 className={styles.noMargin}>{b.TeamCoach?.Title}</h3>
                           <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                           <div>
                             <strong>
@@ -332,19 +341,28 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
 
       <div style={{marginTop: '3em'}} className={styles.tabContainer}>
         <div className={styles.tabButtonWrapper}>
-          <div
-            className={`${styles.activeBgApprover} ${
-              activeTab === 'requests'
-                ? styles.slideLeft
-                : styles.slideCenter
-            }`}
-          >
-        </div>
+            <div
+              className={`${styles.activeBgHR} ${
+                activeTab === 'approvedRequests'
+                  ? styles.slideCenter
+                  : activeTab === 'requests'
+                  ? styles.slideLeft
+                  : styles.slideRight
+              }`}
+            >
+            </div>
+
           <button
             className={`${styles.tabButtonLeft} ${activeTab === 'requests' ? styles.activeTabText : ''}`}
             onClick={() => setActiveTab('requests')}
           >
             Requests
+          </button>
+          <button
+            className={`${styles.tabButtonCenter} ${activeTab === 'approvedRequests' ? styles.activeTabText : ''}`}
+            onClick={() => setActiveTab('approvedRequests')}
+          >
+            Approved
           </button>
           <button
             className={`${styles.tabButtonRight} ${activeTab === 'budgetSharing' ? styles.activeTabText : ''}`}
@@ -362,14 +380,25 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
           </div>
         )}
 
-      {activeTab === 'requests' ? (
+      {activeTab === 'approvedRequests' && (
+        <DashboardComponent
+          context={context}
+          onClick={(req) => handleRequestClick(req, true, false)}
+          requests={approvedRequests}
+          view="approvers"
+        />
+      )}
+
+      {activeTab === 'requests' && (
         <DashboardComponent
           context={context}
           onClick={(req) => handleRequestClick(req, true, false)}
           requests={requests}
           view="approvers"
         />
-      ) : (
+      )}
+
+      {activeTab === 'budgetSharing' && (
         <DashboardComponent
           context={context}
           onClick={(req) => handleRequestClick(req, true, true)}

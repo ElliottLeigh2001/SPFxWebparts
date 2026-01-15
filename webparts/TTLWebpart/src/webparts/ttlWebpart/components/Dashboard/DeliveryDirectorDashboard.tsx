@@ -205,7 +205,7 @@ const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ 
                       />
 
                       <div className={budgetStyles.budgetInfo}>
-                        <h3 style={{ margin: 0 }}>{b.TeamCoach?.Title}</h3>
+                        <h3 className={styles.noMargin}>{b.TeamCoach?.Title}</h3>
                         <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                         <div>
                           <strong>
@@ -252,7 +252,7 @@ const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ 
         />
       </>
       ) : (
-        <div style={{display: 'flex', justifyContent: 'center'}}>
+        <div className={styles.flexCenter}>
           <h2>You don't have the correct permissions to access to this page</h2>
         </div>
       )}

@@ -227,8 +227,7 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                     <h2 style={{color: '#055a57'}}>New Travel Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
-                            className={styles.stdButton}
-                            style={{width: '171px'}}
+                            className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}
                             disabled={isSaving}
                             onClick={() => { setConfirmAction('discard'); setConfirmOpen(true); }}
                             title="Discard"
@@ -237,16 +236,14 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                         </button>
 
                         <button
-                            className={styles.stdButton}
-                            style={{width: '171px'}}
+                            className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}
                             onClick={() => { setConfirmAction('save'); setConfirmOpen(true); }}
                         >
                             Draft
                         </button>
 
                         <button
-                            className={styles.stdButton}
-                            style={{width: '171px'}}
+                            className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}
                             onClick={() => { setConfirmAction('send'); setConfirmOpen(true); }}
                         >
                             Send for approval
@@ -319,7 +316,7 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                             />
 
                             {showInlineTraining && (
-                                <div style={{ marginTop: '18px' }}>
+                                <div className={newRequestStyles.topMargin}>
                                     <TrainingForm 
                                         ref={trainingFormRef}
                                         showCheckbox={false}
@@ -332,13 +329,13 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                             )}
 
                             {showInlineReturnTravel && (
-                                <div style={{ marginTop: '18px' }}>
+                                <div className={newRequestStyles.topMargin}>
                                     <TravelForm ref={travelFormRef} returning={true} context={context} inline={true} initialData={undefined}/>
                                 </div>
                             )}
 
                             {showInlineAccommodation && (
-                                <div style={{ marginTop: '18px' }}>
+                                <div className={newRequestStyles.topMargin}>
                                     <AccommodationForm ref={accommodationFormRef} context={context} inline={true} initialData={undefined} />
                                 </div>
                             )}

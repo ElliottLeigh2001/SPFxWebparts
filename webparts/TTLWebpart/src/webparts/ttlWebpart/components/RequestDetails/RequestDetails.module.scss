@@ -365,3 +365,67 @@
     gap: 10px;
   }
 }
+
+.processingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.processingContent {
+  text-align: center;
+}
+
+.spinner {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.teamCoachSection {
+  display: flex;
+}
+
+.approvalStatus {
+  margin-left: 3px;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.actionButton {
+  width: 171px;
+}
+
+.hrButton {
+  width: 176px;
+}
+
+.approvalContainer {
+  justify-items: center;
+}
+
+.approvalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.warningText {
+  color: red;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.hrProcessingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
