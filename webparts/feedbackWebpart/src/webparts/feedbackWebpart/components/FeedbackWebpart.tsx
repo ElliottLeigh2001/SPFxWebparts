@@ -17,7 +17,7 @@ const FeedbackWebpart: React.FC = () => {
     setStatus('idle');
 
     try {
-      const res = await fetch(`${FLOW_URL}&key=${process.env.SECURITY_KEY}`, {
+      const res = await fetch(`${FLOW_URL}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
