@@ -94,7 +94,7 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
         </div>
 
         {isLoading && <div>Loading...</div>}
-        {error && <div style={{ color: 'red' }}>{error}</div>}
+        {error && <div className={budgetStyles.red}>{error}</div>}
 
         {!isLoading && !error && (
           <div>
@@ -115,12 +115,11 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
                     <React.Fragment key={group.requester}>
                       <tr
                         onClick={() => toggleRequester(group.requester)}
-                        style={{ cursor: 'pointer' }}
+                        className={budgetStyles.pointer}
                       >
                         <td>
                           <i
-                            className={`fa fa-chevron-${expandedRequesters.has(group.requester) ? 'down' : 'right'}`}
-                            style={{ marginRight: '8px' }}
+                            className={`fa fa-chevron-${expandedRequesters.has(group.requester) ? 'down' : 'right'} ${budgetStyles.arrowMargin}`}
                           ></i>
                           {group.requester}
                         </td>

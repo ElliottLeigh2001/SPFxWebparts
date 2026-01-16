@@ -150,10 +150,10 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
   const placeholder = searchPlaceholder[view] || 'Search';
 
   return (
-    <div style={{width: '96%', justifySelf: 'center'}}>
+    <div className={styles.dashboardWrapper}>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
       <div className={`${styles.filterContainer} ${(view === 'HR' || view === 'approvers') ? styles.searchHR : ''}`}>
-        <label style={{marginRight: '10px', fontSize: 'large'}}>Search: </label>
+        <label className={styles.search}>Search: </label>
           <input
             className={styles.filterInput}
             type="text"
@@ -165,7 +165,7 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
             }}
           />
       </div>
-      <div style={{height: "572px" }}>
+      <div className={styles.tableHeight}>
         <div className={styles.tableContainer}>
           <div className={styles.tableWrapper}>
             <table className={styles.requestsTable}>

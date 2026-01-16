@@ -8,6 +8,11 @@
   }
 }
 
+.dashboardWrapper {
+  width: 96%;
+  justify-self: center;
+}
+
 .addNewRequestContainer {
   position: relative;
   display: flex;
@@ -34,6 +39,10 @@
   width: 100%;
 }
 
+.tableHeight {
+  height: 572px;
+}
+
 .tableWrapper::-webkit-scrollbar {
   height: 8px;
 }
@@ -42,8 +51,14 @@
   background: #ccc;
   border-radius: 4px;
 }
+
 .tableWrapper::-webkit-scrollbar-thumb:hover {
   background: #999;
+}
+
+.search {
+  margin-right: 10px;
+  font-size: large;
 }
 
 .filterContainer {

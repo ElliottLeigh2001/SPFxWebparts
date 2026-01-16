@@ -24,3 +24,14 @@
   align-items: center;
   gap: 8px;
 }
+
+.hrCost {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.costInput {
+  width: 50%;
+}

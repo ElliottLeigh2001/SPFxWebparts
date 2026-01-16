@@ -149,9 +149,9 @@ const AccommodationForm = forwardRef<AccommodationFormHandle, IFormProps & { inl
   return (
     <div>
       {view === 'HR' ? (
-        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
+        <div className={formStyles.hrCost}>
           <label className={styles.formRowLabel}>Cost (€)*</label>
-          <input style={{width: '50%'}} value={cost} onChange={e => setCost(e.target.value)} className={isNaN(Number(cost)) ? 'invalid' : ''} />
+          <input value={cost} onChange={e => setCost(e.target.value)} className={`${isNaN(Number(cost)) ? 'invalid' : ''} ${formStyles.costInput}`} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
       ) : (

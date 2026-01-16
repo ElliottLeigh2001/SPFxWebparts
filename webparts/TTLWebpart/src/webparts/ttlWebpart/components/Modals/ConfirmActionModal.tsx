@@ -33,7 +33,7 @@ const ConfirmActionModal: React.FC<IConfirmActionModalProps> = ({ isOpen, action
               value={comment} 
               onChange={e => setComment(e.target.value)} 
               required
-              style={{padding: '5px 20px 40px 5px', width: '50%', marginTop: '1em'}}
+              className={modalStyles.commentInput}
             >
 
             </textarea>
@@ -48,8 +48,7 @@ const ConfirmActionModal: React.FC<IConfirmActionModalProps> = ({ isOpen, action
               id="comment" 
               value={comment} 
               onChange={e => setComment(e.target.value)} 
-              className={commentError ? styles.invalid : ''} 
-              style={{padding: '5px 20px 40px 5px', width: '50%', marginTop: '1em'}}
+              className={`${commentError ? styles.invalid : ''} ${modalStyles.commentInput}`}
             >
 
             </textarea>

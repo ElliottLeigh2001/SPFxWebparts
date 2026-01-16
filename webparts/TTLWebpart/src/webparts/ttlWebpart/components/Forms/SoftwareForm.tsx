@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
+import formStyles from './Forms.module.scss'
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { IFormProps } from './FormProps';
 import { validateCost, validateLink } from '../../Helpers/HelperFunctions';
@@ -204,9 +205,9 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
   return (
     <div>
       {view === 'HR' ? (
-        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
+        <div className={formStyles.hrCost}>
           <label className={styles.formRowLabel}>Cost per license (€)*</label>
-          <input style={{width: '50%'}} value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''} />
+          <input value={cost} onChange={e => setCost(e.target.value)} className={`${isNaN(Number(cost)) ? 'invalid' : ''} ${formStyles.costInput}`} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
       ) : (

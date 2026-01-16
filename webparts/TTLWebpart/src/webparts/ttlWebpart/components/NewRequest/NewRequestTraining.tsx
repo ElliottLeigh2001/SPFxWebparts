@@ -222,7 +222,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
                 <HeaderComponent view="New Request" />
                 <div className={styles.ttlForm}>
                     <div className={newRequestStyles.newRequestContainer}>
-                        <div style={{ textAlign: 'center', padding: '50px' }}>
+                        <div className={newRequestStyles.loading}>
                             Loading...
                         </div>
                     </div>
@@ -237,7 +237,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
             <div className={styles.ttlForm}>
                 <div className={newRequestStyles.formHeader}>
-                    <h2 style={{ color: '#055a57' }}>New Training Request</h2>
+                    <h2 className={newRequestStyles.green}>New Training Request</h2>
                     <div className={newRequestStyles.newRequestActions}>
                         <button
                             className={`${styles.stdButton} ${newRequestStyles.buttonWidth}`}
