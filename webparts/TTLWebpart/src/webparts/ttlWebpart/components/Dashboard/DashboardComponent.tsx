@@ -26,11 +26,7 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
     let count = 6; // Title, Total Cost, Project, Submission, Deadline, Status
 
     if (view !== "myView") {
-      count += 3; // Requester, Approver, Team Coach
-    }
-
-    if (view !== "myView" && view !== "approvers") {
-      count += 1; // Team
+      count += 2; // Requester, Approver, Team Coach
     }
 
     return count;
@@ -192,9 +188,7 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                         } ${styles.sortIcon}`}
                       />
                   </th>
-                  {view !== 'HR' && (
-                    <th>Project</th>
-                  )}
+                  {(view === 'myView' || view === 'approvers') && (<th>Project</th>)}
                   <th
                     className={styles.sortable}
                     onClick={() => toggleSort('submissionDate')}
@@ -230,7 +224,7 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                       {(view !== "myView" && view !== 'approvers') && <td>{request.ApproverID?.Title || "-"}</td>}
                       {view !== "myView" && <td>{request.ApproverID?.Id ? (teamCoachesMap[String(request.ApproverID.Id)] || "-") : "-"}</td>}
                       <td>€ {request.TotalCost || "-"}</td>
-                      {view !== 'HR' && (<td>{request.Project || "-"}</td>)}
+                      {(view === 'myView' || view === 'approvers') && (<td>{request.Project || "-"}</td>)}
                       <td>{formatDate(request.SubmissionDate)}</td>
                       <td>{formatDate(request.DeadlineDate) || "-"}</td>
                       <td>

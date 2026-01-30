@@ -263,16 +263,16 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
     setNewRequest(false);
     setError(null);
     setRefreshTrigger(prev => prev + 1);
-    // Reset to main dashboard URL
-    window.history.pushState({}, "", window.location.pathname);
+    // Reset to main dashboard URL (replace to avoid adding extra history entries)
+    window.history.replaceState({}, "", window.location.pathname);
   };
 
   const handleNewRequestSave = () => {
     setNewRequest(false);
     // Refresh the list after creating a new request
     setRefreshTrigger(prev => prev + 1);
-    // Return to main dashboard URL
-    window.history.pushState({}, "", window.location.pathname);
+    // Return to main dashboard URL (replace to avoid adding extra history entries)
+    window.history.replaceState({}, "", window.location.pathname);
   };
 
   // Set states based on which view is clicked (approvers, HR, director, new)

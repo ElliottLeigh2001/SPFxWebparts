@@ -189,12 +189,6 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
         RequestStatus: type,
         SubmissionDate: submissionDate || undefined,
       }));
-
-      await sendEmail({        
-        ...getBaseEmailData(),
-        emailType: 'Completed',
-        approverTitle: request.ApproverID?.Title,
-      })
       
       // Refresh parent component
       if (refreshParent && onUpdate) onUpdate();
@@ -546,6 +540,13 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   // Handle completed action (HR marks request as completed)
   const handleConfirmCompleted = async (): Promise<void> => {
     await updateRequestApprover('Completed', false, false);
+    
+    await sendEmail({        
+      ...getBaseEmailData(),
+      emailType: 'Completed',
+      approverTitle: request.ApproverID?.Title,
+    })
+
     onUpdate();
   };
 

@@ -230,7 +230,8 @@ export const goBack = (args: {
 
   // Update URL to reflect no selection
   if (pushState) {
-    window.history.pushState({}, "", `?view=${viewName}`);
+    // Use replaceState so we don't add an extra history entry when closing details
+    window.history.replaceState({}, "", `?view=${viewName}`);
   }
 };
 
