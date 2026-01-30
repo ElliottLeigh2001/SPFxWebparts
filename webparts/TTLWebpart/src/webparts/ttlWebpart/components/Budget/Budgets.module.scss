@@ -21,6 +21,17 @@
     }
 }
 
+.budgetWrapperTeam {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 3px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    flex: 0 0 280px;
+}
+
 .budgetInfo {
     display: flex;
     flex-direction: column;

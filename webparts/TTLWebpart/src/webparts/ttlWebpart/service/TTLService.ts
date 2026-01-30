@@ -270,6 +270,7 @@ export const createRequestWithItems = async (context: WebPartContext, request: a
     SubmissionDate: submissionDate,
     DeadlineDate: request.DeadlineDate,
     BudgetSharing: request.BudgetSharing,
+    TeamCoachApproval: ''
   });
 
   const requestId = (reqAdd && (reqAdd.Id ?? reqAdd.ID)) as number | undefined;

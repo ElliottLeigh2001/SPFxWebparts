@@ -41,6 +41,7 @@ const TrainingForm = forwardRef<TrainingFormHandle, IFormProps & { onSave?: (ite
     setLinkError('');
     setDateError('');
     setLocationError('');
+    setCostError('');
 
     if (!title) {
       setTitleError('Title is required');

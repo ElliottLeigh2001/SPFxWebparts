@@ -15,7 +15,7 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
   const [teamCoachesMap, setTeamCoachesMap] = useState<Record<string, string>>({});
 
   const searchPlaceholder: Record<string, string> = {
-    myView: 'Search by title or team',
+    myView: 'Search by title or project',
     approvers: 'Search by title, project or requester',
     HR: 'Search by title, project, requester or team',
     director: 'Search by title, project, requester or team',
@@ -173,7 +173,7 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                 <tr>
                   <th>Title</th>
                   {view !== "myView" && <th>Requester</th>}
-                  {view !== "myView" && <th>Approver</th>}
+                  {(view !== "myView" && view !== 'approvers') && <th>Approver</th>}
                   {view !== 'myView' && <th>Team Coach</th>}
                   <th
                     className={styles.sortable}
@@ -192,9 +192,8 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                         } ${styles.sortIcon}`}
                       />
                   </th>
-                  <th>Project</th>
-                  {(view !== "myView" && view !== 'approvers') && (
-                    <th>Team</th>
+                  {view !== 'HR' && (
+                    <th>Project</th>
                   )}
                   <th
                     className={styles.sortable}
@@ -228,13 +227,10 @@ const DashboardComponent: React.FC<IDashboardComponentProps> = ({ onClick, reque
                     >
                       <td>{request.Title}</td>
                       {view !== "myView" && <td>{request.Author?.Title || "-"}</td>}
-                      {view !== "myView" && <td>{request.ApproverID?.Title || "-"}</td>}
+                      {(view !== "myView" && view !== 'approvers') && <td>{request.ApproverID?.Title || "-"}</td>}
                       {view !== "myView" && <td>{request.ApproverID?.Id ? (teamCoachesMap[String(request.ApproverID.Id)] || "-") : "-"}</td>}
                       <td>€ {request.TotalCost || "-"}</td>
-                      <td>{request.Project || "-"}</td>
-                      {(view !== "myView" && view !== 'approvers') && (
-                        <td>{request.Team || "-"}</td>
-                      )}
+                      {view !== 'HR' && (<td>{request.Project || "-"}</td>)}
                       <td>{formatDate(request.SubmissionDate)}</td>
                       <td>{formatDate(request.DeadlineDate) || "-"}</td>
                       <td>

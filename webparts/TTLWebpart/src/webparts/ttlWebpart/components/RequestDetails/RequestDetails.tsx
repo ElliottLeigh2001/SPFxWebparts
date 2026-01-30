@@ -76,6 +76,13 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     setDisplayedRequest(request);
     const changed = sessionStorage.getItem(`changedByHR${request.ID}`) === "true";
     setChangedByHR(changed);
+
+    // Store the original cost in sessionStorage the first time we see this request in HR Processing
+    // This preserves the approved cost before HR makes any changes
+    const storedOriginalCost = sessionStorage.getItem(`originalCost${request.ID}`);
+    if (!storedOriginalCost && request.RequestStatus === 'HR Processing') {
+      sessionStorage.setItem(`originalCost${request.ID}`, request.TotalCost);
+    }
   }, [request]);
 
   const handleEditItem = (item: IUserRequestItem): void => {
@@ -471,10 +478,6 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
 
   // Handle deny action in confirm dialog
   const handleConfirmDeny = async (comment: string): Promise<void> => {
-    if (request.RequestStatus === 'Resubmitted') {
-      // Add back to budget
-      await addBackToTeamCoachBudget();
-    }
     // Update status to rejected
     await updateRequestApprover('Rejected', false, true);
     // Add required comment
@@ -487,9 +490,14 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     });
   };
 
-  // Add budget back to team coach's budget (used when denying)
+  // Add budget back to team coach's budget (used when denying or reapproving)
   const addBackToTeamCoachBudget = async (): Promise<void> => {
-    if (!request.ApproverID?.Id || !request.TotalCost) return;
+    if (!request.ApproverID?.Id) return;
+
+    // Get the original approved cost from sessionStorage, or fall back to current TotalCost
+    const originalCost = sessionStorage.getItem(`originalCost${request.ID}`) || request.TotalCost;
+
+    if (!originalCost) return;
 
     try {
       const approversList = await getApprovers(context);
@@ -498,7 +506,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
       if (approver?.TeamCoach?.EMail) {
         const budget = await getBudgetforApprover(context, approver.TeamCoach.EMail, new Date().getFullYear().toString());
         if (budget) {
-          await addToBudget(context, budget.ID, Number(request.TotalCost));
+          await addToBudget(context, budget.ID, Number(originalCost));
         }
       }
     } catch (budgetError) {
@@ -524,7 +532,8 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   const handleConfirmReapprove = async (comment: string): Promise<void> => {
     await handleAddComment(comment);
     await updateRequestApprover('Resubmitted', false, true);
-
+    await addBackToTeamCoachBudget();
+    
     const approverData = await getApproverEmailData();
 
     await sendEmail({
@@ -657,7 +666,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                 <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
                 <span><strong>Team Coach:</strong> {teamCoach|| '/'}</span>
                 <div className={requestDetailsStyles.teamCoachSection}>
-                  {(view === 'approvers' || view === 'deliveryDirector') && (
+                  {((view === 'approvers' && isApprover) || view === 'deliveryDirector') && (
                     <>
                     <span><strong>Team Coach Approval:</strong></span>
                       {request.TeamCoachApproval ? (
@@ -834,7 +843,9 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
               setShowConfirmActionModal(false);
               setConfirmAction(null);
               setSelectedSharedBudget(null);
-              sessionStorage.removeItem(`changedByHR${request.ID}`)
+              // Clean up sessionStorage for this request
+              sessionStorage.removeItem(`changedByHR${request.ID}`);
+              sessionStorage.removeItem(`originalCost${request.ID}`);
               if (success) {
                 onBack();
               }

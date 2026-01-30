@@ -107,8 +107,6 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
       UsersLicense: item.UsersLicense 
     });
 
-    let totalCost = Number(item.Cost);
-
     setIsSaving(true);
     setError(null);
 
@@ -161,7 +159,7 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
             authorName: loggedInUser.Title,
             directorTitle: selectedApproverRow.CEO?.Title ?? '',
             directorEmail: selectedApproverRow.CEO?.EMail ?? '',
-            totalCost: totalCost.toString(),
+            totalCost: calculatedCost,
             typeOfRequest: 'Software License'
           });
         } catch (err) {
@@ -181,7 +179,7 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
       onSave();
     } catch (err) {
       console.error(err);
-      setError('An error occured. Refresh and check your dashboard, the request may have been created anyway.');
+      setError('An error occured, please try again. If the issue persist, contact your administrator.');
     } finally {
       setIsSaving(false);
     }

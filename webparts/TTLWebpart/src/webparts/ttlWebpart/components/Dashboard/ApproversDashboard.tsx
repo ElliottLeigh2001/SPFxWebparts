@@ -255,7 +255,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
               <>
                 {teamBudgetLoaded && (
                   <div className={budgetStyles.budgetContainer} style={{marginBottom: '1rem'}}>
-                    <div className={budgetStyles.budgetWrapper}>
+                    <div className={budgetStyles.budgetWrapperTeam}>
                       <DonutChart
                         total={teamBudget.totalBudget}
                         available={teamBudget.totalAvailable}

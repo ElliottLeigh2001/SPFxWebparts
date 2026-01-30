@@ -197,7 +197,7 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
             onSave();
 
         } catch (err) {
-            setError('An error occured. Refresh and check your dashboard, the request may have been created anyway.');
+            setError('An error occured, please try again. If the issue persist, contact your administrator.');
         } finally {
             setIsSaving(false);
         }

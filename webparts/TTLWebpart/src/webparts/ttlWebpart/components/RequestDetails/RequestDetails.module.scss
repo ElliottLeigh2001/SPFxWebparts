@@ -124,20 +124,24 @@
   }
 }
 
+.approveButton,
+.declineButton {
+  padding: 8px 0;
+  width: 100px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
 .approveButton {
   background-color: rgb(47, 129, 131);
   border: 3px solid rgb(47, 129, 131);
-  border-radius: 4px;
   color: #fff;
-  cursor: pointer;
-  font-size: 16px;
-  width: 100px;
 
   &:hover {
     background-color: rgb(39, 109, 110);
     border: 3px solid rgb(39, 109, 110);
   }
-
 }
 
 .declineButton {
@@ -145,11 +149,6 @@
   border: 3px solid rgb(47, 129, 131);
   color: rgb(47, 129, 131);
   font-weight: 600;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 8px 20px;
-  width: 100px;
 
   &:hover {
     border: 3px solid rgb(39, 109, 110);

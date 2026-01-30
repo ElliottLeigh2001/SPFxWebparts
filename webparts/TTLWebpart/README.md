@@ -90,11 +90,13 @@ To import into SharePoint site collection:
 - Adding new requests with specific request items
   - multiple options (software, training, travel)
 - Approval system with multiple steps
-- Dashboards for the managing director, approvers and HR
+- Dashboards for the managing director, delivery director, approvers, teamcoaches and HR
   - Filtering
   - Sorting
-- Getting request details (managing director, approvers and HR)
-  - Approving / denying requests
+- Getting request details (managing director, delivery director, approvers, teamcoaches and HR)
+  - Approving / denying requests (MD, DD, approvers)
   - Adding comments
+  - Changing prices (HR)
 - Email flows to inform people on their requests
+- Managing budgets and budget sharing
 
