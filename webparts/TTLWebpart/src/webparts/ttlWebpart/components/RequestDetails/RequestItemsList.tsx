@@ -58,7 +58,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
     // Parse UsersLicense to show all users in a single string
     const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {
         if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
-            return '/';
+            return '-';
         }
 
         const people = usersLicense.map(user => user.Title);
@@ -353,7 +353,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
                         <div className={styles.noData}>No request items found for this request</div>
                     )}
 
-                    {view === 'myView' && request.RequestStatus === 'Draft' && items.length > 0 && items[0].RequestType !== "Software" && (
+                    {view === 'myView' && (request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && items.length > 0 && items[0].RequestType !== "Software" && (
                         <div className={requestDetailsStyles.addButtonContainer}>
                             <button onClick={onAdd} className={requestDetailsStyles.addNewItem}>
                                 <i className="fa-solid fa-plus"></i>

@@ -8,7 +8,7 @@ export interface IAddItemModalProps {
   onCancel: () => void;
 }
 
-export type ActionType = 'save' | 'send' | 'discard' | 'approve' | 'reapprove' | 'deny' | 'completed' | 'confirmSharing' | 'denySharing';
+export type ActionType = 'save' | 'send' | 'discard' | 'approve' | 'reapprove' | 'deny' | 'completed' | 'confirmSharing' | 'denySharing' | 'teamCoachApprove' | 'teamCoachDeny';
 
 export const titles: Record<ActionType, string> = {
   save: 'Confirm Save',
@@ -19,7 +19,9 @@ export const titles: Record<ActionType, string> = {
   deny: 'Confirm Denial',
   completed: 'Confirm HR Processing',
   confirmSharing: 'Confirm Budget Sharing',
-  denySharing: 'Deny Budget Sharing'
+  denySharing: 'Deny Budget Sharing',
+  teamCoachApprove: 'Confirm Approval',
+  teamCoachDeny: 'Confirm Denial',
 };
 
 export const messages: Record<ActionType, string> = {
@@ -31,7 +33,9 @@ export const messages: Record<ActionType, string> = {
   deny: 'Are you sure you want to deny this request?',
   completed: 'Are you sure you want to mark this request as completed?',
   confirmSharing: 'Are you sure you want to confirm this budget sharing request?',
-  denySharing: 'Are you sure you want to deny this budget sharing request?'
+  denySharing: 'Are you sure you want to deny this budget sharing request?',
+  teamCoachApprove: 'Are you sure you want to approve this request? The practice lead will be informed of your decision.',
+  teamCoachDeny: 'Are you sure you want to deny this request? The practice lead will be informed, but can still overrule your decision.',
 };
 
 export interface IConfirmActionModalProps {

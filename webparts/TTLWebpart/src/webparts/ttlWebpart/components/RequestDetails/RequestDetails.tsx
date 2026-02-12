@@ -39,7 +39,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusActionError, setStatusActionError] = useState<string | null>(null);
   const [showConfirmActionModal, setShowConfirmActionModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|'confirmSharing'|'denySharing'|null>(null);
+  const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|'confirmSharing'|'denySharing'|'teamCoachApprove'|'teamCoachDeny'|null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
   const [typeOfRequest, setTypeOfRequest] = useState('');
@@ -632,6 +632,16 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     }
   };
 
+  const handleTeamCoachDeny = () => {
+    setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Disapprove' }));
+    updateTeamCoachApproval(context, request.ID, 'Disapprove');
+  }
+
+  const handleTeamCoachApprove = () => {
+    setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Approve' }));
+    updateTeamCoachApproval(context, request.ID, 'Approve');
+  }
+
   return (
     <>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
@@ -662,10 +672,10 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                   )}
                 </div>
                 {view !== 'myView' && (
-                  <span><strong>Requester:</strong> {request.Author?.Title || '/'}</span>
+                  <span><strong>Requester:</strong> {request.Author?.Title || '-'}</span>
                 )}
-                <span><strong>Approver:</strong> {request.ApproverID?.Title || '/'}</span>
-                <span><strong>Team Coach:</strong> {teamCoach|| '/'}</span>
+                <span><strong>Approver:</strong> {request.ApproverID?.Title || '-'}</span>
+                <span><strong>Team Coach:</strong> {teamCoach|| '-'}</span>
                 <div className={requestDetailsStyles.teamCoachSection}>
                   {((view === 'approvers' && isApprover) || view === 'deliveryDirector') && (
                     <>
@@ -696,11 +706,11 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                     )}
                   </>
                 )}
-                <span><strong>Project:</strong> {displayedRequest.Project || '/'}</span>
-                <span><strong>Team:</strong> {displayedRequest.Team || '/'}</span>
-                <span><strong>Submission Date:</strong> {formatDate(displayedRequest.SubmissionDate) || '/'}</span>
+                <span><strong>Project:</strong> {displayedRequest.Project || '-'}</span>
+                <span><strong>Team:</strong> {displayedRequest.Team || '-'}</span>
+                <span><strong>Submission Date:</strong> {formatDate(displayedRequest.SubmissionDate) || '-'}</span>
                 {view === 'HR' && (
-                  <span><strong>Deadline Date:</strong> {formatDate(displayedRequest.DeadlineDate) || '/'}</span>
+                  <span><strong>Deadline Date:</strong> {formatDate(displayedRequest.DeadlineDate) || '-'}</span>
                 )}
                 <span><strong>Status:</strong> <span className={`${styles.status} ${getRequestStatusStyling(request.RequestStatus)}`}>{displayedRequest.RequestStatus}</span></span>
                 <span><strong>Goal:</strong> {displayedRequest.Goal}</span>
@@ -836,6 +846,10 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                 await handleConfirmBudgetSharing();
               } else if (confirmAction === 'denySharing') {
                 await handleDenyBudgetSharing(comment || '');
+              } else if (confirmAction === 'teamCoachDeny') {
+                await handleTeamCoachDeny();
+              } else if (confirmAction === 'teamCoachApprove') {
+                await handleTeamCoachApprove();
               }
               success = true;
             } finally {
@@ -858,22 +872,18 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
         {isTeamCoach && !isApprover && (
           <div className={requestDetailsStyles.buttonRow}>
             <button onClick={() => {
-              setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Disapprove' }));
-              updateTeamCoachApproval(context, request.ID, 'Disapprove');
+              setConfirmAction('teamCoachDeny');
+              setShowConfirmActionModal(true)
             }} 
-              className={`${displayedRequest.TeamCoachApproval === 'Disapprove' ? 
-              requestDetailsStyles.approveButton : 
-              requestDetailsStyles.declineButton}`}>
-              {`${displayedRequest.TeamCoachApproval === 'Disapprove' ? 'Disapproved' : 'Disapprove'}`}
+              className={requestDetailsStyles.declineButton}>
+              Disapprove
             </button>
             <button onClick={() => {
-              setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Approve' }));
-              updateTeamCoachApproval(context, request.ID, 'Approve');
+              setConfirmAction('teamCoachApprove');
+              setShowConfirmActionModal(true)
             }}  
-              className={`${displayedRequest.TeamCoachApproval === 'Approve' ? 
-              requestDetailsStyles.approveButton : 
-              requestDetailsStyles.declineButton}`}>
-                {`${displayedRequest.TeamCoachApproval === 'Approve' ? 'Approved' : 'Approve'}`}
+              className={requestDetailsStyles.approveButton}>
+                Approve
             </button>
           </div>
         )}

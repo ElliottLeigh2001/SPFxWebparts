@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import newRequestStyles from './NewRequest.module.scss';
 import requestDetailsStyles from '../RequestDetails/RequestDetails.module.scss'
-import { createRequestWithItems, updateRequestWithCommentId } from '../../service/TTLService';
+import { createRequestWithItems, getApproverById, updateRequestWithCommentId } from '../../service/TTLService';
 import { createComment } from '../../service/CommentService';
 import { sendEmail } from '../../service/AutomateService';
 import { calculateSoftwareLicenseCost, getUserAndManager } from '../../Helpers/HelperFunctions';
@@ -145,26 +145,30 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
       }
 
       // If sending for approval, trigger the Automate flow
-      if (type === 'Submitted' && selectedApproverRow.PracticeLead?.EMail) {
-        try {
-          await sendEmail({
-            emailType: "new request",
-            requestId: createdId.toString(),
-            title,
-            approverEmail: selectedApproverRow.PracticeLead.EMail,
-            approverTitle: selectedApproverRow.PracticeLead.Title ?? '',
-            teamCoachEmail: selectedApproverRow.TeamCoach.EMail,
-            teamCoachTitle: selectedApproverRow.TeamCoach.Title ?? '',
-            authorEmail: loggedInUser.Email,
-            authorName: loggedInUser.Title,
-            directorTitle: selectedApproverRow.CEO?.Title ?? '',
-            directorEmail: selectedApproverRow.CEO?.EMail ?? '',
-            totalCost: calculatedCost,
-            typeOfRequest: 'Software License'
-          });
-        } catch (err) {
-          console.error('Email sending failed', err);
-        }
+      if (type === 'Submitted') {
+        const approverData = await getApproverById(context, Number(approver));
+        const approverEmail = approverData?.PracticeLead?.EMail;
+        const approverTitle = approverData.PracticeLead?.Title;
+        const teamCoachEmail = approverData?.TeamCoach?.EMail;
+        const teamCoachTitle = approverData.TeamCoach?.Title;
+        const directorEmail = approverData.CEO?.Email;
+        const directorTitle = approverData.CEO?.Title
+
+        await sendEmail({
+          emailType: "new request",
+          requestId: createdId.toString(),
+          title: title, 
+          approverEmail: approverEmail,
+          approverTitle: approverTitle,
+          teamCoachEmail: teamCoachEmail,
+          teamCoachTitle: teamCoachTitle,
+          directorTitle: directorTitle,
+          directorEmail: directorEmail, 
+          authorEmail: loggedInUser.Email, 
+          authorName: loggedInUser.Title, 
+          totalCost: calculatedCost.toString(),
+          typeOfRequest: 'Software License'
+        });
       }
 
       // Clear general form and reset software form

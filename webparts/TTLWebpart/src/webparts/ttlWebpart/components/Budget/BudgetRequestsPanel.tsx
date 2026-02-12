@@ -145,7 +145,7 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
                                 {group.requests.map(req => (
                                   <tr key={req.ID}>
                                     <td>{req.Title}</td>
-                                    <td>{formatDate(req.DeadlineDate)}</td>
+                                    <td>{formatDate(req.SubmissionDate)}</td>
                                     <td>{req.RequestStatus}</td> 
                                     <td>
                                       €

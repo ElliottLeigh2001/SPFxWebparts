@@ -25,6 +25,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
     const [teamCoach, setTeamCoach] = useState<{ id: number; title: string } | undefined>(undefined);
     const trainingFormRef = useRef<any>(null);
     const travelFormRef = useRef<any>(null);
+    const returnTravelFormRef = useRef<any>(null);
     const accommodationFormRef = useRef<any>(null);
     const [showInlineTravel, setShowInlineTravel] = useState(false);
     const [showInlineReturnTravel, setShowInlineReturnTravel] = useState(false);
@@ -130,8 +131,9 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
 
         // 4. Return journey travel
         if (tr.includeReturnJourney) {
-            const ret = await travelFormRef.current?.getReturnJourneyData?.();
-            if (ret?.isValid) collected.push(ret.item);
+            const ret = await returnTravelFormRef.current?.getFormData();
+            if (!ret?.isValid) return null;
+            collected.push(ret.item);
         }
 
         return collected;
@@ -342,7 +344,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
 
                             {showInlineReturnTravel && showInlineTravel && (
                                 <div className={newRequestStyles.topMargin}>
-                                    <TravelForm ref={travelFormRef} returning={true} context={context} inline={true} initialData={undefined} />
+                                    <TravelForm ref={returnTravelFormRef} returning={true} context={context} inline={true} initialData={undefined} />
                                 </div>
                             )}
 
