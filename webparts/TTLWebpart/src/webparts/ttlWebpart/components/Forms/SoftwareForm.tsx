@@ -47,13 +47,15 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
 
   const peoplePickerStyles = {
     root: {
-      border: '1px solid #767676',
-      borderRadius: '2px',
+      border: '1px solid #d0e8e8',
+      borderRadius: '3px',
       backgroundColor: 'white',
+      boxSizing: 'border-box',
+      height: '35px',
+      marginBottom: '10px',
+      marginTop: '6px',
+      padding: '0 0 0 5px',
       selectors: {
-        ':hover': {
-          border: '1px solid #4f4f4f'
-        },
         ':focus-within': {
           border: '2px solid #000',
           outline: 'none'
@@ -207,7 +209,7 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
       {view === 'HR' ? (
         <div className={formStyles.hrCost}>
           <label className={styles.formRowLabel}>Cost per license (€)*</label>
-          <input value={cost} onChange={e => setCost(e.target.value)} className={`${isNaN(Number(cost)) ? 'invalid' : ''} ${formStyles.costInput}`} />
+          <input value={cost} onChange={e => setCost(e.target.value)} className={`${isNaN(Number(cost)) ? 'invalid' : ''} ${formStyles.costInput} ${styles.textInput}`} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
       ) : (
@@ -215,24 +217,24 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
         <div className={styles.formRow}>
             <div className={styles.formItemShort}>
               <label className={styles.formRowLabel}>Name of license *</label>
-              <input value={title} onChange={e => setTitle(e.target.value)} className={titleError ? styles.invalid : ''} />
+              <input value={title} onChange={e => setTitle(e.target.value)} className={`${titleError ? styles.invalid : ''} ${styles.textInput}`} />
               {titleError && <div className={styles.validationError}>{titleError}</div>}
             </div>
             <div className={styles.formItemShort}>
               <label className={styles.formRowLabel}>Provider *</label>
-              <input value={provider} onChange={e => setProvider(e.target.value)} className={providerError ? styles.invalid : ''} />
+              <input value={provider} onChange={e => setProvider(e.target.value)} className={`${providerError ? styles.invalid : ''} ${styles.textInput}`} />
               {providerError && <div className={styles.validationError}>{providerError}</div>}
             </div>
             <div className={styles.formItemShort}>
               <label className={styles.formRowLabel}>Cost (€)*</label>
-              <input value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''} />
+              <input value={cost} onChange={e => setCost(e.target.value)} className={`${costError ? styles.invalid : ''} ${styles.textInput}`} />
               {costError && <div className={styles.validationError}>{costError}</div>}
             </div>
           </div>
           <div className={styles.formRow}>
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>Billing *</label>
-                <select name="Licensing" id="Licensing" value={licensing} onChange={e => setLicensing(e.target.value)}>
+                <select name="Licensing" id="Licensing" value={licensing} className={styles.textInput} onChange={e => setLicensing(e.target.value)}>
                   <option value="Monthly">Monthly</option>
                   <option value="Yearly">Yearly</option>
                   <option value="One-time">One-time</option>
@@ -240,7 +242,7 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
               </div>
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>License Type *</label>
-                <select name="LicenseType" id="LicenseType" value={licenseType} onChange={e => setLicenseType(e.target.value)}>
+                <select name="LicenseType" id="LicenseType" value={licenseType} className={styles.textInput} onChange={e => setLicenseType(e.target.value)}>
                   <option value="Group">One grouped bill</option>
                   <option value="Individual">One bill per individual</option>
                 </select>
@@ -266,7 +268,7 @@ const SoftwareForm = forwardRef<SoftwareFormHandle, IFormProps>(({ context, onSa
               </div>
               <div className={styles.formItem}>
                 <label className={styles.formRowLabel}>Link *</label>
-                <input style={{height: '19px'}} value={link} onChange={e => setLink(e.target.value)} className={linkError ? styles.invalid : ''}/>
+                <input value={link} onChange={e => setLink(e.target.value)} className={`${linkError ? styles.invalid : ''} ${styles.textInput}`}/>
                 {linkError && <div className={styles.validationError}>{linkError}</div>}
               </div>
             </div>

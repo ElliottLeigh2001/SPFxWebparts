@@ -185,47 +185,63 @@ const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ 
             </div>
 
             {teamCoachBudgets && teamCoachBudgets.length > 0 ? (
-              <div className={budgetStyles.budgetContainer}>
-                {teamCoachBudgets.map((b) => {
-                  const usedAmount = b.Budget - b.Availablebudget;
+              <>
+                {Object.entries(
+                  teamCoachBudgets.reduce((acc, b) => {
+                    const team = b.Team || 'Unknown';
+                    if (!acc[team]) acc[team] = [];
+                    acc[team].push(b);
+                    return acc;
+                  }, {} as Record<string, typeof teamCoachBudgets>)
+                )
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([team, budgets]) => (
+                  <div key={team} className={budgetStyles.teamSection}>
+                    <h3 className={budgetStyles.teamSectionHeader}>{team}</h3>
+                    <div className={budgetStyles.budgetContainerDelivery}>
+                      {budgets.map((b) => {
+                        const usedAmount = b.Budget - b.Availablebudget;
 
-                  return (
-                    <div
-                      key={b.ID}
-                      onClick={() => setSelectedBudget(b)}
-                      role="button"
-                      tabIndex={0}
-                      className={budgetStyles.budgetWrapper}
-                    >
-                      <DonutChart
-                        total={b.Budget}
-                        available={b.Availablebudget}
-                        size={100}
-                        strokeWidth={10}
-                      />
+                        return (
+                          <div
+                            key={b.ID}
+                            onClick={() => setSelectedBudget(b)}
+                            role="button"
+                            tabIndex={0}
+                            className={budgetStyles.budgetWrapper}
+                          >
+                            <DonutChart
+                              total={b.Budget}
+                              available={b.Availablebudget}
+                              size={100}
+                              strokeWidth={10}
+                            />
 
-                      <div className={budgetStyles.budgetInfo}>
-                        <h3 className={styles.noMargin}>{b.TeamCoach?.Title}</h3>
-                        <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-                        <div>
-                          <strong>
-                            Available{" "}
-                            <TooltipHost content="Budget including completed, booked, and in-process requests. 
-                            This reflects budget that is already used or temporarily held by pending requests.">
-                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
-                            </TooltipHost>
-                            :
-                          </strong>{" "}
-                          <span style={{ color: b.Availablebudget > 0 ? "#2f8183" : "#d83b01" }}>
-                            €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                        <div><strong>Used:</strong> €{usedAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-                      </div>
+                            <div className={budgetStyles.budgetInfo}>
+                              <h3 className={styles.noMargin}>{b.TeamCoach?.Title}</h3>
+                              <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                              <div>
+                                <strong>
+                                  Available{" "}
+                                  <TooltipHost content="Budget including completed, booked, and in-process requests.
+                                  This reflects budget that is already used or temporarily held by pending requests.">
+                                    <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                                  </TooltipHost>
+                                  :
+                                </strong>{" "}
+                                <span style={{ color: b.Availablebudget > 0 ? "#2f8183" : "#d83b01" }}>
+                                  €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <div><strong>Used:</strong> €{usedAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                ))}
+              </>
             ) : (
               <p style={{justifySelf: 'center'}}>No budget data available for your team coaches in {selectedYear}.</p>
             )}

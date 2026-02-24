@@ -24,6 +24,7 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
   const [cost, setCost] = useState(initialData?.Cost || '');
   const [provider, setProvider] = useState(initialData?.Provider || '');
   const [link, setLink] = useState(initialData?.Link || '');
+  const [notes, setNotes] = useState(initialData?.Notes || '');
   const [titleError, setTitleError] = useState('');
   const [providerError, setProviderError] = useState('');
   const [costError, setCostError] = useState('');
@@ -138,7 +139,7 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
       const valid = validate();
       if (!valid) return result;
       result.isValid = true;
-      result.item = { Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' } as any;
+      result.item = { Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, Notes: notes, RequestType: 'Travel' } as any;
       result.includeAccommodation = includeAccommodation;
       result.includeReturnJourney = includeReturnJourney;
       return result;
@@ -167,14 +168,14 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
         setIsLoading(false);
         return;
       }
-      onSave({ Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
+      onSave({ Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, Notes: notes, RequestType: 'Travel' }, nextForms);
       setIsLoading(false);
     }
     if (!validate()) {
       setIsLoading(false);
       return;
     }
-    onSave({ Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, RequestType: 'Travel' }, nextForms);
+    onSave({ Title: title, Provider: provider, LocationFrom: locationFrom, LocationTo: locationTo, StartDate: date, Cost: cost, Link: link, Notes: notes, RequestType: 'Travel' }, nextForms);
     setIsLoading(false);
     setTitle('');
     setProvider('');
@@ -190,7 +191,7 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
       {view === 'HR' ? (
         <div className={formStyles.hrCost}>
           <label className={styles.formRowLabel}>Cost (€)*</label>
-          <input value={cost} onChange={e => setCost(e.target.value)} className={`${isNaN(Number(cost)) ? 'invalid' : ''} ${formStyles.costInput}`} />
+          <input value={cost} onChange={e => setCost(e.target.value)} className={`${isNaN(Number(cost)) ? 'invalid' : ''} ${formStyles.costInput} ${styles.textInput}`} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
       ) : (
@@ -215,42 +216,44 @@ const TravelForm = forwardRef<TravelFormHandle, IFormProps &
          <div className={styles.formRow}>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>Title *</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} className={titleError ? styles.invalid : ''} />
+            <input value={title} onChange={e => setTitle(e.target.value)} className={`${titleError ? styles.invalid : ''} ${styles.textInput}`} />
             {titleError && <div className={styles.validationError}>{titleError}</div>}
           </div>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>Provider *</label>
-            <input value={provider} onChange={e => setProvider(e.target.value)} className={providerError ? styles.invalid : ''} />
+            <input value={provider} onChange={e => setProvider(e.target.value)} className={`${providerError ? styles.invalid : ''} ${styles.textInput}`} />
             {providerError && <div className={styles.validationError}>{providerError}</div>}
           </div>
         </div>
         <div className={styles.formRow}>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>From *</label>
-            <input value={locationFrom} onChange={e => setLocationFrom(e.target.value)} className={locationFromError ? styles.invalid : ''}/>
+            <input value={locationFrom} onChange={e => setLocationFrom(e.target.value)} className={`${locationFromError ? styles.invalid : ''} ${styles.textInput}`}/>
             {locationFromError && <div className={styles.validationError}>{locationFromError}</div>}
           </div>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>To *</label>
-            <input value={locationTo} onChange={e => setLocationTo(e.target.value)} className={locationToError ? styles.invalid : ''}/>
+            <input value={locationTo} onChange={e => setLocationTo(e.target.value)} className={`${locationToError ? styles.invalid : ''} ${styles.textInput}`}/>
             {locationToError && <div className={styles.validationError}>{locationToError}</div>}
           </div>
         </div>
           <div className={styles.formRow}>
             <div className={styles.formItem}>
               <label className={styles.formRowLabel}>Cost (€)*</label>
-              <input value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''}/>
+              <input value={cost} onChange={e => setCost(e.target.value)} className={`${costError ? styles.invalid : ''} ${styles.textInput}`}/>
               {costError && <div className={styles.validationError}>{costError}</div>}
             </div>
             <div className={styles.formItem}>
               <label className={styles.formRowLabel}>Date *</label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} className={dateError ? styles.invalid : ''}/>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} className={`${dateError ? styles.invalid : ''} ${styles.textInput}`}/>
               {dateError && <div className={styles.validationError}>{dateError}</div>}
             </div>
           </div>
             <label className={styles.formRowLabel}>Link *</label>
-            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px', padding: '0 0 5px 0' }} className={linkError ? styles.invalid : ''}/>
+            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px', marginBottom: '18px', paddingBottom: '5px' }} className={`${linkError ? styles.invalid : ''} ${styles.textInput}`}/>
           {linkError && <div className={styles.validationError}>{linkError}</div>}
+            <label className={styles.formRowLabel}>Notes</label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} style={{ width: '100%', paddingBottom: '50px', marginTop: '6px' }} className={styles.textAreaInput} />
 
           {!returning && !initialData && ref && (
             <div style={{ marginTop: '20px' }}>

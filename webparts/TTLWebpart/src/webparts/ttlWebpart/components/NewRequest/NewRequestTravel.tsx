@@ -40,6 +40,22 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Handle team coach selection from dropdown
+    const handleTeamCoachChange = (selectedTitle: string) => {
+        if (!selectedTitle) {
+            setTeamCoach(undefined);
+            setTeam(undefined);
+            setApprover(undefined);
+            return;
+        }
+        const row = allApprovers.find(a => a.TeamCoach?.Title === selectedTitle);
+        if (row) {
+            setTeamCoach({ id: row.Id, title: row.TeamCoach.Title! });
+            setTeam(row.Team0);
+            setApprover(row.Id);
+        }
+    };
+
     // Load Teams and Approvers
     useEffect(() => {
         const loadData = async () => {
@@ -47,8 +63,8 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
         try {
             const approversWithoutCEO = approvers.filter(app => app.PracticeLead);
             setAllApprovers(approversWithoutCEO);
-            
-            // Get user's manager (team coach) and populate initial data
+
+            // Get user's manager (team coach) and pre-select as default
             const userAndManager = await getUserAndManager(approversWithoutCEO, context);
             setTeamCoach(userAndManager?.teamCoach);
             setApprover(userAndManager?.approver);
@@ -60,7 +76,7 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
             setIsLoading(false);
         }
         };
-        
+
         loadData();
     }, [approvers]);
 
@@ -72,11 +88,16 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
         setGoalError('');
         setError(null);
 
+        if (!teamCoach) {
+            setError('Please select a Team Coach');
+            isValid = false;
+        }
+
         if (!title.trim()) {
             setTitleError('Title is required');
             isValid = false;
-        } 
-        
+        }
+
         if (!goal.trim()) {
             setGoalError('Goal is required');
             isValid = false;
@@ -91,7 +112,7 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
             setProjectError('Max length of title is 255 characters')
             isValid = false;
         }
-        
+
         return isValid;
     };
 
@@ -262,28 +283,37 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                         <div className={styles.formRow}>
                             <div className={styles.formItem}>
                                 <label className={styles.formRowLabel}>Title *</label>
-                                <input className={titleError ? styles.invalid : ''} value={title} onChange={e => setTitle(e.target.value)} required />
+                                <input className={`${titleError ? styles.invalid : ''} ${styles.textInput}`} value={title} onChange={e => setTitle(e.target.value)} required />
                                 {titleError && <div className={styles.validationError}>{titleError}</div>}
                             </div>
                             <div className={styles.formItem}>
                                 <label className={styles.formRowLabel}>Project </label>
-                                <input className={projectError ? styles.invalid : ''} value={project} onChange={e => setProject(e.target.value)} required />
+                                <input className={`${projectError ? styles.invalid : ''} ${styles.textInput}`} value={project} onChange={e => setProject(e.target.value)} required />
                                 {projectError && <div className={styles.validationError}>{projectError}</div>}
                             </div>
                         </div>
 
                         <div className={styles.formRow}>
                             <div className={styles.formItemShort}>
-                                <label className={styles.formRowLabel}>Team Coach</label>
-                                <div className={newRequestStyles.unchangeable}>
-                                {teamCoach ? teamCoach.title : 'Loading...'}
-                                </div>
+                                <label className={styles.formRowLabel}>Team Coach *</label>
+                                <select
+                                    value={teamCoach?.title ?? ''}
+                                    className={styles.textInput}
+                                    onChange={e => handleTeamCoachChange(e.target.value)}
+                                >
+                                    <option value="">Select a Team Coach</option>
+                                    {allApprovers.map(a => (
+                                        <option key={a.Id} value={a.TeamCoach?.Title ?? ''}>
+                                            {a.TeamCoach?.Title}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
-                            
+
                             <div className={styles.formItemShort}>
                                 <label className={styles.formRowLabel}>Team</label>
                                 <div className={newRequestStyles.unchangeable}>
-                                {team ? team : 'Loading'}
+                                {team ? team : '–'}
                                 </div>
                             </div>
 
@@ -292,14 +322,14 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
                                 <div className={newRequestStyles.unchangeable}>
                                 {approver
                                     ? allApprovers.find(a => a.Id === approver)?.PracticeLead?.Title
-                                    : 'Loading'}
+                                    : '–'}
                                 </div>
                             </div>
                         </div>
 
                         <div style={{ marginBottom: '18px' }}>
                             <label className={styles.formRowLabel}>Goal *</label>
-                            <textarea value={goal} onChange={e => setGoal(e.target.value)} className={goalError ? styles.invalid : ''} style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }} />
+                            <textarea value={goal} onChange={e => setGoal(e.target.value)} className={`${goalError ? styles.invalid : ''} ${styles.textAreaInput}`} style={{ width: '100%', paddingBottom: '50px', marginTop: '6px' }} />
                             {goalError && <div className={styles.validationError}>{goalError}</div>}
                         </div>
 

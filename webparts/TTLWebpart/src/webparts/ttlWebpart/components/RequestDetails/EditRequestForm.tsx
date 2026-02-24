@@ -81,7 +81,7 @@ const EditRequestForm: React.FC<IEditRequestFormProps> = ({ context, request, on
         value={goal} 
         onChange={e => setGoal(e.target.value)} 
         className={goalError ? styles.invalid : ''}
-        style={{ width: '100%', padding: '0 0 50px 0', marginTop: '6px' }}
+        style={{ width: '100%', paddingBottom: '50px', marginTop: '6px' }}
       />
       {goalError && <div className={styles.validationError}>{goalError}</div>}
 

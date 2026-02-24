@@ -26,7 +26,6 @@ export interface IRequestDetailsProps {
   isApprover?: boolean;
   isTeamCoach?: boolean;
   totalBudget?: number;
-  isFromBudgetSharing?: boolean;
 }
 
 export interface IEditRequestFormProps {

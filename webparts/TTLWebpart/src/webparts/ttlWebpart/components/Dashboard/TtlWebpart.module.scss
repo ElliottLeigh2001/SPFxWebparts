@@ -251,7 +251,6 @@
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 6px;
-  color: #3b3a39;
 }
 
 .formRow input[type="text"],
@@ -293,7 +292,7 @@ textarea {
   padding: 5px 12px 7px 12px;
   border-radius: 4px;
   font-size: 16px;
-  width: 78px;
+  width: 86px;
   cursor: pointer;
 }
 
@@ -309,7 +308,7 @@ textarea {
   color: white;
   border-radius: 4px;
   font-size: 16px;
-  width: 78px;
+  width: 86px;
   cursor: pointer;
 }
 
@@ -499,19 +498,14 @@ textarea {
   color: white;
 }
 
-select,
-::picker(select) {
-  appearance: base-select;
+label {
+  color: #055a57;
 }
 
-// label {
-  // color: #055a57;
-// }
-
-.textInput, select, textarea {
+.textInput {
   box-sizing: border-box;
   border: 1px solid #d0e8e8;
-  background: #f7fbfb;
+  // background: #f7fbfb;
   height: 35px;
   padding: 0 0 0 5px;
   margin-bottom: 10px;
@@ -521,10 +515,15 @@ select,
   font-size: 14px;
 }
 
-select {
-  background: #f7fbfb url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 8L0 0h12L6 8z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 10px center;
-  background-size: 12px 8px;
-  appearance: none;
+.textAreaInput {
+  box-sizing: border-box;
+  border: 1px solid #d0e8e8;
+  padding: 0 0 0 5px;
+  margin-bottom: 10px;
+  margin-top: 6px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 14px;
 }
 
 .checkboxContainer {
@@ -538,14 +537,12 @@ select {
 .checkboxContainer input[type="checkbox"] {
   width: 20px;
   height: 20px;
-  margin-left: 10px;
   transform: translateY(5px);
 }
 
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  margin-left: 8px;
   accent-color: rgb(47, 129, 131);
   cursor: pointer;
 }

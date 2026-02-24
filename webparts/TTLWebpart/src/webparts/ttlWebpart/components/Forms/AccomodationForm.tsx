@@ -151,7 +151,7 @@ const AccommodationForm = forwardRef<AccommodationFormHandle, IFormProps & { inl
       {view === 'HR' ? (
         <div className={formStyles.hrCost}>
           <label className={styles.formRowLabel}>Cost (€)*</label>
-          <input value={cost} onChange={e => setCost(e.target.value)} className={`${isNaN(Number(cost)) ? 'invalid' : ''} ${formStyles.costInput}`} />
+          <input value={cost} onChange={e => setCost(e.target.value)} className={`${isNaN(Number(cost)) ? 'invalid' : ''} ${formStyles.costInput} ${styles.textInput}`} />
           {costError && <div className={styles.validationError}>{costError}</div>}
         </div>
       ) : (
@@ -166,43 +166,43 @@ const AccommodationForm = forwardRef<AccommodationFormHandle, IFormProps & { inl
         <div className={styles.formRow}>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>Title *</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} className={titleError ? styles.invalid : ''} />
+            <input value={title} onChange={e => setTitle(e.target.value)} className={`${titleError ? styles.invalid : ''} ${styles.textInput}`} />
             {titleError && <div className={styles.validationError}>{titleError}</div>}
           </div>
           <div className={styles.formItem}>
             <label className={styles.formRowLabel}>Provider *</label>
-            <input value={provider} onChange={e => setProvider(e.target.value)} className={providerError ? styles.invalid : ''} />
+            <input value={provider} onChange={e => setProvider(e.target.value)} className={`${providerError ? styles.invalid : ''} ${styles.textInput}`} />
             {providerError && <div className={styles.validationError}>{providerError}</div>}
           </div>
         </div>
         <div className={styles.formRow}>
             <div className={styles.formItem}>
               <label className={styles.formRowLabel}>Cost (€)*</label>
-              <input value={cost} onChange={e => setCost(e.target.value)} className={costError ? styles.invalid : ''} />
+              <input value={cost} onChange={e => setCost(e.target.value)} className={`${costError ? styles.invalid : ''} ${styles.textInput}`} />
               {costError && <div className={styles.validationError}>{costError}</div>}
             </div>
             <div className={styles.formItem}>
               <label className={styles.formRowLabel}>Location</label>
-              <input value={location} onChange={e => setLocation(e.target.value)} className={locationError ? styles.invalid : ''}/>
+              <input value={location} onChange={e => setLocation(e.target.value)} className={`${locationError ? styles.invalid : ''} ${styles.textInput}`}/>
               {locationError && <div className={styles.validationError}>{locationError}</div>}
             </div>
           </div>
           <div className={styles.formRow}>
             <div className={styles.formItem}>
               <label className={styles.formRowLabel}>Start Date *</label>
-              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className={startDateError ? styles.invalid : ''}/>
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className={`${startDateError ? styles.invalid : ''} ${styles.textInput}`}/>
               {dateError && <div className={styles.validationError}>{dateError}</div>}
               {startDateError && <div className={styles.validationError}>{startDateError}</div>}
             </div>
             <div className={styles.formItem}>
               <label className={styles.formRowLabel}>End Date *</label>
-              <input type="date" value={endDate} onChange={e => setOData__EndDate(e.target.value)} className={endDateError ? styles.invalid : ''}/>
+              <input type="date" value={endDate} onChange={e => setOData__EndDate(e.target.value)} className={`${endDateError ? styles.invalid : ''} ${styles.textInput}`}/>
               {endDateError && <div className={styles.validationError}>{endDateError}</div>}
             </div>
           </div>
           <div>
             <label className={styles.formRowLabel}>Link *</label>
-            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px',  padding: '0 0 5px 0' }} className={linkError ? styles.invalid : ''}/>
+            <input value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%', marginTop: '6px',  paddingBottom: '5px' }} className={`${linkError ? styles.invalid : ''} ${styles.textInput}`}/>
             {linkError && <div className={styles.validationError}>{linkError}</div>}
           </div>
         </>

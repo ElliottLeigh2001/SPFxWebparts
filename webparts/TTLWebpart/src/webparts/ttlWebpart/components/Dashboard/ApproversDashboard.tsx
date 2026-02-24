@@ -12,6 +12,7 @@ import { IApproversDashboardProps } from './DashboardProps';
 import HeaderComponent from '../Header/HeaderComponent';
 import budgetStyles from '../Budget/Budgets.module.scss'
 import { TooltipHost, Icon } from '@fluentui/react';
+import BudgetSharing from '../Budget/BudgetSharing';
 
 const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBack, loggedInUser, isApprover, isTeamCoach }) => {
   const [requests, setRequests] = useState<IUserRequest[]>([]);
@@ -30,7 +31,6 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'approvedRequests'|'requests'|'budgetSharing'>('requests');
-  const [isFromBudgetSharing, setIsFromBudgetSharing] = useState(false);
 
   useEffect(() => {
     const loadYears = async () => {
@@ -68,7 +68,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       const teamCoachForApproverIds = new Set<number>();
       if (isTeamCoach) {
         approversList.forEach((approver: IApprover) => {
-          if (approver.TeamCoach?.EMail === loggedInUser.EMail) {
+          if (approver.TeamCoach?.EMail?.toLowerCase() === (loggedInUser.UserPrincipalName.toLowerCase() || loggedInUser.EMail.toLowerCase())) {
             teamCoachForApproverIds.add(approver.Id);
           }
         });
@@ -76,17 +76,17 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
 
       // Filter on requests meant for the approver or where user is team coach for the approver
       const filteredRequests = requestData
-        .filter(req => 
-          (req.ApproverID?.Title === loggedInUser.Title || 
-          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))) && 
+        .filter(req =>
+          ((isApprover && req.ApproverID?.Title === loggedInUser.Title) ||
+          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id) && !req.TeamCoachApproval)) &&
           (req.RequestStatus === 'Submitted' || req.RequestStatus === 'Resubmitted')
         )
       setRequests(filteredRequests as IUserRequest[]);
 
       const filteredApprovedRequests = requestData
-        .filter(req => 
-          (req.ApproverID?.Title === loggedInUser.Title || 
-          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))) && 
+        .filter(req =>
+          ((isApprover && req.ApproverID?.Title === loggedInUser.Title) ||
+          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))) &&
           (req.RequestStatus === 'HR Processing' || req.RequestStatus === 'Completed' || req.RequestStatus === 'Booking' || req.RequestStatus === 'Awaiting CEO approval')
         )
       
@@ -151,9 +151,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
   const handleRequestClick = async (
     request: IUserRequest,
     pushState: boolean = true,
-    fromBudgetSharing: boolean = false
   ) => {
-    setIsFromBudgetSharing(fromBudgetSharing);
 
     await loadRequestDetails({
       context,
@@ -220,7 +218,6 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
         view='approvers'
         isApprover={isApprover}
         isTeamCoach={isTeamCoach}
-        isFromBudgetSharing={isFromBudgetSharing}
         onBack={() => handleBackClick(true)}
         onUpdate={handleStatusUpdate}
         context={context}
@@ -383,7 +380,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       {activeTab === 'approvedRequests' && (
         <DashboardComponent
           context={context}
-          onClick={(req) => handleRequestClick(req, true, false)}
+          onClick={(req) => handleRequestClick(req, true)}
           requests={approvedRequests}
           view="approvers"
         />
@@ -392,20 +389,19 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       {activeTab === 'requests' && (
         <DashboardComponent
           context={context}
-          onClick={(req) => handleRequestClick(req, true, false)}
+          onClick={(req) => handleRequestClick(req, true)}
           requests={requests}
           view="approvers"
         />
       )}
 
       {activeTab === 'budgetSharing' && (
-        <DashboardComponent
+        <BudgetSharing
           context={context}
-          onClick={(req) => handleRequestClick(req, true, true)}
-          requests={requests.filter(
-            r => r.BudgetSharing?.EMail === loggedInUser.Email
-          )}
-          view="approvers"
+          loggedInUser={loggedInUser}
+          isApprover={isApprover}
+          teamCoachBudgets={teamCoachBudgets}
+          selectedYear={selectedYear}
         />
       )}
 

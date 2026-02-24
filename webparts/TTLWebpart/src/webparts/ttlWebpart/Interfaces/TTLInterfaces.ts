@@ -63,6 +63,7 @@ export interface IUserRequestItem {
         Id?: number;
         url?: string;
     }
+    Notes?: string;
 }
 
 export interface IApprover {
@@ -103,4 +104,14 @@ export interface IBudget {
     Availablebudget: number;
     PendingBudget: number;
     Year: string;
+}
+
+export interface IBudgetSharingItem {
+    ID: number;
+    Requester: { Id?: number; Title?: string; EMail?: string };
+    Approver: { Id?: number; Title?: string; EMail?: string };
+    RequesterTeamCoach: { Id?: number; Title?: string; EMail?: string };
+    ApproverTeamCoach?: { Id?: number; Title?: string; EMail?: string };
+    Amount: number;
+    Status: 'Pending' | 'Accepted' | 'Denied';
 }

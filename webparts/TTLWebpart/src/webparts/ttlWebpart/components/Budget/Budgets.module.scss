@@ -1,41 +1,62 @@
 .budgetContainer {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.budgetContainerDelivery {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.teamSection {
+  margin-bottom: 28px;
+}
+
+.teamSectionHeader {
+  font-size: 15px;
+  font-weight: 600;
+  color: #323130;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #eaf5f5;
 }
 
 .budgetWrapper {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 20px;
-    border-radius: 3px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    flex: 0 0 280px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 3px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  flex: 0 0 280px;
 
-    
-    &:hover {
-      background-color: #f8f9fa;
-    }
+  
+  &:hover {
+    background-color: #f8f9fa;
+  }
 }
 
 .budgetWrapperTeam {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 20px;
-    border-radius: 3px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    flex: 0 0 280px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 3px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  flex: 0 0 280px;
 }
 
 .budgetInfo {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .budgetYearWrapper {
@@ -182,18 +203,32 @@
 .budgetDetailsTable {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 
-  th {
-    text-align: left;
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
+  thead {
+    background-color: #eaf5f5;
+
+    th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #e1e5e9;
+      font-size: 14px;
+      white-space: nowrap;
+    }
   }
 
-  td {
-    padding: 8px;
-    border-bottom: 1px solid #f1f1f1;
-  }
+  tbody {
+    td {
+      padding: 16px 12px;
+      border-bottom: 1px solid #e1e5e9;
+      font-size: 14px;
+    }
 
+    tr:last-child td {
+      border-bottom: none;
+    }
+  }
 }
 
 .innerTable {
@@ -230,12 +265,6 @@
   }
 }
 
-.budgetSharingBody {
-  padding: 20px;
-  max-height: calc(90vh - 205px);
-  overflow-y: auto;
-}
-
 .center {
   text-align: center;
   padding: 20px;
@@ -244,43 +273,6 @@
 .paragraph {
   margin-bottom: 15px;
   color: #605e5c;
-}
-
-.budgetSharingContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.budgetSharingCard {
-  padding: 15px;
-  border: 1px solid #e1e1e1;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.budgetSharingTeam {
-   display: flex; 
-   justify-content: space-between; 
-   align-Items: center; 
-   margin-bottom: 8px;
-}
-
-.budgetSharingAmounts {
-  display: grid; 
-  grid-template-columns: 1fr 1fr; 
-  gap: 15px; 
-  margin-top: 10px;
-}
-
-.budgetSharingActions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  padding: 16px 20px;
-  border-top: 1px solid #e1e1e1;
-  background-color: #f8f9fa;
 }
 
 .selectBudget {
@@ -292,25 +284,6 @@
   transition: all 0.2s ease
 }
 
-.budgetSharingCard {
-  background-color: #ffffff;
-  border-radius: 6px;
-  padding: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, border-left 0.2s ease;
-}
-
-.budgetSharingCardSelected {
-  background-color: #f0f7f8;
-  border-left: 4px solid rgb(47, 129, 131);
-}
-
-.budgetSharingTeam {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .teamName {
   color: #323130;
 }
@@ -318,12 +291,6 @@
 .teamCoach {
   font-size: 14px;
   color: #605e5c;
-}
-
-.budgetSharingAmounts {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
 }
 
 .amountLabel {
@@ -355,4 +322,74 @@
 .selectBudgetDisabled {
   background-color: #d3d3d3;
   cursor: not-allowed;
+}
+
+.budgetSharingSection {
+  margin-bottom: 24px;
+
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: #323130;
+  }
+}
+
+.budgetSharingForm {
+  background: #f4fafa;
+  border: 1px solid #e1e5e9;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.budgetSharingFormRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+
+  // label {
+  //   font-weight: 600;
+  //   font-size: 13px;
+  //   color: #323130;
+  // }
+
+  select, input {
+    padding: 8px;
+    max-width: 400px;
+  }
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusPending {
+  background-color: #2a2a2854;
+  color: #212120;
+}
+
+.statusAccepted {
+  background-color: #15ff002f;
+  color: #107c10;
+}
+
+.statusDenied {
+  background-color: #ff001548;
+  color: #a4262c;
+}
+
+.requestRowBudget {
+  td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #e1e5e9;
+    font-size: 14px;
+  }
+  
+  &:last-child td {
+    border-bottom: none;
+  }
 }

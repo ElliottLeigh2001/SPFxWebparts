@@ -7,6 +7,14 @@ export interface IBudgetProps {
   onClose: () => void;
 }
 
+export interface IBudgetSharingProps {
+  context: WebPartContext;
+  loggedInUser: any;
+  isApprover: boolean;
+  teamCoachBudgets: IBudget[];
+  selectedYear: string;
+}
+
 export interface IRequestsByRequester {
   requester: string;
   totalCost: number;
@@ -20,11 +28,3 @@ export interface IDonutChartProps {
   strokeWidth?: number; 
   label?: string; 
 } 
-
-export interface IBudgetSharingModalProps {
-  context: WebPartContext;
-  isOpen: boolean;
-  totalCost?: number;
-  onSelectBudget: (budget: IBudget) => void;
-  onCancel: () => void;
-}

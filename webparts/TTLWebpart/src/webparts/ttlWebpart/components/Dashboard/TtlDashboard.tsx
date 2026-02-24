@@ -188,6 +188,7 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
         setShowApproverDashboard(false);
         setShowHRDashboard(false);
         setShowDirectorDashboard(false);
+        setShowDeliveryDirectorDashboard(false);
       }
     };
 

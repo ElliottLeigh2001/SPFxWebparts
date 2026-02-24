@@ -2,7 +2,7 @@ import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
 import { spfi, SPFI } from "@pnp/sp";
 import { SPFx } from "@pnp/sp/presets/all";
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { IApprover, IUserRequest, IUserRequestItem, IBudget } from "../Interfaces/TTLInterfaces";
+import { IApprover, IUserRequest, IUserRequestItem, IBudget, IBudgetSharingItem } from "../Interfaces/TTLInterfaces";
 import { calculateSoftwareLicenseCost } from "../Helpers/HelperFunctions";
 
 // Define spfi for CRUD operations to lists
@@ -72,20 +72,30 @@ export const getLoggedInUser = async (context: WebPartContext) => {
 
 // Gets the groups of the logged in user
 export const checkHR = async (context: WebPartContext): Promise<boolean> => {
+  // Check SharePoint site groups first
   const response = await context.spHttpClient.get(
     `${context.pageContext.web.absoluteUrl}/_api/web/currentuser?$expand=groups`,
     SPHttpClient.configurations.v1
   );
   const data = await response.json();
-  // If the user is a member of the site, they can see the HR dashboard button
-  const userGroups =
-    data.Groups?.map((grp: any) => grp.Title.toLowerCase()) || [];
-  const isHR = userGroups.some((group: string) =>
-    ["hr-be members", "hr-be owners"].some((role) =>
-      group.includes(role)
-    )
-  );
-  return isHR
+  const userGroups = data.Groups?.map((grp: any) => grp.Title.toLowerCase()) || [];
+  if (userGroups.some((group: string) => group.includes("hr-be owners"))) {
+    return true;
+  }
+
+  try {
+    const tokenProvider = await context.aadTokenProviderFactory.getTokenProvider();
+    const token = await tokenProvider.getToken('https://graph.microsoft.com');
+    const graphResponse = await fetch(
+      'https://graph.microsoft.com/v1.0/me/memberOf?$select=displayName',
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const graphData = await graphResponse.json();
+    const m365Groups: string[] = graphData.value?.map((g: any) => (g.displayName || '').toLowerCase()) || [];
+    return m365Groups.some(g => g.includes('ambe-hr-intranet'));
+  } catch {
+    return false;
+  }
 };
 
 // Get data of requests (including data from lookups)
@@ -151,6 +161,7 @@ const mapSharePointItemToUserRequestItem = (sharePointItem: any): IUserRequestIt
     DocumentID: sharePointItem.DocumentID ? { Id: sharePointItem.DocumentID.Id, url: sharePointItem.DocumentID.url } : undefined,
     Processed: sharePointItem.Processed || false,
     ChangedByHR: sharePointItem.ChangedByHR || false,
+    Notes: sharePointItem.Notes || '',
   };
 };
 
@@ -237,6 +248,7 @@ export const createRequestItem = async (context: WebPartContext, item: IUserRequ
     Cost: item.Cost || '',
     Licensing: item.Licensing || '',
     LicenseType: item.LicenseType || '',
+    Notes: item.Notes || '',
   };
 
   if (userIds.length > 0) {
@@ -324,6 +336,7 @@ export const createRequestItemForExistingRequest = async (
     Licensing: item.Licensing || '',
     LicenseType: item.LicenseType || '',
     RequestIDId: requestId,
+    Notes: item.Notes || '',
   };
 
   if (userIds.length > 0) {
@@ -483,6 +496,7 @@ export const updateRequestItem = async (context: WebPartContext, itemId: number,
     Cost: item.Cost || '',
     Licensing: item.Licensing || '',
     LicenseType: item.LicenseType || '',
+    Notes: item.Notes || '',
   };
 
   if (userIds.length > 0) {
@@ -507,7 +521,7 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
 
   const item = await list.items.getById(itemId).select(
-    'ID', 'Title', 'Provider', 'Location', 'LocationFrom', 'LocationTo', 'Link', 'StartDate', 'OData__EndDate',
+    'ID', 'Title', 'Provider', 'Location', 'LocationFrom', 'LocationTo', 'Link', 'Notes', 'StartDate', 'OData__EndDate',
     'RequestType', 'Cost', 'Licensing', 'LicenseType', 'UsersLicense/Id', 'UsersLicense/Title', 'UsersLicense/LoginName'
   ).expand('UsersLicense')();
 
@@ -519,6 +533,7 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
     LocationFrom: item.LocationFrom,
     LocationTo: item.LocationTo,
     Link: item.Link,
+    Notes: item.Notes,
     StartDate: item.StartDate,
     OData__EndDate: item.OData__EndDate,
     RequestType: item.RequestType,
@@ -872,5 +887,104 @@ export const getAllBudgetsForYear = async (context: WebPartContext, year: string
   } catch (error) {
     console.error('Error fetching all budgets for year:', error);
     return [];
+  }
+}
+
+export const getBudgetSharingItems = async (context: WebPartContext, userEmail: string): Promise<IBudgetSharingItem[]> => {
+  try {
+    const sp = getSP(context);
+    const list = sp.web.lists.getByTitle('TTL_BudgetSharing');
+
+    const items: any[] = await list.items
+      .select(
+        'Id,Amount,Status',
+        'Requester/Id,Requester/EMail,Requester/Title',
+        'Approver/Id,Approver/EMail,Approver/Title',
+        'RequesterTeamCoach/Id,RequesterTeamCoach/EMail,RequesterTeamCoach/Title',
+        'ApproverTeamCoach/Id,ApproverTeamCoach/EMail,ApproverTeamCoach/Title'
+      )
+      .expand('Requester,Approver,RequesterTeamCoach,ApproverTeamCoach')
+      .filter(`Requester/EMail eq '${userEmail}' or Approver/EMail eq '${userEmail}'`)();
+
+    return items.map(i => ({
+      ID: i.Id,
+      Requester: { Id: i.Requester?.Id, Title: i.Requester?.Title, EMail: i.Requester?.EMail },
+      Approver: { Id: i.Approver?.Id, Title: i.Approver?.Title, EMail: i.Approver?.EMail },
+      RequesterTeamCoach: { Id: i.RequesterTeamCoach?.Id, Title: i.RequesterTeamCoach?.Title, EMail: i.RequesterTeamCoach?.EMail },
+      ApproverTeamCoach: i.ApproverTeamCoach ? { Id: i.ApproverTeamCoach?.Id, Title: i.ApproverTeamCoach?.Title, EMail: i.ApproverTeamCoach?.EMail } : undefined,
+      Amount: i.Amount || 0,
+      Status: i.Status || 'Pending',
+    }));
+  } catch (error) {
+    console.error('Error fetching budget sharing items:', error);
+    return [];
+  }
+}
+
+export const addBudgetSharing = async (
+  context: WebPartContext,
+  requesterId: number,
+  approverId: number,
+  requesterTeamCoachId: number,
+  amount: number
+): Promise<void> => {
+  try {
+    const sp = getSP(context);
+    const list = sp.web.lists.getByTitle('TTL_BudgetSharing');
+
+    await list.items.add({
+      RequesterId: requesterId,
+      ApproverId: approverId,
+      RequesterTeamCoachId: requesterTeamCoachId,
+      Amount: amount,
+      Status: 'Pending',
+    });
+  } catch (error) {
+    console.error('Error creating budget sharing request:', error);
+    throw error;
+  }
+}
+
+export const acceptBudgetSharing = async (
+  context: WebPartContext,
+  itemId: number,
+  approverTeamCoachId: number,
+  approverTeamCoachEmail: string,
+  requesterTeamCoachEmail: string,
+  amount: number,
+  year: string
+): Promise<void> => {
+  const sp = getSP(context);
+  const list = sp.web.lists.getByTitle('TTL_BudgetSharing');
+
+  // Update the sharing item status and set the approver's team coach
+  await list.items.getById(itemId).update({
+    Status: 'Accepted',
+    ApproverTeamCoachId: approverTeamCoachId,
+  });
+
+  // Transfer the budget: deduct from approver's team coach, add to requester's team coach
+  const approverBudget = await getBudgetforApprover(context, approverTeamCoachEmail, year);
+  const requesterBudget = await getBudgetforApprover(context, requesterTeamCoachEmail, year);
+
+  if (approverBudget) {
+    await deductFromBudget(context, approverBudget.ID, amount);
+  }
+  if (requesterBudget) {
+    await addToBudget(context, requesterBudget.ID, amount);
+  }
+}
+
+export const denyBudgetSharing = async (context: WebPartContext, itemId: number): Promise<void> => {
+  try {
+    const sp = getSP(context);
+    const list = sp.web.lists.getByTitle('TTL_BudgetSharing');
+
+    await list.items.getById(itemId).update({
+      Status: 'Denied',
+    });
+  } catch (error) {
+    console.error('Error denying budget sharing request:', error);
+    throw error;
   }
 }
