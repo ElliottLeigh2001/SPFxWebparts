@@ -18,12 +18,13 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
       try {
         setIsLoading(true);
         setError(null);
-
+        // Fetch all requests and approvers  
         const [allRequests, approvers] = await Promise.all([
           getRequestsData(context),
           getApprovers(context)
         ]);
 
+        // Filter requests for the current budget's team coach and year, and only completed/HR Processing ones
         const approverIdsForCoach = new Set<number>();
         approvers.forEach((ap: IApprover) => {
           if (
@@ -34,6 +35,7 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
           }
         });
 
+        // Now filter requests based on approver IDs and year
         const filtered = allRequests.filter(r => {
           const approverId = r.ApproverID?.Id ?? undefined;
           if (!approverId) return false;
@@ -47,6 +49,7 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
           return r.RequestStatus === 'Completed' || r.RequestStatus === 'HR Processing';
         });
 
+        // Group by requester
         const groupedMap = new Map<string, IRequestsByRequester>();
         filtered.forEach(r => {
           const requesterName = r.Author?.Title ?? 'Unknown';
@@ -77,6 +80,7 @@ const BudgetRequestsPanel: React.FC<IBudgetProps> = ({ context, budget, onClose 
     load();
   }, [context, budget]);
 
+  // Toggle expand/collapse for a requester
   const toggleRequester = (requester: string) => {
     const newSet = new Set(expandedRequesters);
     newSet.has(requester) ? newSet.delete(requester) : newSet.add(requester);

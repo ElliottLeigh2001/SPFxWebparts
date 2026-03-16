@@ -188,7 +188,7 @@
   background: #fff; 
   padding: 20px; 
   border-radius: 4px; 
-  min-width: 75%; 
+  width: 75%; 
   max-height: 85%; 
   overflow: auto
 }
@@ -277,41 +277,6 @@
 
 .selectBudget {
   padding: 8px 16px;
-  border: none;
-  color: #ffffff;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: all 0.2s ease
-}
-
-.teamName {
-  color: #323130;
-}
-
-.teamCoach {
-  font-size: 14px;
-  color: #605e5c;
-}
-
-.amountLabel {
-  font-size: 12px;
-  color: #605e5c;
-}
-
-.availableAmount {
-  font-size: 16px;
-  font-weight: bold;
-  color: rgb(47, 129, 131);
-}
-
-.totalAmount {
-  font-size: 16px;
-  font-weight: bold;
-  color: #323130;
-}
-
-.selectBudget {
-  padding: 8px 16px;
   border-radius: 4px;
   border: none;
   background-color: rgb(47, 129, 131);
@@ -334,27 +299,13 @@
   }
 }
 
-.budgetSharingForm {
-  background: #f4fafa;
-  border: 1px solid #e1e5e9;
-  border-radius: 4px;
-  padding: 20px;
-}
-
 .budgetSharingFormRow {
   display: flex;
   flex-direction: column;
   gap: 4px;
   margin-bottom: 12px;
 
-  // label {
-  //   font-weight: 600;
-  //   font-size: 13px;
-  //   color: #323130;
-  // }
-
   select, input {
-    padding: 8px;
     max-width: 400px;
   }
 }

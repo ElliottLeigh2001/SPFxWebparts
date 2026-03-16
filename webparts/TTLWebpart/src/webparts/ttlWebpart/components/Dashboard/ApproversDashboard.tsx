@@ -37,10 +37,14 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       try {
         const sp = getSP(context);
         const list = sp.web.lists.getByTitle('TTL_Budget');
-
         // Query distinct years
-        const items = await list.items.select('Year').top(5000)();
+        const items = await list.items
+          .select('Year, TeamCoach/Title')
+          .expand('TeamCoach')
+          .filter(`TeamCoach/Title eq '${loggedInUser.Title}'`)
+          .top(5000)();
 
+        // Extract unique years and sort them
         const years = Array.from(new Set(items.map(i => i.Year))).sort().reverse();
 
         setAvailableYears(years);
@@ -130,6 +134,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
         const budgetsData = await getBudgets(context, selectedYear, false, loggedInUser.Email);
         setTeamCoachBudgets(budgetsData);
         
+        // Calculate total budget and available budget for the team
         const budgetForTeam = budgetsData.reduce(
           (totals, b) => {
             totals.totalBudget += b.Budget || 0;
@@ -264,9 +269,9 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
                         <div><strong>Total Budget:</strong> €{teamBudget.totalBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                         <div>
                           <strong>
-                            Available{" "}
+                            Available
                             <TooltipHost content="This reflects the budget that remains after prices of completed and in-process requests have been subtracted.">
-                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                              <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 11 } }} />
                             </TooltipHost>
                             :
                           </strong>{" "}
@@ -353,7 +358,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
             className={`${styles.tabButtonLeft} ${activeTab === 'requests' ? styles.activeTabText : ''}`}
             onClick={() => setActiveTab('requests')}
           >
-            Requests
+            To Approve
           </button>
           <button
             className={`${styles.tabButtonCenter} ${activeTab === 'approvedRequests' ? styles.activeTabText : ''}`}

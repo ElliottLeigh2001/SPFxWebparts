@@ -3,13 +3,14 @@ import budgetStyles from './Budgets.module.scss';
 import { IDonutChartProps } from "./BudgetProps";
 import { useEffect, useRef, useState } from "react";
 
-const DonutChart: React.FC<IDonutChartProps> = ({ total, available, size = 120, strokeWidth = 12, label, }) => { 
+const DonutChart: React.FC<IDonutChartProps> = ({ total, available, size = 120, strokeWidth = 12 }) => { 
   const targetPercent = Math.min(100, Math.round((available / total) * 100)); 
   
   const [animatedPercent, setAnimatedPercent] = useState(0); 
   const prevPercentRef = useRef(0); 
   
   useEffect(() => { 
+    // Animate from previous percent to target percent
     const start = prevPercentRef.current; 
     const availableEnd = targetPercent; 
     const duration = 600; 
@@ -27,6 +28,7 @@ const DonutChart: React.FC<IDonutChartProps> = ({ total, available, size = 120, 
 
   }, [targetPercent]); 
   
+  // Calculate dimensions for the SVG circles
   const radius = (size - strokeWidth) / 2; 
   const circumference = 2 * Math.PI * radius; 
   const dash = (animatedPercent / 100) * circumference; 

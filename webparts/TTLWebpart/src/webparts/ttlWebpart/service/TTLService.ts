@@ -206,25 +206,45 @@ export const getDocumentGuidForRequestItem = async (
   context: WebPartContext,
   requestItemId: number
 ): Promise<string | null> => {
+  const docs = await getDocumentsForRequestItem(context, requestItemId);
+  return docs.length > 0 ? docs[0].url : null;
+};
+
+export const getDocumentsForRequestItem = async (
+  context: WebPartContext,
+  requestItemId: number
+): Promise<Array<{ id: number; url: string; name: string }>> => {
   const sp = getSP(context);
 
-  // Get the lookup id from the request item
-  const reqItem: any = await sp.web.lists
-    .getByTitle('TTL_RequestItem')
-    .items.getById(requestItemId)
-    .select('DocumentID/Id')
-    .expand('DocumentID')();
-
-  const docId = reqItem?.DocumentID?.Id;
-  if (!docId) return null;
-
-  // Get the actual document's URL from TTL_Documents
-  const docItem: any = await sp.web.lists
+  // Find all documents linked to this request item via the lookup field
+  const docs: any[] = await sp.web.lists
     .getByTitle('TTL_Documents')
-    .items.getById(docId)
-    .select('url')();
+    .items.filter(`RequestItemIDId eq ${requestItemId}`)
+    .select('Id', 'url')();
 
-  return docItem?.url || null;
+  if (!docs || docs.length === 0) {
+    return [];
+  }
+
+  // Resolve the file name for each document using its unique id
+  const resolved = await Promise.all(
+    docs.map(async (doc) => {
+      if (!doc.url) {
+        return { id: doc.Id, url: doc.url, name: `Document-${doc.Id}` };
+      }
+
+      try {
+        const file = sp.web.getFileById(doc.url);
+        const fileInfo = await file.select('Name')();
+        return { id: doc.Id, url: doc.url, name: fileInfo?.Name || `Document-${doc.Id}` };
+      } catch (error) {
+        console.warn('Failed to resolve document name for', doc, error);
+        return { id: doc.Id, url: doc.url, name: `Document-${doc.Id}` };
+      }
+    })
+  );
+
+  return resolved;
 };
 
 // Create a request item in the TTL_RequestItem list

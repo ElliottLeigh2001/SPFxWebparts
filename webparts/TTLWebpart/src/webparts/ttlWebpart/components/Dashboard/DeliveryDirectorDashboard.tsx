@@ -222,10 +222,10 @@ const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ 
                               <div><strong>Total Budget:</strong> €{b.Budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                               <div>
                                 <strong>
-                                  Available{" "}
+                                  Available
                                   <TooltipHost content="Budget including completed, booked, and in-process requests.
                                   This reflects budget that is already used or temporarily held by pending requests.">
-                                    <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 12 } }} />
+                                    <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 11 } }} />
                                   </TooltipHost>
                                   :
                                 </strong>{" "}
@@ -243,7 +243,7 @@ const DeliveryDirectorDashboard: React.FC<IDeliveryDirectorDashboardProps> = ({ 
                 ))}
               </>
             ) : (
-              <p style={{justifySelf: 'center'}}>No budget data available for your team coaches in {selectedYear}.</p>
+              <p style={{justifySelf: 'center'}}>No budget data available team coaches in {selectedYear}.</p>
             )}
           </div>
 

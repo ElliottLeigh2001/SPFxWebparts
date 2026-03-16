@@ -24,8 +24,11 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
   const [selectedApproverId, setSelectedApproverId] = useState<number | ''>('');
   const [selectedTeamCoachId, setSelectedTeamCoachId] = useState<number | ''>('');
   const [amount, setAmount] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [amountError, setAmountError] = useState('');
+  const [approverError, setApproverError] = useState('');
+  const [teamcoachError, setTeamcoachError] = useState('');
   const [acceptingItem, setAcceptingItem] = useState<IBudgetSharingItem | null>(null);
+  const [acceptingError, setAcceptingError] = useState('');
   const [selectedBudgets, setSelectedBudgets] = useState<SelectedBudgetAllocation[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [denyingItem, setDenyingItem] = useState<IBudgetSharingItem | null>(null);
@@ -79,26 +82,52 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
   }, [showCreateForm]);
 
   const handleCreate = async () => {
-    if (!selectedApproverId || !selectedTeamCoachId || !amount || Number(amount) <= 0) return;
+    // Validate inputs
+    let valid = true;
 
-    try {
-      setIsSubmitting(true);
-      await addBudgetSharing(context, loggedInUser.Id, Number(selectedApproverId), Number(selectedTeamCoachId), Number(amount));
-      setShowCreateForm(false);
-      setSelectedApproverId('');
-      setSelectedTeamCoachId('');
-      setAmount('');
-      await loadData();
-    } catch (e) {
-      console.error('Error creating budget sharing request:', e);
-      setError('Failed to create request');
-    } finally {
-      setIsSubmitting(false);
+    setApproverError('');
+    setTeamcoachError('');
+    setAmount('');
+
+    if (!selectedApproverId) {
+      setApproverError('Please select an Approver');
+      valid = false;
+    }
+    if (!selectedTeamCoachId) {
+      setTeamcoachError('Please select a team coach');
+      valid = false;
+    }
+    if (!amount || Number(amount) <= 0) {
+      setAmountError('Please select an amount')
+      valid = false;
+    }
+
+    if (valid) {
+      try {
+        // Create the budget sharing request
+        await addBudgetSharing(context, loggedInUser.Id, Number(selectedApproverId), Number(selectedTeamCoachId), Number(amount));
+        setShowCreateForm(false);
+        setSelectedApproverId('');
+        setSelectedTeamCoachId('');
+        setAmount('');
+        setApproverError('');
+        setTeamcoachError('');
+        setAmountError('');
+        await loadData();
+      } catch (e) {
+        console.error('Error creating budget sharing request:', e);
+        setError('Failed to create request');
+      }
     }
   };
 
   const handleAccept = async () => {
-    if (!acceptingItem || selectedBudgets.length === 0) return;
+    setAcceptingError('');
+
+    if (!acceptingItem || selectedBudgets.length === 0) {
+      setAcceptingError('Select at least one budget')
+      return;
+    }
 
     try {
       setIsProcessing(true);
@@ -106,7 +135,7 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
       // Validate total equals requested amount
       const totalAllocated = selectedBudgets.reduce((sum, b) => sum + b.amount, 0);
       if (totalAllocated !== acceptingItem.Amount) {
-        setError(`Total allocated (€${totalAllocated.toLocaleString("en-US", { minimumFractionDigits: 2 })}) must equal requested amount (€${acceptingItem.Amount.toLocaleString("en-US", { minimumFractionDigits: 2 })})`);
+        setAcceptingError(`Total allocated (€${totalAllocated.toLocaleString("en-US", { minimumFractionDigits: 2 })}) must equal requested amount (€${acceptingItem.Amount.toLocaleString("en-US", { minimumFractionDigits: 2 })})`);
         setIsProcessing(false);
         return;
       }
@@ -161,6 +190,7 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
     }
   };
 
+  // Toggle budget selection for accepting request
   const toggleBudgetSelection = (teamCoachId: number, teamCoachTitle: string, teamCoachEmail: string, maxAmount: number) => {
     setSelectedBudgets(prev => {
       const existing = prev.find(b => b.teamCoachId === teamCoachId);
@@ -179,6 +209,16 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
       )
     );
   };
+
+  const cancelBudgetSharing = () => {
+    setShowCreateForm(false); 
+    setSelectedApproverId(''); 
+    setSelectedTeamCoachId(''); 
+    setAmount('');
+    setApproverError('');
+    setTeamcoachError('');
+    setAmountError('');
+  }
 
   const incoming = items.filter(i => i.Approver?.EMail?.toLowerCase() === userEmail && i.Status === 'Pending');
   const outgoing = items.filter(i => i.Requester?.EMail?.toLowerCase() === userEmail);
@@ -200,27 +240,29 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
               Request Budget
             </button>
           ) : (
-            <div className={budgetStyles.budgetSharingForm}>
+            <div>
               <h3 style={{ margin: '0 0 12px 0' }}>Request Budget from Another Approver</h3>
               <div className={budgetStyles.budgetSharingFormRow}>
                 <label>Approver</label>
-                <select value={selectedApproverId} onChange={e => setSelectedApproverId(Number(e.target.value) || '')}>
-                  <option value="">Select an approver...</option>
+                <select value={selectedApproverId} className={`${approverError ? styles.invalid : ''} ${styles.textInput}`} onChange={e => setSelectedApproverId(Number(e.target.value) || '')}>
+                  <option value="">Select an approver</option>
                   {availableApprovers.map(ap => (
                     <option key={ap.Id} value={ap.Id}>{ap.Title}</option>
                   ))}
                 </select>
+                {approverError && <div className={styles.validationError}>{approverError}</div>}
               </div>
               <div className={budgetStyles.budgetSharingFormRow}>
                 <label>Your Team Coach (receives budget)</label>
-                <select value={selectedTeamCoachId} onChange={e => setSelectedTeamCoachId(Number(e.target.value) || '')}>
-                  <option value="">Select a team coach...</option>
+                <select value={selectedTeamCoachId} className={`${teamcoachError ? styles.invalid : ''} ${styles.textInput}`} onChange={e => setSelectedTeamCoachId(Number(e.target.value) || '')}>
+                  <option value="">Select a team coach</option>
                   {teamCoachBudgets.map(b => (
                     <option key={b.TeamCoach?.Id} value={b.TeamCoach?.Id}>
                       {b.TeamCoach?.Title} (Available: €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })})
                     </option>
                   ))}
                 </select>
+                {teamcoachError && <div className={styles.validationError}>{teamcoachError}</div>}
               </div>
               <div style={{maxWidth: '380px !important'}}className={budgetStyles.budgetSharingFormRow}>
                 <label>Amount (€)</label>
@@ -231,18 +273,19 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
                   placeholder="0.00"
+                  className={`${amountError ? styles.invalid : ''} ${styles.textInput}`}
                 />
+                {amountError && <div className={styles.validationError}>{amountError}</div>}
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-                <button className={styles.cancelButton} onClick={() => { setShowCreateForm(false); setSelectedApproverId(''); setSelectedTeamCoachId(''); setAmount(''); }}>
+                <button className={styles.cancelButton} onClick={() => cancelBudgetSharing()}>
                   Cancel
                 </button>
                 <button
                   className={budgetStyles.selectBudget}
                   onClick={handleCreate}
-                  disabled={isSubmitting || !selectedApproverId || !selectedTeamCoachId || !amount || Number(amount) <= 0}
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                  Submit Request
                 </button>
               </div>
             </div>
@@ -317,7 +360,7 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
                     <th style={{width: '25%'}}>Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody style={{width: '71.67px'}}>
                   {outgoing.map(item => (
                     <tr key={item.ID} className={budgetStyles.requestRowBudget}>
                       <td>{item.Approver?.Title}</td>
@@ -398,6 +441,10 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
               })}
             </div>
 
+            {acceptingError && (
+              <p style={{fontStyle: 'italic', color: '#d13438'}}>{acceptingError}</p>
+            )}
+
             <div style={{ marginTop: 16, padding: 12, backgroundColor: '#f5f5f5', borderRadius: 4 }}>
               <div style={{ fontSize: '0.95em', marginBottom: 4 }}>
                 <strong>Total allocated:</strong> €{selectedBudgets.reduce((sum, b) => sum + b.amount, 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
@@ -414,7 +461,6 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
               <button
                 className={styles.saveButton}
                 onClick={handleAccept}
-                disabled={isProcessing || selectedBudgets.length === 0 || selectedBudgets.reduce((sum, b) => sum + b.amount, 0) !== acceptingItem.Amount}
               >
                 Confirm
               </button>
