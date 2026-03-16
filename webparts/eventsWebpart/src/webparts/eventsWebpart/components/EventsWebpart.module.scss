@@ -387,6 +387,19 @@ input[type="checkbox"] {
   }
 }
 
+@media (max-width: 750px) {
+  .filters {
+    padding: 0;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 950px) {
+  .rightFilters {
+    margin-left: 0;
+  }
+}
+
 @media (max-width: 1400px) {
   .page {
     grid-template-columns: repeat(2, auto);
