@@ -242,6 +242,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
             <div className={budgetStyles.budgetYearWrapper}>
               <label>Budgets for</label>
               <select
+                style={{cursor: 'pointer'}}
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
               >

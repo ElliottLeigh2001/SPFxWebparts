@@ -10,6 +10,11 @@ const CommentsSection: React.FC<ICommentsSectionProps> = ({ requestId, context }
   const [comments, setComments] = useState<TTLComment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const sanitizeComment = (comment: string) => {
+    const text = comment.replace(/<[^>]*>/g, '').trim();
+    return text;
+  }
+
   // Load the comments for this request
   useEffect(() => {
     loadComments();
@@ -47,10 +52,9 @@ const CommentsSection: React.FC<ICommentsSectionProps> = ({ requestId, context }
                   {new Date(comment.Created || '').toLocaleString()}
                 </span>
               </div>
-                <div
-                className={styles.commentBody}
-                dangerouslySetInnerHTML={{ __html: comment.Body || '' }}
-                />
+                <div className={styles.commentBody}>
+                  {sanitizeComment(comment.Body)}
+                </div>
             </div>
           ))
         )}
