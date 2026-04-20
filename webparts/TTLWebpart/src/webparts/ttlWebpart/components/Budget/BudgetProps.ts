@@ -10,7 +10,6 @@ export interface IBudgetProps {
 export interface IBudgetSharingProps {
   context: WebPartContext;
   loggedInUser: any;
-  isApprover: boolean;
   teamCoachBudgets: IBudget[];
   selectedYear: string;
 }

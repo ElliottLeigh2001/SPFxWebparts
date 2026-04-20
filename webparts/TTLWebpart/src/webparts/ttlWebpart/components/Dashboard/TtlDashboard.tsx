@@ -58,17 +58,19 @@ const TTLDashboard: React.FC<ITtlWebpartProps> = ({ context }) => {
       // Get the director from the approvers list
       const boss = approvers.filter(app => app.CEO);
 
+      const userEmail = user?.Email?.toLowerCase();
+
       // Check if the user is an approver
-      setIsApprover(_approvers.some(app => app.PracticeLead.EMail === user?.Email))
+      setIsApprover(_approvers.some(app => app.PracticeLead?.EMail?.toLowerCase() === userEmail))
 
       // Check if the user is a team coach
-      setIsTeamCoach(_approvers.some(app => app.TeamCoach.EMail === user?.Email));
+      setIsTeamCoach(_approvers.some(app => app.TeamCoach?.EMail?.toLowerCase() === userEmail));
 
-      setIsDeliveryDirector(_approvers.some(app => app.DeliveryDirector.EMail === user?.Email))
+      setIsDeliveryDirector(_approvers.some(app => app.DeliveryDirector?.EMail?.toLowerCase() === userEmail))
 
       setAllApprovers(_approvers);
       // Check if the user is the director
-      setIsCEO(boss.some(boss => boss.CEO.EMail === user?.Email));
+      setIsCEO(boss.some(boss => boss.CEO?.EMail?.toLowerCase() === userEmail));
       // Check if the person is from HR
       setIsHR(HR);
 

@@ -8,14 +8,14 @@ import modalStyles from '../Modals/Modals.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IBudgetSharingProps } from './BudgetProps';
 
-interface SelectedBudgetAllocation {
+interface ISelectedBudgetAllocation {
   teamCoachId: number;
   teamCoachTitle: string;
   teamCoachEmail: string;
   amount: number;
 }
 
-const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, isApprover, teamCoachBudgets, selectedYear }) => {
+const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, teamCoachBudgets, selectedYear }) => {
   const [items, setItems] = useState<IBudgetSharingItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +29,10 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
   const [teamcoachError, setTeamcoachError] = useState('');
   const [acceptingItem, setAcceptingItem] = useState<IBudgetSharingItem | null>(null);
   const [acceptingError, setAcceptingError] = useState('');
-  const [selectedBudgets, setSelectedBudgets] = useState<SelectedBudgetAllocation[]>([]);
+  const [selectedBudgets, setSelectedBudgets] = useState<ISelectedBudgetAllocation[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [denyingItem, setDenyingItem] = useState<IBudgetSharingItem | null>(null);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
 
   const userEmail = loggedInUser?.Email?.toLowerCase() || loggedInUser?.UserPrincipalName?.toLowerCase();
 
@@ -210,7 +211,22 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
     );
   };
 
-  const cancelBudgetSharing = () => {
+  const handleBudgetAmountChange = (teamCoachId: number, maxAmount: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value);
+    if (!isNaN(val)) updateBudgetAmount(teamCoachId, Math.min(val, maxAmount));
+  };
+
+  const handleCancelAccept = () => {
+    setAcceptingItem(null);
+    setSelectedBudgets([]);
+  };
+
+  const handleStartAccept = (item: IBudgetSharingItem) => {
+    setAcceptingItem(item);
+    setSelectedBudgets([]);
+  };
+
+  const handleCancelCreate = () => {
     setShowCreateForm(false); 
     setSelectedApproverId(''); 
     setSelectedTeamCoachId(''); 
@@ -233,116 +249,113 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
         <div className={styles.error}><p>{error}</p></div>
       )}
 
-      {isApprover && (
-        <div style={{ margin: '24px 0', width: '96%' }}>
-          {!showCreateForm ? (
-            <button className={budgetStyles.selectBudget} onClick={() => setShowCreateForm(true)}>
-              Request Budget
-            </button>
-          ) : (
-            <div>
-              <h3 style={{ margin: '0 0 12px 0' }}>Request Budget from Another Approver</h3>
-              <div className={budgetStyles.budgetSharingFormRow}>
-                <label>Approver</label>
-                <select value={selectedApproverId} className={`${approverError ? styles.invalid : ''} ${styles.textInput}`} onChange={e => setSelectedApproverId(Number(e.target.value) || '')}>
-                  <option value="">Select an approver</option>
-                  {availableApprovers.map(ap => (
-                    <option key={ap.Id} value={ap.Id}>{ap.Title}</option>
-                  ))}
-                </select>
-                {approverError && <div className={styles.validationError}>{approverError}</div>}
-              </div>
-              <div className={budgetStyles.budgetSharingFormRow}>
-                <label>Your Team Coach (receives budget)</label>
-                <select value={selectedTeamCoachId} className={`${teamcoachError ? styles.invalid : ''} ${styles.textInput}`} onChange={e => setSelectedTeamCoachId(Number(e.target.value) || '')}>
-                  <option value="">Select a team coach</option>
-                  {teamCoachBudgets.map(b => (
-                    <option key={b.TeamCoach?.Id} value={b.TeamCoach?.Id}>
-                      {b.TeamCoach?.Title} (Available: €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })})
-                    </option>
-                  ))}
-                </select>
-                {teamcoachError && <div className={styles.validationError}>{teamcoachError}</div>}
-              </div>
-              <div style={{maxWidth: '380px !important'}}className={budgetStyles.budgetSharingFormRow}>
-                <label>Amount (€)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={amount}
-                  onChange={e => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  className={`${amountError ? styles.invalid : ''} ${styles.textInput}`}
-                />
-                {amountError && <div className={styles.validationError}>{amountError}</div>}
-              </div>
-              <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-                <button className={styles.cancelButton} onClick={() => cancelBudgetSharing()}>
-                  Cancel
-                </button>
-                <button
-                  className={budgetStyles.selectBudget}
-                  onClick={handleCreate}
-                >
-                  Submit Request
-                </button>
-              </div>
+      <div style={{ margin: '24px 0', width: '96%' }}>
+        {!showCreateForm ? (
+          <button className={styles.stdButton} onClick={() => setShowCreateForm(true)}>
+            Request Budget
+          </button>
+        ) : (
+          <div>
+            <h3 style={{ margin: '0 0 12px 0' }}>Request Budget from Another Approver</h3>
+            <div className={budgetStyles.budgetSharingFormRow}>
+              <label>Approver</label>
+              <select value={selectedApproverId} className={`${approverError ? styles.invalid : ''} ${styles.textInput}`} onChange={e => setSelectedApproverId(Number(e.target.value) || '')}>
+                <option value="">Select an approver</option>
+                {availableApprovers.map(ap => (
+                  <option key={ap.Id} value={ap.Id}>{ap.Title}</option>
+                ))}
+              </select>
+              {approverError && <div className={styles.validationError}>{approverError}</div>}
             </div>
-          )}
-        </div>
-      )}
+            <div className={budgetStyles.budgetSharingFormRow}>
+              <label>Your Team Coach (receives budget)</label>
+              <select value={selectedTeamCoachId} className={`${teamcoachError ? styles.invalid : ''} ${styles.textInput}`} onChange={e => setSelectedTeamCoachId(Number(e.target.value) || '')}>
+                <option value="">Select a team coach</option>
+                {teamCoachBudgets.map(b => (
+                  <option key={b.TeamCoach?.Id} value={b.TeamCoach?.Id}>
+                    {b.TeamCoach?.Title} (Available: €{b.Availablebudget.toLocaleString("en-US", { minimumFractionDigits: 2 })})
+                  </option>
+                ))}
+              </select>
+              {teamcoachError && <div className={styles.validationError}>{teamcoachError}</div>}
+            </div>
+            <div style={{maxWidth: '380px !important'}}className={budgetStyles.budgetSharingFormRow}>
+              <label>Amount (€)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                placeholder="0.00"
+                className={`${amountError ? styles.invalid : ''} ${styles.textInput}`}
+              />
+              {amountError && <div className={styles.validationError}>{amountError}</div>}
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+              <button className={styles.cancelButton} onClick={handleCancelCreate}>
+                Cancel
+              </button>
+              <button
+                className={budgetStyles.selectBudget}
+                onClick={handleCreate}
+              >
+                Submit Request
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
-      {isApprover && (
-        <div className={budgetStyles.budgetSharingSection}>
-          <h3>Incoming Requests</h3>
-          {incoming.length === 0 ? (
-            <p className={budgetStyles.paragraph}>No pending budget requests.</p>
-          ) : (
-            <div className={styles.tableContainer}>
-              <div className={styles.tableWrapper}>
-                <table className={budgetStyles.budgetDetailsTable}>
-                  <thead>
-                    <tr>
-                      <th style={{width: '25%'}}>Requester</th>
-                      <th style={{width: '25%'}}>Their Team Coach</th>
-                      <th style={{width: '25%'}}>Amount</th>
-                      <th style={{width: '25%'}}>Actions</th>
+      <div className={budgetStyles.budgetSharingSection}>
+        <h3>Incoming Requests</h3>
+        {incoming.length === 0 ? (
+          <p className={budgetStyles.paragraph}>No pending budget requests.</p>
+        ) : (
+          <div className={styles.tableContainer}>
+            <div className={styles.tableWrapper}>
+              <table className={budgetStyles.budgetDetailsTable}>
+                <thead>
+                  <tr>
+                    <th style={{width: '25%'}}>Requester</th>
+                    <th style={{width: '25%'}}>Their Team Coach</th>
+                    <th style={{width: '25%'}}>Amount</th>
+                    <th style={{width: '25%'}}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {incoming.map(item => (
+                    <tr key={item.ID} className={budgetStyles.requestRowBudget}>
+                      <td>{item.Requester?.Title}</td>
+                      <td>{item.RequesterTeamCoach?.Title}</td>
+                      <td>€{item.Amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button
+                            className={styles.cancelButton}
+                            onClick={() => setDenyingItem(item)}
+                            disabled={isProcessing}
+                          >
+                            Deny
+                          </button>
+                          <button
+                            style={{ marginBottom: 0 }}
+                            className={styles.stdButton}
+                            onClick={() => handleStartAccept(item)}
+                            disabled={isProcessing}
+                          >
+                            Accept
+                          </button>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {incoming.map(item => (
-                      <tr key={item.ID} className={budgetStyles.requestRowBudget}>
-                        <td>{item.Requester?.Title}</td>
-                        <td>{item.RequesterTeamCoach?.Title}</td>
-                        <td>€{item.Amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
-                        <td>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button
-                              className={styles.cancelButton}
-                              onClick={() => setDenyingItem(item)}
-                              disabled={isProcessing}
-                            >
-                              Deny
-                            </button>
-                            <button
-                              className={budgetStyles.selectBudget}
-                              onClick={() => { setAcceptingItem(item); setSelectedBudgets([]); }}
-                              disabled={isProcessing}
-                            >
-                              Accept
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       <div className={budgetStyles.budgetSharingSection}>
         <h3>Your Requests</h3>
@@ -384,16 +397,65 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
         )}
       </div>
 
+      <div className={budgetStyles.budgetSharingSection}>
+        <h3 style={{cursor: 'pointer'}} onClick={() => setShowHistory(prev => !prev)}>
+          <i
+            className={`fa fa-chevron-${showHistory ? 'down' : 'right'} ${budgetStyles.arrowMargin}`}
+            ></i>
+          View history
+        </h3>
+        {showHistory && (
+          <>
+          {outgoing.length === 0 ? (
+            <p className={budgetStyles.paragraph}>You haven't made or received any budget requests.</p>
+          ) : (
+            <div className={styles.tableContainer}>
+              <div className={styles.tableWrapper}>
+                <table className={budgetStyles.budgetDetailsTable}>
+                  <thead>
+                    <tr>
+                      <th style={{width: '25%'}}>Approver</th>
+                      <th style={{width: '25%'}}>Your Team Coach</th>
+                      <th style={{width: '25%'}}>Amount</th>
+                      <th style={{width: '25%'}}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody style={{width: '71.67px'}}>
+                    {items.map(item => (
+                      <tr key={item.ID} className={budgetStyles.requestRowBudget}>
+                        <td>{item.Approver?.Title}</td>
+                        <td>{item.RequesterTeamCoach?.Title}</td>
+                        <td>€{item.Amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
+                        <td>
+                          <span className={`${budgetStyles.statusBadge} ${
+                            item.Status === 'Accepted' ? budgetStyles.statusAccepted :
+                            item.Status === 'Denied' ? budgetStyles.statusDenied :
+                            budgetStyles.statusPending
+                          }`}>
+                            {item.Status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          </>
+        )}
+      </div>
+
       {acceptingItem && (
         <Modal
           isOpen={true}
-          onDismiss={() => { setAcceptingItem(null); setSelectedBudgets([]); }}
+          onDismiss={handleCancelAccept}
           isBlocking={true}
           containerClassName={modalStyles.modalContainer}
         >
           <div className={modalStyles.modalHeader}>
             <h3>Accept Budget Request</h3>
-            <button className={modalStyles.modalCloseButton} onClick={() => { setAcceptingItem(null); setSelectedBudgets([]); }}>×</button>
+            <button className={modalStyles.modalCloseButton} onClick={handleCancelAccept}>×</button>
           </div>
           <div className={modalStyles.modalBody}>
             <p>
@@ -414,7 +476,7 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => toggleBudgetSelection(b.TeamCoach?.Id!, b.TeamCoach?.Title!, b.TeamCoach?.EMail!, b.Availablebudget)}
+                        onChange={() => toggleBudgetSelection(b.TeamCoach.Id!, b.TeamCoach.Title!, b.TeamCoach.EMail!, b.Availablebudget)}
                         style={{ marginRight: 8, cursor: 'pointer' }}
                       />
                       <span>
@@ -430,7 +492,7 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
                           step="0.01"
                           max={b.Availablebudget}
                           value={selectedBudget?.amount || 0}
-                          onChange={e => updateBudgetAmount(b.TeamCoach?.Id!, Math.min(Number(e.target.value), b.Availablebudget))}
+                          onChange={handleBudgetAmountChange(b.TeamCoach?.Id!, b.Availablebudget)}
                           style={{ width: '120px', padding: 6 }}
                           placeholder="0.00"
                         />
@@ -455,7 +517,7 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, i
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 25 }}>
-              <button className={styles.cancelButton} onClick={() => { setAcceptingItem(null); setSelectedBudgets([]); }} disabled={isProcessing}>
+              <button className={styles.cancelButton} onClick={handleCancelAccept} disabled={isProcessing}>
                 Cancel
               </button>
               <button

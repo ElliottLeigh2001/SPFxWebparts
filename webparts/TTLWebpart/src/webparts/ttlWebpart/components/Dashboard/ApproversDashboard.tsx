@@ -68,28 +68,32 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       // Get all approvers to check if current user is a team coach
       const approversList = await getApprovers(context);
 
-      // Build a set of approver IDs where the current user is a team coach
+      // Build sets of approver row IDs where the current user is a team coach or practice lead
       const teamCoachForApproverIds = new Set<number>();
-      if (isTeamCoach) {
-        approversList.forEach((approver: IApprover) => {
-          if (approver.TeamCoach?.EMail?.toLowerCase() === (loggedInUser.UserPrincipalName.toLowerCase() || loggedInUser.EMail.toLowerCase())) {
-            teamCoachForApproverIds.add(approver.Id);
-          }
-        });
-      }
+      const practiceLeadForApproverIds = new Set<number>();
+      const userEmail = (loggedInUser.UserPrincipalName || loggedInUser.EMail || '').toLowerCase();
+
+      approversList.forEach((approver: IApprover) => {
+        if (isTeamCoach && approver.TeamCoach?.EMail?.toLowerCase() === userEmail) {
+          teamCoachForApproverIds.add(approver.Id);
+        }
+        if (isApprover && approver.PracticeLead?.EMail?.toLowerCase() === userEmail) {
+          practiceLeadForApproverIds.add(approver.Id);
+        }
+      });
 
       // Filter on requests meant for the approver or where user is team coach for the approver
       const filteredRequests = requestData
         .filter(req =>
-          ((isApprover && req.ApproverID?.Title === loggedInUser.Title) ||
-          (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id) && !req.TeamCoachApproval)) &&
+          ((isApprover && req.ApproverID?.Id && practiceLeadForApproverIds.has(req.ApproverID.Id)) ||
+          (isTeamCoach && !isApprover && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id) && !req.TeamCoachApproval)) &&
           (req.RequestStatus === 'Submitted' || req.RequestStatus === 'Resubmitted')
         )
       setRequests(filteredRequests as IUserRequest[]);
 
       const filteredApprovedRequests = requestData
         .filter(req =>
-          ((isApprover && req.ApproverID?.Title === loggedInUser.Title) ||
+          ((isApprover && req.ApproverID?.Id && practiceLeadForApproverIds.has(req.ApproverID.Id)) ||
           (isTeamCoach && req.ApproverID?.Id && teamCoachForApproverIds.has(req.ApproverID.Id))) &&
           (req.RequestStatus === 'HR Processing' || req.RequestStatus === 'Completed' || req.RequestStatus === 'Booking' || req.RequestStatus === 'Awaiting CEO approval')
         )
@@ -345,7 +349,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
       <div style={{marginTop: '3em'}} className={styles.tabContainer}>
         <div className={styles.tabButtonWrapper}>
             <div
-              className={`${styles.activeBgHR} ${
+              className={`${isApprover ? styles.activeBgHR : styles.activeBgApprover} ${
                 activeTab === 'approvedRequests'
                   ? styles.slideCenter
                   : activeTab === 'requests'
@@ -362,17 +366,19 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
             To Approve
           </button>
           <button
-            className={`${styles.tabButtonCenter} ${activeTab === 'approvedRequests' ? styles.activeTabText : ''}`}
+            className={`${isApprover ? styles.tabButtonCenter : styles.tabButtonRight} ${activeTab === 'approvedRequests' ? styles.activeTabText : ''}`}
             onClick={() => setActiveTab('approvedRequests')}
           >
             Approved
           </button>
-          <button
-            className={`${styles.tabButtonRight} ${activeTab === 'budgetSharing' ? styles.activeTabText : ''}`}
-            onClick={() => setActiveTab('budgetSharing')}
-          >
-            Budget Sharing
-          </button>
+          {isApprover && (
+            <button
+              className={`${styles.tabButtonRight} ${activeTab === 'budgetSharing' ? styles.activeTabText : ''}`}
+              onClick={() => setActiveTab('budgetSharing')}
+            >
+              Budget Sharing
+            </button>
+          )}
         </div>
       </div>
 
@@ -405,7 +411,6 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
         <BudgetSharing
           context={context}
           loggedInUser={loggedInUser}
-          isApprover={isApprover}
           teamCoachBudgets={teamCoachBudgets}
           selectedYear={selectedYear}
         />

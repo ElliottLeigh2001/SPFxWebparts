@@ -577,15 +577,15 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     }
   };
 
-  const handleTeamCoachDeny = () => {
+  const handleTeamCoachDeny = async () => {
+    await updateTeamCoachApproval(context, request.ID, 'Disapprove');
     setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Disapprove' }));
-    updateTeamCoachApproval(context, request.ID, 'Disapprove');
     onUpdate();
   }
 
-  const handleTeamCoachApprove = () => {
+  const handleTeamCoachApprove = async () => {
+    await updateTeamCoachApproval(context, request.ID, 'Approve');
     setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Approve' }));
-    updateTeamCoachApproval(context, request.ID, 'Approve');
     onUpdate();
   }
 

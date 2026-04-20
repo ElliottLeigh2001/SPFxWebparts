@@ -157,7 +157,7 @@ const NewRequestTravel: React.FC<INewRequestProps> = ({ context, onCancel, onSav
         const collectedItems = await collectAllItems();
         if (!collectedItems) return; // Validation failed inside inline forms
 
-        let totalCost = collectedItems.reduce((sum, x) => sum + Number(x.Cost || 0), 0);
+        const totalCost = collectedItems.reduce((sum, x) => sum + Number(x.Cost || 0), 0);
         const earliest = collectedItems.reduce(
         (min, item) => new Date(item.StartDate!) < new Date(min.StartDate!) ? item : min
         );

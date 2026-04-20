@@ -213,7 +213,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
 
                               <FilePicker
                                   context={context as any}
-                                  accepts={[".pdf", ".docx", ".xlsx", ".msg", ".eml", ".jpg", "png"]}
+                                  accepts={[".pdf", ".docx", ".xlsx", ".msg", ".eml", ".jpg", ".png"]}
                                   onSave={(files) => onFilePickerSave(files, item.ID!)}
                                   hideSiteFilesTab={true}
                                   hideStockImages={true}
@@ -229,7 +229,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
                           </button>
                       )}
 
-                      {item.ID && (
+                      {item.DocumentID?.Id && (
                           <button
                               className={requestDetailsStyles.iconButtonDocument}
                               title="Download Document"

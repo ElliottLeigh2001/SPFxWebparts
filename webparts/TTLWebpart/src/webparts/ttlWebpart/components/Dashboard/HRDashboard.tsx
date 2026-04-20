@@ -122,7 +122,7 @@ const HRDashboard: React.FC<IHRDashboardProps> = ({ context, onBack, isHR }) => 
 
   let filteredRequests = requests.filter(req => {
     if (activeTab === 'allRequests') {
-      return requests;
+      return true;
     } else if (activeTab === 'awaitingApproval') {
       return (
         req.RequestStatus === 'Submitted' ||

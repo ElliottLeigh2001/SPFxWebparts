@@ -169,7 +169,7 @@ const NewRequestTraining: React.FC<INewRequestProps> = ({ context, onCancel, onS
         if (!validate() || !collectedItems) return;
 
 
-        let totalCost = collectedItems.reduce((sum, x) => sum + Number(x.Cost || 0), 0);
+        const totalCost = collectedItems.reduce((sum, x) => sum + Number(x.Cost || 0), 0);
         const earliest = collectedItems.reduce(
         (min, item) => new Date(item.StartDate!) < new Date(min.StartDate!) ? item : min
         );

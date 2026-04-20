@@ -4,7 +4,7 @@ import { IUserRequest } from '../../Interfaces/TTLInterfaces';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IEditRequestFormProps } from './RequestDetailsProps';
 
-const EditRequestForm: React.FC<IEditRequestFormProps> = ({ context, request, onSave, onCancel }) => {
+const EditRequestForm: React.FC<IEditRequestFormProps> = ({ request, onSave, onCancel }) => {
   const [title, setTitle] = useState(request.Title || '');
   const [goal, setGoal] = useState(request.Goal || '');
   const [project, setProject] = useState(request.Project || '');
@@ -71,7 +71,7 @@ const EditRequestForm: React.FC<IEditRequestFormProps> = ({ context, request, on
         </div>
         <div className={styles.formItem}>
           <label>Project</label>
-          <input value={project} onChange={e => setProject(e.target.value)} className={titleError ? styles.invalid : ''}/>
+          <input value={project} onChange={e => setProject(e.target.value)} className={projectError ? styles.invalid : ''}/>
           {projectError && <div className={styles.validationError}>{projectError}</div>}
         </div>
       </div>
