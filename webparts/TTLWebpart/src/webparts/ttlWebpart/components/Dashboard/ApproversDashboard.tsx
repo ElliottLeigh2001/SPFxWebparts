@@ -274,7 +274,7 @@ const ApproversDashboard: React.FC<IApproversDashboardProps> = ({ context, onBac
                         <div><strong>Total Budget:</strong> €{teamBudget.totalBudget.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                         <div>
                           <strong>
-                            Available
+                            Available{" "}
                             <TooltipHost content="This reflects the budget that remains after prices of completed and in-process requests have been subtracted.">
                               <Icon iconName="Info" styles={{ root: { cursor: 'pointer', fontSize: 11 } }} />
                             </TooltipHost>

@@ -173,8 +173,9 @@ const NewRequestSoftware: React.FC<INewRequestProps> = ({ context, approvers, lo
         const approverTitle = approverData.PracticeLead?.Title;
         const teamCoachEmail = approverData?.TeamCoach?.EMail;
         const teamCoachTitle = approverData.TeamCoach?.Title;
-        const directorEmail = approverData.CEO?.Email;
-        const directorTitle = approverData.CEO?.Title
+        const ceoRow = approvers.find(a => a.CEO?.EMail);
+        const directorEmail = ceoRow?.CEO?.EMail;
+        const directorTitle = ceoRow?.CEO?.Title;
 
         await sendEmail({
           emailType: "new request",

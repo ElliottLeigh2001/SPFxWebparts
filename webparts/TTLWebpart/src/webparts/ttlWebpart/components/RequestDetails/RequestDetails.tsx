@@ -122,14 +122,18 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
 
   // Helper function to extract approver data for email
   const getApproverEmailData = async () => {
-    const approverData = await getApproverById(context, Number(request.ApproverID?.Id));
+    const [approverData, allApprovers] = await Promise.all([
+      getApproverById(context, Number(request.ApproverID?.Id)),
+      getApprovers(context),
+    ]);
+    const ceoRow = allApprovers.find(a => a.CEO?.EMail);
     return {
       approverEmail: approverData?.PracticeLead?.EMail,
       approverTitle: approverData?.PracticeLead?.Title,
       teamCoachEmail: approverData?.TeamCoach?.EMail,
       teamCoachTitle: approverData.TeamCoach?.Title,
-      directorEmail: approverData.CEO?.Email,
-      directorTitle: approverData.CEO?.Title,
+      directorEmail: ceoRow?.CEO?.EMail,
+      directorTitle: ceoRow?.CEO?.Title,
     };
   };
 
@@ -577,13 +581,15 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     }
   };
 
-  const handleTeamCoachDeny = async () => {
+  const handleTeamCoachDeny = async (comment: string) => {
+    if (comment) await handleAddComment(comment);
     await updateTeamCoachApproval(context, request.ID, 'Disapprove');
     setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Disapprove' }));
     onUpdate();
   }
 
-  const handleTeamCoachApprove = async () => {
+  const handleTeamCoachApprove = async (comment: string) => {
+    if (comment) await handleAddComment(comment);
     await updateTeamCoachApproval(context, request.ID, 'Approve');
     setDisplayedRequest(prev => ({ ...prev, TeamCoachApproval: 'Approve' }));
     onUpdate();
@@ -759,9 +765,9 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
               } else if (confirmAction === 'completed') {
                 await handleConfirmCompleted();
               } else if (confirmAction === 'teamCoachDeny') {
-                await handleTeamCoachDeny();
+                await handleTeamCoachDeny(comment!);
               } else if (confirmAction === 'teamCoachApprove') {
-                await handleTeamCoachApprove();
+                await handleTeamCoachApprove(comment ?? '');
               }
               success = true;
             } finally {

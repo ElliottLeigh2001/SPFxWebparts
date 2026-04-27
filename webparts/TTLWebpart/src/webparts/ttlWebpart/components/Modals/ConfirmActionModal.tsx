@@ -24,7 +24,7 @@ const ConfirmActionModal: React.FC<IConfirmActionModalProps> = ({ isOpen, action
       </div>
       <div className={newRequestStyles.confirmationBody}>
         <p>{messages[action]}</p>
-        {(action === 'deny' || action === 'reapprove') && (
+        {(action === 'deny' || action === 'reapprove' || action === 'teamCoachDeny') && (
           <>
             <label>Add a comment *</label>
             <textarea 
@@ -40,7 +40,7 @@ const ConfirmActionModal: React.FC<IConfirmActionModalProps> = ({ isOpen, action
             {commentError && <div className={styles.validationError}>{commentError}</div>}
           </>
         )}
-        {(action === 'approve' || action === 'send') && (
+        {(action === 'approve' || action === 'send' || action === 'teamCoachApprove') && (
           <>
             <label>Add a comment (optional)</label>
             <textarea 
@@ -59,7 +59,7 @@ const ConfirmActionModal: React.FC<IConfirmActionModalProps> = ({ isOpen, action
           <button
             className={styles.saveButton}
             onClick={() => {
-              if ((action === 'deny' || action === 'reapprove') && !comment.trim()) {
+              if ((action === 'deny' || action === 'reapprove' || action === 'teamCoachDeny') && !comment.trim()) {
                 setCommentError('Please enter a comment')
                 return;
               }

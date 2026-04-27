@@ -73,15 +73,15 @@ export const getLoggedInUser = async (context: WebPartContext) => {
 // Gets the groups of the logged in user
 export const checkHR = async (context: WebPartContext): Promise<boolean> => {
   // Check SharePoint site groups first
-  const response = await context.spHttpClient.get(
-    `${context.pageContext.web.absoluteUrl}/_api/web/currentuser?$expand=groups`,
-    SPHttpClient.configurations.v1
-  );
-  const data = await response.json();
-  const userGroups = data.Groups?.map((grp: any) => grp.Title.toLowerCase()) || [];
-  if (userGroups.some((group: string) => group.includes("hr-be owners"))) {
-    return true;
-  }
+  // const response = await context.spHttpClient.get(
+  //   `${context.pageContext.web.absoluteUrl}/_api/web/currentuser?$expand=groups`,
+  //   SPHttpClient.configurations.v1
+  // );
+  // const data = await response.json();
+  // const userGroups = data.Groups?.map((grp: any) => grp.Title.toLowerCase()) || [];
+  // if (userGroups.some((group: string) => group.includes("hr-be owners"))) {
+  //   return true;
+  // }
 
   try {
     const tokenProvider = await context.aadTokenProviderFactory.getTokenProvider();

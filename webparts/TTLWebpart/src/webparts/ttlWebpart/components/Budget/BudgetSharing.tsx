@@ -7,6 +7,7 @@ import budgetStyles from './Budgets.module.scss';
 import modalStyles from '../Modals/Modals.module.scss';
 import styles from '../Dashboard/TtlWebpart.module.scss';
 import { IBudgetSharingProps } from './BudgetProps';
+import { sendEmail } from '../../service/AutomateService';
 
 interface ISelectedBudgetAllocation {
   teamCoachId: number;
@@ -107,6 +108,16 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, t
       try {
         // Create the budget sharing request
         await addBudgetSharing(context, loggedInUser.Id, Number(selectedApproverId), Number(selectedTeamCoachId), Number(amount));
+
+        const selectedApprover = availableApprovers.find(ap => ap.Id === Number(selectedApproverId));
+        await sendEmail({
+          emailType: "budgetSharing",
+          authorName: loggedInUser.Title,
+          sharerEmail: selectedApprover?.EMail || "",
+          sharerTitle: selectedApprover?.Title || "",
+          totalCost: amount,
+        })
+
         setShowCreateForm(false);
         setSelectedApproverId('');
         setSelectedTeamCoachId('');
@@ -162,6 +173,15 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, t
         await addToBudget(context, requesterBudget.ID, acceptingItem.Amount);
       }
 
+      const selectedApprover = availableApprovers.find(ap => ap.Id === Number(selectedApproverId));
+      await sendEmail({
+        emailType: "acceptBudgetSharing",
+        authorName: loggedInUser.Title,
+        sharerEmail: selectedApprover?.EMail || "",
+        sharerTitle: selectedApprover?.Title || "",
+        totalCost: amount,
+      })
+
       setAcceptingItem(null);
       setSelectedBudgets([]);
       setError(null);
@@ -180,6 +200,15 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, t
     try {
       setIsProcessing(true);
       await denyBudgetSharing(context, denyingItem.ID);
+
+      const selectedApprover = availableApprovers.find(ap => ap.Id === Number(selectedApproverId));
+      await sendEmail({
+        emailType: "denyBudgetSharing",
+        authorName: loggedInUser.Title,
+        sharerEmail: selectedApprover?.EMail || "",
+        sharerTitle: selectedApprover?.Title || "",
+        totalCost: amount,
+      })
       setDenyingItem(null);
       setError(null);
       await loadData();
@@ -297,7 +326,8 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, t
                 Cancel
               </button>
               <button
-                className={budgetStyles.selectBudget}
+                style={{ marginBottom: 0 }}
+                className={styles.stdButton}
                 onClick={handleCreate}
               >
                 Submit Request
