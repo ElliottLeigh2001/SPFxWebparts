@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Modal } from '@fluentui/react';
-import SoftwareForm from '../Forms/SoftwareForm';
 import TrainingForm from '../Forms/TrainingForm';
 import TravelForm from '../Forms/TravelForm';
 import modalStyles from './Modals.module.scss';
@@ -12,28 +11,6 @@ const EditItemModal: React.FC<IEditItemModalProps> = ({ context, activeForm, act
 
   return (
     <>
-      <Modal
-        isOpen={activeForm === 'software'}
-        onDismiss={onCancel}
-        isBlocking={false}
-        containerClassName={modalStyles.modalContainer}
-      >
-        <div className={modalStyles.modalHeader}>
-          <h3>{getModalTitle()}</h3>
-          <button className={modalStyles.modalCloseButton} onClick={onCancel}>×</button>
-        </div>
-        <div className={modalStyles.modalBody}>
-          <SoftwareForm
-            context={context}
-            onSave={onSave}
-            onCancel={onCancel}
-            initialData={editingItem}
-            view={view}
-          />
-          {isUpdating && <div className={'loading'}>Updating...</div>}
-        </div>
-      </Modal>
-
       <Modal
         isOpen={activeForm === 'training'}
         onDismiss={onCancel}

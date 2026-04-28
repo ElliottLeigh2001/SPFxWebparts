@@ -85,56 +85,6 @@ export const getRequestStatusStyling = (status: string): string => {
     return statusMap[status] || styles.default;
 };
 
-// Function to calculate the yearly cost of a software license
-export const calculateSoftwareLicenseCost = (data: any) => {
-  let cost;
-  let usersCount = 0;
-  const u = data.UsersLicense;
-
-  if (Array.isArray(u)) {
-    if (u.length === 1 && typeof u[0] === 'string' && u[0].includes(',')) {
-      // Single string with commas
-      usersCount = u[0].split(',').map(s => s.trim()).filter(Boolean).length;
-    } else {
-      // Array of individual names
-      usersCount = u.length;
-    }
-  } else if (typeof u === 'string') {
-    usersCount = u.split(',').map(s => s.trim()).filter(Boolean).length;
-  } else if (u && typeof u === 'object' && Array.isArray(u.results)) {
-    // SharePoint People Picker format
-    usersCount = u.results.length;
-  } else {
-    usersCount = 0;
-  }
-
-  // Different calculations for each combination of license type and amount of users in the license
-  switch (`${data.LicenseType}_${data.Licensing}`) {
-    case 'Group_Monthly':
-      cost = data.Cost * 12;
-      break;
-    case 'Individual_Monthly':
-      cost = usersCount * data.Cost * 12;
-      break;
-    case 'Group_Yearly':
-      cost = data.Cost;
-      break;
-    case 'Individual_Yearly':
-      cost = usersCount * data.Cost;
-      break;
-    case 'Group_One-time':
-      cost = data.Cost;
-      break;
-    case 'Individual_One-time':
-      cost = usersCount * data.Cost;
-      break;
-    default:
-      cost = 0;
-  }
-
-  return cost;
-}
-
 // Attach URL handlers for dashboards: listens for popstate and checks URL on attach
 export const attachUrlHandlers = (args: {
   viewName: string;

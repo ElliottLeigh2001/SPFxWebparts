@@ -53,9 +53,6 @@ export interface IUserRequestItem {
     OData__EndDate?: string;
     RequestType?: string;
     Cost?: string;
-    Licensing?: string;
-    LicenseType?: string;
-    UsersLicense?: any[];
     Attachments?: any
     Processed?: boolean;
     ChangedByHR?: boolean;

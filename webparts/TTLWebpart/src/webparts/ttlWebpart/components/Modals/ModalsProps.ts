@@ -53,8 +53,8 @@ export interface IConfirmDeleteModalProps {
 
 export interface IEditItemModalProps {
   context: WebPartContext;
-  activeForm: 'software'|'training'|'travel'|'accommodation'|null;
-  activeFormName: 'software'|'training'|'travel'|'accommodation'|null;
+  activeForm: 'training'|'travel'|'accommodation'|null;
+  activeFormName: 'training'|'travel'|'accommodation'|null;
   editingItem?: IUserRequestItem | undefined;
   isUpdating: boolean;
   view: string;

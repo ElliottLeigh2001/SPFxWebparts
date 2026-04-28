@@ -24,7 +24,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
     view,
     context,
 }) => {
-  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set(['Software', 'Training', 'Travel', 'Accommodation']));
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set(['Training', 'Travel', 'Accommodation']));
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
   const [downloadDocs, setDownloadDocs] = useState<Array<{ id: number; url: string; name: string }>>([]);
   const [downloadLoadingForItem, setDownloadLoadingForItem] = useState<number | null>(null);
@@ -56,17 +56,6 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
 
   const getSP = (context: any): SPFI => {
       return spfi(context.pageContext.web.absoluteUrl).using(SPFx(context));
-  };
-
-  // Parse UsersLicense to show all users in a single string
-  const getUsersLicenseDisplay = (usersLicense: any[] | undefined): string => {
-    if (!usersLicense || !Array.isArray(usersLicense) || usersLicense.length === 0) {
-        return '-';
-    }
-
-    const people = usersLicense.map(user => user.Title);
-
-    return people.join(', ');
   };
 
   const openDownloadDialog = async (item: IUserRequestItem) => {
@@ -265,63 +254,39 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
                       </div>
                   )}
 
-                  {item.RequestType === 'Software' && (
-                      <>
-                          {item.Licensing && (
-                              <div className={requestDetailsStyles.fieldGroup}>
-                                  <span className={requestDetailsStyles.fieldLabel}>Licensing:</span>
-                                  <span className={requestDetailsStyles.fieldValue}>{item.Licensing}</span>
-                              </div>
-                          )}
-                          {item.LicenseType && (
-                              <div className={requestDetailsStyles.fieldGroup}>
-                                  <span className={requestDetailsStyles.fieldLabel}>License Type:</span>
-                                  <span className={requestDetailsStyles.fieldValue}>{item.LicenseType}</span>
-                              </div>
-                          )}
-                          {item.UsersLicense && item.UsersLicense.length > 0 && (
-                              <div className={requestDetailsStyles.fieldGroup}>
-                              <span className={requestDetailsStyles.fieldLabel}>Users:</span>
-                              <span className={requestDetailsStyles.fieldValue}>{getUsersLicenseDisplay(item.UsersLicense)}</span>
-                              </div>
-                          )}
-                      </>
-                  )}
-
-                  {item.RequestType !== 'Software' && (
-                      <>
-                          {item.Location && (
-                              <div className={requestDetailsStyles.fieldGroup}>
-                                  <span className={requestDetailsStyles.fieldLabel}>Location:</span>
-                                  <span className={requestDetailsStyles.fieldValue}>{item.Location}</span>
-                              </div>
-                          )}
-                          {item.LocationFrom && (
-                              <div className={requestDetailsStyles.fieldGroup}>
-                                  <span className={requestDetailsStyles.fieldLabel}>From:</span>
-                                  <span className={requestDetailsStyles.fieldValue}>{item.LocationFrom}</span>
-                              </div>
-                          )}
-                          {item.LocationTo && (
-                              <div className={requestDetailsStyles.fieldGroup}>
-                                  <span className={requestDetailsStyles.fieldLabel}>To:</span>
-                                  <span className={requestDetailsStyles.fieldValue}>{item.LocationTo}</span>
-                              </div>
-                          )}
-                          {item.StartDate && (
-                              <div className={requestDetailsStyles.fieldGroup}>
-                                  <span className={requestDetailsStyles.fieldLabel}>Start Date:</span>
-                                  <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.StartDate))}</span>
-                              </div>
-                          )}
-                          {item.OData__EndDate && (
-                              <div className={requestDetailsStyles.fieldGroup}>
-                                  <span className={requestDetailsStyles.fieldLabel}>End Date:</span>
-                                  <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.OData__EndDate))}</span>
-                              </div>
-                          )}
-                      </>
-                  )}
+                  <>
+                      {item.Location && (
+                          <div className={requestDetailsStyles.fieldGroup}>
+                              <span className={requestDetailsStyles.fieldLabel}>Location:</span>
+                              <span className={requestDetailsStyles.fieldValue}>{item.Location}</span>
+                          </div>
+                      )}
+                      {item.LocationFrom && (
+                          <div className={requestDetailsStyles.fieldGroup}>
+                              <span className={requestDetailsStyles.fieldLabel}>From:</span>
+                              <span className={requestDetailsStyles.fieldValue}>{item.LocationFrom}</span>
+                          </div>
+                      )}
+                      {item.LocationTo && (
+                          <div className={requestDetailsStyles.fieldGroup}>
+                              <span className={requestDetailsStyles.fieldLabel}>To:</span>
+                              <span className={requestDetailsStyles.fieldValue}>{item.LocationTo}</span>
+                          </div>
+                      )}
+                      {item.StartDate && (
+                          <div className={requestDetailsStyles.fieldGroup}>
+                              <span className={requestDetailsStyles.fieldLabel}>Start Date:</span>
+                              <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.StartDate))}</span>
+                          </div>
+                      )}
+                      {item.OData__EndDate && (
+                          <div className={requestDetailsStyles.fieldGroup}>
+                              <span className={requestDetailsStyles.fieldLabel}>End Date:</span>
+                              <span className={requestDetailsStyles.fieldValue}>{formatDate(new Date(item.OData__EndDate))}</span>
+                          </div>
+                      )}
+                  </>
+                  
 
                   {item.Link && (
                       <div className={requestDetailsStyles.fieldGroup}>
@@ -410,7 +375,7 @@ const RequestItemsList: React.FC<IRequestItemsListProps> = ({
               <div className={styles.noData}>No request items found for this request</div>
           )}
 
-          {view === 'myView' && (request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && items.length > 0 && items[0].RequestType !== "Software" && (
+          {view === 'myView' && (request.RequestStatus === 'Draft' || request.RequestStatus === 'Rejected') && items.length > 0 && (
               <div className={requestDetailsStyles.addButtonContainer}>
                   <button onClick={onAdd} className={requestDetailsStyles.addNewItem}>
                       <i className="fa-solid fa-plus"></i>

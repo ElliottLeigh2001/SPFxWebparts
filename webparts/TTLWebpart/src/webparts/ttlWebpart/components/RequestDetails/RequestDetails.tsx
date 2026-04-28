@@ -24,7 +24,7 @@ import HeaderComponent from '../Header/HeaderComponent';
 const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, HRTab, onBack, onUpdate, error, context, isCEO, isApprover, isTeamCoach, totalBudget }) => {
   const [editingItem, setEditingItem] = useState<IUserRequestItem | undefined>(undefined);
   const [editingRequest, setEditingRequest] = useState<boolean>(false);
-  const [activeForm, setActiveForm] = useState<'software'|'training'|'travel'|'accommodation'|null>(null);
+  const [activeForm, setActiveForm] = useState<'training'|'travel'|'accommodation'|null>(null);
   const [activeFormName, setActiveFormName] = useState<'training'|'travel'|'accommodation'|null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -41,7 +41,6 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
   const [confirmAction, setConfirmAction] = useState<'approve'|'deny'|'send'|'reapprove'|'completed'|'teamCoachApprove'|'teamCoachDeny'|null>(null);
   const [confirmProcessing, setConfirmProcessing] = useState(false);
   const [changedByHR, setChangedByHR] = useState(false);
-  const [typeOfRequest, setTypeOfRequest] = useState('');
   const [deadlineWarning, setDeadlineWarning] = useState(false);
   const [isOverTeamcoachBudget, setIsOverTeamcoachBudget] = useState(false);
   const [isOverTeamBudget, setIsOverTeamBudget] = useState(false);
@@ -53,14 +52,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     setDisplayedItems(items || []);
   }, [items]);
 
-  // Check if the request is of type software or training/travel
-  // This state is used in the Power Automate flow
   useEffect(() => {
-    if (items && items.length > 0 && items[0].RequestType === 'Software') {
-      setTypeOfRequest('Software License');
-    } else {
-      setTypeOfRequest('Training / Travel')
-    }
     if (request.DeadlineDate) {
       if (new Date(request.DeadlineDate) < new Date()) {
         setDeadlineWarning(true);
@@ -117,7 +109,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
     totalCost: request.TotalCost.toString(),
     authorEmail: request.Author?.EMail,
     authorName: request.Author?.Title,
-    typeOfRequest: typeOfRequest,
+    typeOfRequest: items?.[0]?.RequestType === 'Travel' ? 'Travel' : 'Training',
   });
 
   // Helper function to extract approver data for email
@@ -647,18 +639,7 @@ const RequestDetails: React.FC<IRequestDetailsProps> = ({ request, items, view, 
                     </>
                   )}
                 </div>
-                {displayedItems.length === 0 || displayedItems[0].RequestType !== 'Software' ? (
-                  <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
-                ) : (
-                  <>
-                    {displayedItems[0].Licensing === 'One-time' ? (
-                      <span><strong>Total Cost (one-time):</strong> € {displayedRequest.TotalCost}</span>
-                    ) : (
-
-                      <span><strong>Total Cost (yearly):</strong> € {displayedRequest.TotalCost}</span>
-                    )}
-                  </>
-                )}
+                <span><strong>Total Cost:</strong> € {displayedRequest.TotalCost}</span>
                 <span><strong>Project:</strong> {displayedRequest.Project || '-'}</span>
                 <span><strong>Team:</strong> {displayedRequest.Team || '-'}</span>
                 <span><strong>Submission Date:</strong> {formatDate(displayedRequest.SubmissionDate) || '-'}</span>

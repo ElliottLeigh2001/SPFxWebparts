@@ -3,7 +3,6 @@ import { spfi, SPFI } from "@pnp/sp";
 import { SPFx } from "@pnp/sp/presets/all";
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { IApprover, IUserRequest, IUserRequestItem, IBudget, IBudgetSharingItem } from "../Interfaces/TTLInterfaces";
-import { calculateSoftwareLicenseCost } from "../Helpers/HelperFunctions";
 
 // Define spfi for CRUD operations to lists
 let sp: SPFI;
@@ -133,15 +132,6 @@ export const getRequestsData = async (
 
 // Map SharePoint item to IUserRequestItem interface
 const mapSharePointItemToUserRequestItem = (sharePointItem: any): IUserRequestItem => {
-  let usersLicense: any[] = [];
-
-  if (sharePointItem.UsersLicense) {
-    usersLicense = sharePointItem.UsersLicense.map((user: any) => ({
-      Id: user.Id,
-      Title: user.Title,
-      EMail: user.EMail,
-    }));
-  }
 
   return {
     ID: sharePointItem.Id,
@@ -155,10 +145,7 @@ const mapSharePointItemToUserRequestItem = (sharePointItem: any): IUserRequestIt
     OData__EndDate: sharePointItem.OData__EndDate || '',
     RequestType: sharePointItem.RequestType || '',
     Cost: sharePointItem.Cost || '',
-    Licensing: sharePointItem.Licensing || '',
-    LicenseType: sharePointItem.LicenseType || '',
-    UsersLicense: usersLicense,
-    DocumentID: sharePointItem.DocumentID ? { Id: sharePointItem.DocumentID.Id, url: sharePointItem.DocumentID.url } : undefined,
+    DocumentID: sharePointItem.DocumentIDId ? { Id: sharePointItem.DocumentIDId, url: undefined } : undefined,
     Processed: sharePointItem.Processed || false,
     ChangedByHR: sharePointItem.ChangedByHR || false,
     Notes: sharePointItem.Notes || '',
@@ -188,8 +175,8 @@ export const getRequestItemsByRequestId = async (context: WebPartContext, reques
   // Build a filter to get all items at once
   const filter = requestItemIds.map((id: any) => `Id eq ${id}`).join(' or ');
 
-  // Get all items with user expansion in one call. Include UsersLicense expanded fields
-  const requestUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_RequestItem')/items?$filter=${encodeURIComponent(filter)}&$select=*,UsersLicense/Id,UsersLicense/Title,UsersLicense/EMail,DocumentID/Id,DocumentID/Title&$expand=UsersLicense,DocumentID`;
+  // Get all items with user expansion in one call. DocumentIDId is read as the raw lookup ID to avoid a cross-library permission check on TTL_Documents.
+  const requestUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TTL_RequestItem')/items?$filter=${encodeURIComponent(filter)}&$select=*,DocumentIDId`;
   const response = await context.spHttpClient.get(requestUrl, SPHttpClient.configurations.v1);
 
   if (!response.ok) {
@@ -252,8 +239,6 @@ export const createRequestItem = async (context: WebPartContext, item: IUserRequ
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
 
-  // Ensure user IDs for UsersLicense field
-  const userIds = await getUserIds(sp, item.UsersLicense || []);
 
   const listItemData: any = {
     Title: item.Title || '',
@@ -266,14 +251,8 @@ export const createRequestItem = async (context: WebPartContext, item: IUserRequ
     OData__EndDate: item.OData__EndDate || null,
     RequestType: item.RequestType || '',
     Cost: item.Cost || '',
-    Licensing: item.Licensing || '',
-    LicenseType: item.LicenseType || '',
     Notes: item.Notes || '',
   };
-
-  if (userIds.length > 0) {
-    listItemData.UsersLicenseId = userIds;
-  }
 
   const addResult = await list.items.add(listItemData);
   return addResult.Id
@@ -340,7 +319,6 @@ export const createRequestItemForExistingRequest = async (
 ): Promise<number> => {
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
-  const userIds = await getUserIds(sp, item.UsersLicense || []);
 
   const listItemData: any = {
     Title: item.Title || '',
@@ -353,15 +331,9 @@ export const createRequestItemForExistingRequest = async (
     OData__EndDate: item.OData__EndDate || null,
     RequestType: item.RequestType || '',
     Cost: item.Cost || '',
-    Licensing: item.Licensing || '',
-    LicenseType: item.LicenseType || '',
     RequestIDId: requestId,
     Notes: item.Notes || '',
   };
-
-  if (userIds.length > 0) {
-    listItemData.UsersLicenseId = userIds;
-  }
 
   const addResult = await list.items.add(listItemData);
   const finalId = addResult.Id
@@ -501,7 +473,6 @@ export const updateRequestDeadline = async (
 export const updateRequestItem = async (context: WebPartContext, itemId: number, item: IUserRequestItem): Promise<void> => {
   const sp = getSP(context);
   const list = sp.web.lists.getByTitle('TTL_RequestItem');
-  const userIds = await getUserIds(sp, item.UsersLicense || []);
 
   const listItemData: any = {
     Title: item.Title || '',
@@ -514,14 +485,8 @@ export const updateRequestItem = async (context: WebPartContext, itemId: number,
     OData__EndDate: item.OData__EndDate || null,
     RequestType: item.RequestType || '',
     Cost: item.Cost || '',
-    Licensing: item.Licensing || '',
-    LicenseType: item.LicenseType || '',
     Notes: item.Notes || '',
   };
-
-  if (userIds.length > 0) {
-    listItemData.UsersLicenseId = userIds;
-  }
 
   try {
     await list.items.getById(itemId).update(listItemData, "*");
@@ -542,8 +507,8 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
 
   const item = await list.items.getById(itemId).select(
     'ID', 'Title', 'Provider', 'Location', 'LocationFrom', 'LocationTo', 'Link', 'Notes', 'StartDate', 'OData__EndDate',
-    'RequestType', 'Cost', 'Licensing', 'LicenseType', 'UsersLicense/Id', 'UsersLicense/Title', 'UsersLicense/LoginName'
-  ).expand('UsersLicense')();
+    'RequestType', 'Cost'
+  )();
 
   return {
     ID: item.Id,
@@ -558,13 +523,6 @@ export const getRequestItem = async (context: WebPartContext, itemId: number): P
     OData__EndDate: item.OData__EndDate,
     RequestType: item.RequestType,
     Cost: item.Cost,
-    Licensing: item.Licensing,
-    LicenseType: item.LicenseType,
-    UsersLicense: item.UsersLicense ? item.UsersLicense.map((user: any) => ({
-      id: user.Id,
-      title: user.Title,
-      loginName: user.LoginName
-    })) : [],
   };
 };
 
@@ -582,14 +540,7 @@ export const recalcAndUpdateRequestTotal = async (
     // Calculate total cost
     let totalCost = 0;
     for (const item of items) {
-      // If it's a software request
-      if (items[0].RequestType === 'Software') {
-        // Perform calculation for the yearly cost of the software license
-        totalCost += calculateSoftwareLicenseCost({ Cost: Number(item.Cost), Licensing: item.Licensing, LicenseType: item.LicenseType, UsersLicense: item.UsersLicense })
-      } else {
-        // Otherwise just add up the costs
-        totalCost += Number(item.Cost)
-      }
+      totalCost += Number(item.Cost)
     }
 
     // Update the request with the new total

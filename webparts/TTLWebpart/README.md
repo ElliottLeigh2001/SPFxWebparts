@@ -2,7 +2,7 @@
 
 ## Summary
 
-This SPFx webpart is an extensive "application" to manage requests concerning trainings, travels, accommodations and software licenses. Each user has their own dashboard where they can visualise, add, update and delete requests. Once a request is created, the user can either 'save' their request so they can edit it later, or they can
+This SPFx webpart is an extensive "application" to manage requests concerning trainings, travels and accommodations. Each user has their own dashboard where they can visualise, add, update and delete requests. Once a request is created, the user can either 'save' their request so they can edit it later, or they can
 send it for approval. At this point, the request is no longer editable and it appear in the dashboard of the approver that was selected during the process of making the request.
 
 The approver can either approve or deny any requests in their dashboard (and provide a comment). Approvers also have an overview of their team's budget and can request funds from other team's budgets.
@@ -44,11 +44,9 @@ Request is approved by all required approvers: requester is informed that their 
 - DashboardComponent.tsx: Component that contains the table with requests, tailored for each type of dashboard
 
 - ChooseNewRequest.tsx: Component where the user is prompted to choose the kind of request they want to make
-- NewRequestSoftware.tsx: Component for detailing a new software request.
 - NewRequestTrainingTravel.tsx: Component for detailing a new training request. Optionally, a travel, return travel and accomodation can be added to this training.
 - NewRequestTravel.tsx: Component for detailing a new travel request. Optionally, return travel, a training and accomodation can be added to this travel.
 - AccommodationForm.tsx: Form to add an accommodation to a request
-- Software.tsx: Form to add a software license to a request
 - TrainingForm.tsx: Form to add a training to a request
 - TravelForm.tsx: Form to add a travel to a request
 
@@ -91,7 +89,7 @@ To import into SharePoint site collection:
   - Sending for approval / saving
   - Viewing comments
 - Adding new requests with specific request items
-  - multiple options (software, training, travel)
+  - multiple options (training, travel, accomodation)
 - Approval system with multiple steps
 - Dashboards for the managing director, delivery director, approvers, team coaches and HR
   - Filtering

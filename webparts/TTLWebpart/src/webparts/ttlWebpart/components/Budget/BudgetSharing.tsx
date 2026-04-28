@@ -274,6 +274,7 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, t
 
   return (
     <div style={{marginTop: '70px', width: '96%', justifySelf: 'center'}}>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
       {error && (
         <div className={styles.error}><p>{error}</p></div>
       )}
@@ -313,10 +314,8 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, t
               <input
                 type="number"
                 min="0"
-                step="0.01"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                placeholder="0.00"
                 className={`${amountError ? styles.invalid : ''} ${styles.textInput}`}
               />
               {amountError && <div className={styles.validationError}>{amountError}</div>}
@@ -436,7 +435,7 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, t
         </h3>
         {showHistory && (
           <>
-          {outgoing.length === 0 ? (
+          {items.length === 0 ? (
             <p className={budgetStyles.paragraph}>You haven't made or received any budget requests.</p>
           ) : (
             <div className={styles.tableContainer}>
@@ -519,12 +518,10 @@ const BudgetSharing: React.FC<IBudgetSharingProps> = ({ context, loggedInUser, t
                         <input
                           type="number"
                           min="0"
-                          step="0.01"
                           max={b.Availablebudget}
-                          value={selectedBudget?.amount || 0}
+                          value={selectedBudget?.amount || ""}
                           onChange={handleBudgetAmountChange(b.TeamCoach?.Id!, b.Availablebudget)}
                           style={{ width: '120px', padding: 6 }}
-                          placeholder="0.00"
                         />
                       </div>
                     )}
