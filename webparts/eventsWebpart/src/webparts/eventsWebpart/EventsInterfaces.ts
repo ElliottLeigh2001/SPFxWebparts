@@ -19,4 +19,5 @@ export interface EventItem {
   Signinlink?: string;
   Carpooling: boolean;
   DepartureFrom: string;
+  Draft: boolean;
 }

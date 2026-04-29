@@ -6,10 +6,12 @@ import { EventItem, IEventsWebpartProps } from "../EventsInterfaces";
 import { formatSingleDate, getDateRange } from "../utils/DateUtils";
 import HeaderComponent from "./header/HeaderComponent";
 import { getListData, getMySubscriptions } from "../service/EventsService";
+import { SPHttpClient } from "@microsoft/sp-http";
 
 const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   const [items, setItems] = useState<EventItem[]>([]);
   const [allItems, setAllItems] = useState<EventItem[]>([]);
+  const [isAdminOrMember, setIsAdminOrMember] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
@@ -79,6 +81,27 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
     thisMonth: "This month"
   };
 
+    // Gets the groups of the logged in user
+  const getUserGroups = async (): Promise<boolean> => {
+    try {
+      const response = await context.spHttpClient.get(
+        `${context.pageContext.web.absoluteUrl}/_api/web/currentuser?$expand=groups`,
+        SPHttpClient.configurations.v1
+      );
+      // Only hr members and owners can add events
+      const data = await response.json();
+      const userGroups = data.Groups?.map((grp: any) => grp.Title.toLowerCase()) || [];
+      const canAddEvents = userGroups.some((group: string) =>
+        ['hr-be members', 'hr-be owners'].some((role) => group.includes(role))
+      );
+
+      return canAddEvents;
+    } catch (err) {
+      console.error("Error checking group membership:", err);
+      return false;
+    }
+  };
+
   // Add an event type to filter on
   const addFilter = (name: string) => {
     setFilters((prev) =>
@@ -94,8 +117,8 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   useEffect(() => {
     let filtered = [...allItems];
 
-    // event-type filters (exclude MyEvents from this filtering)
-    const realTypeFilters = filters.filter(f => f !== "MyEvents");
+    // event-type filters (exclude special filters from this)
+    const realTypeFilters = filters.filter(f => f !== "MyEvents" && f !== "Draft");
 
     if (realTypeFilters.length > 0) {
       filtered = filtered.filter((item) =>
@@ -121,6 +144,11 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
       );
     }
 
+    // Draft filter (admin only)
+    if (filters.includes("Draft")) {
+      filtered = filtered.filter((item) => item.Draft);
+    }
+
     // Date range filter
     if (dateRangeFilter) {
       const range = getDateRange(dateRangeFilter);
@@ -140,6 +168,9 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
   useEffect(() => {
     (async () => {
       try {
+        const canAddEvents = await getUserGroups();
+        setIsAdminOrMember(canAddEvents);
+
         const listItems = await getListData(context);
         const now = new Date();
         const upcoming = listItems.filter((item) => {
@@ -148,7 +179,12 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
           endOfDay.setHours(23, 59, 59, 999);
           return endOfDay > now;
         });
-        setAllItems(upcoming);
+        const upcomingWithoutDraft = upcoming.filter((item) => !item.Draft);
+        if (canAddEvents) {
+          setAllItems(upcoming);
+        } else {
+          setAllItems(upcomingWithoutDraft);
+        }
 
         const eventIds = await getMySubscriptions(context);
         setMyEventIds(eventIds);
@@ -210,6 +246,7 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
           setSelectedEvent(null);
           window.history.pushState({}, "", window.location.pathname);
         }}
+        isAdminOrMember={isAdminOrMember}
       />
     );
   }
@@ -260,6 +297,16 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                         {label}
                       </label>
                     ))}
+                    {isAdminOrMember && (
+                      <label className={styles.dropdownItem}>
+                        <input
+                          type="checkbox"
+                          checked={filters.includes("Draft")}
+                          onChange={() => addFilter("Draft")}
+                        />
+                        Draft
+                      </label>
+                    )}
                   </div>
                 )}
               </div>
@@ -400,6 +447,9 @@ const EventsWebpart: React.FC<IEventsWebpartProps> = ({ context }) => {
                           )}
                         <div className={styles.eventContent}>
                           <p className={styles.eventTitle}><strong>{truncate(item.Title, 50)}</strong></p>
+                          {item.Draft === true && (
+                            <p className={styles.draft}>Draft</p>
+                          )}
                           <p className={styles.eventDate}>{formatSingleDate(item.StartTime)}</p>
                           <p className={styles.eventLocation}>{truncate(item.Location, 30)}</p>
                         </div>

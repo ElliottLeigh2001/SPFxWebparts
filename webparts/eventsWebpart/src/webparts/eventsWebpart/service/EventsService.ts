@@ -86,13 +86,20 @@ export const getListData = async (
       "EventTypes",
       "SignupDeadline",
       "PlusOne",
-      "Carpooling"
+      "Carpooling",
+      "Draft"
     )
     .orderBy("StartTime", true)(); // true = ascending
 
   return items as EventItem[];
 };
   
+// Update the Draft field for an event
+export const updateEventDraft = async (context: WebPartContext, eventId: number, isDraft: boolean): Promise<void> => {
+  const sp = getSP(context);
+  await sp.web.lists.getByTitle("HR_Events").items.getById(eventId).update({ Draft: isDraft });
+};
+
 // Fetch subscriptions for current user
 export const getMySubscriptions = async (
   context: WebPartContext

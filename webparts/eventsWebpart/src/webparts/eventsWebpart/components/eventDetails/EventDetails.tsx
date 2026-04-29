@@ -11,9 +11,9 @@ import { PlusOneFormFields } from '../formFields/PlusOne/PlusOneFormFields';
 import { formatDate, formatSingleDate } from '../../utils/DateUtils';
 import { useEventSignup } from '../../hooks/UseEventSignup';
 import detailsStyles from './EventDetails.module.scss'
-import { getAttendeesForEvent } from '../../service/EventsService';
+import { getAttendeesForEvent, updateEventDraft } from '../../service/EventsService';
 
-const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack: () => void; }> = ({ context, event, onBack }) => {
+const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack: () => void; isAdminOrMember: boolean;}> = ({ context, event, onBack, isAdminOrMember }) => {
   const [allAttendees, setAllAttendees] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'details' | 'attendees' | 'carpooling'>('details');
   const activeTabRef = useRef<HTMLParagraphElement | null>(null);
@@ -36,6 +36,21 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
     ageChild4: '',
     ageChild5: '',
   });
+  const [isDraft, setIsDraft] = useState<boolean>(!!event.Draft);
+
+  const handleDraftChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newValue = e.target.value === 'draft';
+    const previous = isDraft;
+    setIsDraft(newValue);
+    try {
+      await updateEventDraft(context, event.Id!, newValue);
+      window.location.reload();
+    } catch (err) {
+      console.error("Failed to update draft status:", err);
+      setIsDraft(previous);
+    }
+  };
+
   const {
     isSignedUp,
     loading,
@@ -275,6 +290,18 @@ const EventDetails: React.FC<{ context: WebPartContext; event: EventItem; onBack
           {notification && (
             <div className={`${detailsStyles.notification} ${notification.type === 'success' ? detailsStyles.success : detailsStyles.error}`}>
               {notification.message}
+            </div>
+          )}
+
+          {isAdminOrMember && (
+            <div>
+              <label>
+                State:&nbsp;
+                <select style={{maxWidth: '30%'}} value={isDraft ? 'draft' : 'published'} onChange={handleDraftChange}>
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </label>
             </div>
           )}
 

@@ -205,6 +205,16 @@
   bottom: 10%;
 }
 
+.draft {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #2a2a2854;
+  color: #212120;
+}
+
 .imgContainer {
   background-color: grey;
 }
